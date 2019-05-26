@@ -1,5 +1,5 @@
 # rtmpt
-R package for fitting Response-Time extended Multinomial Processing Tree models
+R package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
 
 ## Installation
 ### Windows
