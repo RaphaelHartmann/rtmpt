@@ -28,7 +28,7 @@ After the installation of GSL is complete you can install `rtmpt`:
 3. Execute:
 ```
 R CMD build rtmpt
-R CMD INSTALL rtmpt_XYZ.tar.gz
+R CMD INSTALL rtmpt_<XYZ>.tar.gz
 ```
 where XYZ stands for the version number.
 
