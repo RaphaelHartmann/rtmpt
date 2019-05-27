@@ -35,6 +35,7 @@ where XYZ stands for the version number.
 If the error "libgsl.so.23: cannot open shared object file: No such file or directory" occurs while testing the `rtmpt` package, run also `$ sudo ldconfig -v` in the terminal
 
 ### MacOS
+Short instruction for installing rtmpt on MacOS:
 1. If not already installed, install [Homebrew](https://brew.sh/)
 2. Install GSL via Homebrew using terminal and command `brew install gsl`
 3. Install Xcode from the App Store and then install the Command Line Tools using `xcode-select --install`
