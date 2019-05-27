@@ -5,6 +5,10 @@
 R package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
 
 ## Installation
+
+### CRAN
+Unfortunately, an installation via [CRAN](https://cran.r-project.org/) is not yet possible, but will be so in the future.
+
 ### Windows
 The installation from source requires to install [GSL](https://www.gnu.org/software/gsl/) and is rather complicated.
 An easier way is to install the `rtmpt`package via binaries:
