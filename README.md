@@ -10,7 +10,7 @@ R package for fitting Response-Time extended Multinomial Processing Tree models 
 Unfortunately, an installation via [CRAN](https://cran.r-project.org/) is not yet possible, but will become possible in the future.
 
 ### Windows
-The installation from source requires to install [GSL](https://www.gnu.org/software/gsl/) and is rather complicated.
+The installation from source requires the installation of [GSL](https://www.gnu.org/software/gsl/) (>=2.3) and is rather complicated.
 An easier way is to install the `rtmpt`package via binaries:
 1. Download the binaries for your corresponding R version
 * [3.5.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.5/rtmpt_0.1-14.zip) - R old release
