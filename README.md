@@ -52,5 +52,16 @@ open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10
 ```
 5. If you encounter problems, you might also have to install gcc6 or another gcc version. Try `brew install gcc`
 
+## Example
+For an example download the [example](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/an_example.zip) and run the R script. Note that this will take some time. You can also check out the help files for the `rtmpt` package in R via the commands
+```
+?to_rtmpt_model
+?to_rtmpt_data
+?set_params
+?set_resps
+?fit_rtmpt
+```
+or the vignette via `vignette("rtmpt_intro")`.
+
 ## References
 Klauer, K. C., & Kellen, D. (2018). RT-MPTs: Process models for response-time distributions based on multinomial processing trees with applications to recognition memory. *Journal of Mathematical Psychology, 82*, 111-130.
