@@ -2,7 +2,7 @@
 
 
 # rtmpt
-R package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
+*R* package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
 
 ## Installation
 
@@ -19,7 +19,7 @@ An easier way is to install the `rtmpt`package via binaries:
 2. Open Rstudio and install via *Packages -> Install ->* Select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
 
 ### Linux
-Before installing the R package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
+Before installing the *R* package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
 1. Download the latest version of [GSL](https://www.gnu.org/software/gsl/)
 2. Unzip the file
 3. Assuming you downloaded version 2.5 and unziped the file to ~/Downloads/gsl-2.5, open terminal and change directory via ```$ cd ~/Downloads/gsl-2.5```
@@ -30,6 +30,7 @@ make
 sudo make install
 ```
 After the installation of GSL is complete you can install `rtmpt`:
+This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* or with the following steps:
 1. Download all the source files from the `rtmpt` package above
 2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
 3. Execute:
@@ -51,6 +52,16 @@ Short instruction for installing rtmpt on MacOS:
 open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 ```
 5. If you encounter problems, you might also have to install gcc6 or another gcc version. Try `brew install gcc`
+Installing the `rtmpt` package:
+This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* or with the following steps:
+1. Download all the source files from the `rtmpt` package above
+2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
+3. Execute:
+```
+R CMD build rtmpt
+R CMD INSTALL rtmpt_<XYZ>.tar.gz
+```
+where XYZ stands for the version number.
 
 ## Example
 For an example download the [example](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/an_example.zip) and run the R script. Note that this will take some time. You can also check out the help files for the `rtmpt` package in R via the commands
