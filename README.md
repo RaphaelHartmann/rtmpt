@@ -5,7 +5,10 @@ R package for fitting Response-Time extended Multinomial Processing Tree models 
 ### Windows
 The installation from source requires to install [GSL](https://www.gnu.org/software/gsl/) and is rather complicated.
 An easier way is to install the `rtmpt`package via binaries:
-1. Download the [binary](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/rtmpt_0.1-14.zip)
+1. Download the binaries for
+* [3.5.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.5/rtmpt_0.1-14.zip) - R old release
+* [3.6.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.6/rtmpt_0.1-14.zip) - R release
+* [3.7.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.7/rtmpt_0.1-14.zip) - R devel
 2. Open Rstudio and install via *Packages -> Install ->* Select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
 
 ### Linux
