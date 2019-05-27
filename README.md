@@ -30,7 +30,8 @@ make
 sudo make install
 ```
 After the installation of GSL is complete you can install `rtmpt`:
-This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* or with the following steps:
+
+This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** with the following steps:
 1. Download all the source files from the `rtmpt` package above
 2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
 3. Execute:
@@ -53,7 +54,8 @@ open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10
 ```
 5. If you encounter problems, you might also have to install gcc6 or another gcc version. Try `brew install gcc`
 Installing the `rtmpt` package:
-This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* or with the following steps:
+
+This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** with the following steps:
 1. Download all the source files from the `rtmpt` package above
 2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
 3. Execute:
