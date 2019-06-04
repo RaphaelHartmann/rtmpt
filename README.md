@@ -54,6 +54,7 @@ Short instruction for installing rtmpt on MacOS:
 open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 ```
 5. If you encounter problems, you might also have to install gcc6 or another gcc version. Try `brew install gcc`
+
 Installing the `rtmpt` package:
 
 This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** with the following steps:
