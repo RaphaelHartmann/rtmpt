@@ -17,7 +17,7 @@ An easier way is to install the `rtmpt`package via binaries:
 * [![3.5.X](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.5/rtmpt_0.1-14.zip) - R old release
 * [![3.6.X](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.6/rtmpt_0.1-14.zip) - R release
 * [![3.7.X](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.7/rtmpt_0.1-14.zip) - R devel
-2. Open Rstudio and install via *Tools -> Install Packages... ->* Select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
+2. Open Rstudio and install via *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
 
 ### Linux
 Before installing the *R* package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
