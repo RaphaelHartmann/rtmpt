@@ -42,11 +42,11 @@ This is possible either
     2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
   
     3. Execute:
-```
-R CMD build rtmpt
-R CMD INSTALL rtmpt_<XYZ>.tar.gz
-```
-where XYZ stands for the version number.
+    ```
+    R CMD build rtmpt
+    R CMD INSTALL rtmpt_<XYZ>.tar.gz
+    ```
+      where XYZ stands for the version number.
 
 #### NOTE: 
 If the error "libgsl.so.23: cannot open shared object file: No such file or directory" occurs while testing the `rtmpt` package, run also `$ sudo ldconfig -v` in the terminal
