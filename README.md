@@ -32,17 +32,23 @@ sudo make install
 ```
 After the installation of GSL is complete you can install `rtmpt`:
 
-This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** with the following steps:
-1. Download all the source files from the `rtmpt` package above
-2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
-3. Execute:
+This is possible either 
+
+- with the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** 
+- with the following steps:
+  
+    1. Download all the source files from the `rtmpt` package above
+  
+    2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
+  
+    3. Execute:
 ```
 R CMD build rtmpt
 R CMD INSTALL rtmpt_<XYZ>.tar.gz
 ```
 where XYZ stands for the version number.
 
-If the error "libgsl.so.23: cannot open shared object file: No such file or directory" occurs while testing the `rtmpt` package, run also `$ sudo ldconfig -v` in the terminal
+- If the error "libgsl.so.23: cannot open shared object file: No such file or directory" occurs while testing the `rtmpt` package, run also `$ sudo ldconfig -v` in the terminal
 
 ### MacOS
 Short instruction for installing rtmpt on MacOS:
@@ -57,10 +63,16 @@ open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10
 
 Installing the `rtmpt` package:
 
-This is possible via the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** with the following steps:
-1. Download all the source files from the `rtmpt` package above
-2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
-3. Execute:
+This is possible either
+
+- with the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** 
+- with the following steps:
+  
+    1. Download all the source files from the `rtmpt` package above
+  
+    2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
+  
+    3. Execute:
 ```
 R CMD build rtmpt
 R CMD INSTALL rtmpt_<XYZ>.tar.gz
