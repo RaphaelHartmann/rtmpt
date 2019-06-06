@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/badge/license-GPL(>=2)-orange.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
-
+[![Library](https://img.shields.io/badge/library-GSL(>=2.3)-orange.svg)](ftp://ftp.gnu.org/gnu/gsl/)
 
 # rtmpt
 *R* package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
@@ -21,7 +21,7 @@ An easier way is to install the `rtmpt`package via binaries:
 
 ### Linux
 Before installing the *R* package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
-1. Download the latest version of [GSL](https://www.gnu.org/software/gsl/)
+1. Download the latest `*tar.gz` file of [GSL](http://ftpmirror.gnu.org/gsl/)
 2. Unzip the file
 3. Assuming you downloaded version 2.5 and unziped the file to ~/Downloads/gsl-2.5, open terminal and change directory via ```$ cd ~/Downloads/gsl-2.5```
 4. Execute the following lines:
