@@ -30,9 +30,8 @@ Before installing the *R* package `rtmpt` you need to install the latest version
 make
 sudo make install
 ```
-After the installation of GSL is complete you can install `rtmpt`:
-
-This is possible either 
+For some Linux distributions it is necessary to run `sudo ldconfig -v` in the terminal before installing `rtmpt`.
+Install `rtmpt` is possible either 
 
 - with the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** 
 - with the following steps:
@@ -47,9 +46,6 @@ This is possible either
     R CMD INSTALL rtmpt_<XYZ>.tar.gz
     ```
     where XYZ stands for the version number.
-
-#### NOTE: 
-If the error "libgsl.so.23: cannot open shared object file: No such file or directory" occurs while testing the `rtmpt` package, run also `$ sudo ldconfig -v` in the terminal
 
 ### MacOS
 Short instruction for installing rtmpt on MacOS:
