@@ -88,6 +88,7 @@ For an example download the [example](https://github.com/RaphaelHartmann/rtmpt-f
 ?set_params
 ?set_resps
 ?fit_rtmpt
+?SimData
 ```
 or the vignette via `vignette("rtmpt_intro")`.
 
