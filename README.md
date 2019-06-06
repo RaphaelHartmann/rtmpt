@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/license-GPL(>=2)-blue.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
+[![License](https://img.shields.io/badge/license-GPL(>=2)-orange.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
 
 
 # rtmpt
@@ -13,11 +13,11 @@ Unfortunately, an installation via [CRAN](https://cran.r-project.org/) is not ye
 The installation from source requires the installation of [GSL](https://www.gnu.org/software/gsl/) (>=2.3) and is rather complicated.
 
 An easier way is to install the `rtmpt`package via binaries:
-1. Download the binaries for your corresponding R version
-* [3.5.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.5/rtmpt_0.1-14.zip) - R old release
-* [3.6.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.6/rtmpt_0.1-14.zip) - R release
-* [3.7.X](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.7/rtmpt_0.1-14.zip) - R devel
-2. Open Rstudio and install via *Packages -> Install ->* Select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
+1. Download the binaries for your corresponding R version (choose 3.6.X if you have an R subversion of 3.6)
+* [![3.5.X](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.5/rtmpt_0.1-14.zip) - R old release
+* [![3.6.X](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.6/rtmpt_0.1-14.zip) - R release
+* [![3.7.X](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.7/rtmpt_0.1-14.zip) - R devel
+2. Open Rstudio and install via *Tools -> Install Packages... ->* Select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
 
 ### Linux
 Before installing the *R* package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
