@@ -74,11 +74,11 @@ This is possible either
     2. In the terminal change directory via `$ cd ~/Downloads` (assuming the *rtmpt* source folder is in /Downloads)
   
     3. Execute:
-```
-R CMD build rtmpt
-R CMD INSTALL rtmpt_<XYZ>.tar.gz
-```
-where XYZ stands for the version number.
+    ```
+    R CMD build rtmpt
+    R CMD INSTALL rtmpt_<XYZ>.tar.gz
+    ```
+    where XYZ stands for the version number.
 
 ## Example
 For an example download the [example](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/an_example.zip) and run the R script. Note that this will take some time. You can also check out the help files for the `rtmpt` package in R via the commands
