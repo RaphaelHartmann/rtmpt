@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/badge/license-GPL(>=2)-orange.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
-[![Library](https://img.shields.io/badge/library-GSL(>=2.3)-orange.svg)](ftp://ftp.gnu.org/gnu/gsl/)
+[![Library](https://img.shields.io/badge/library-GSL(>=2.3)-orange.svg)](https://www.gnu.org/software/gsl/)
 
 # rtmpt
 *R* package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
