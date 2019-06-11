@@ -51,7 +51,7 @@ Installing `rtmpt` is possible either
 ### MacOS
 Short instruction for installing rtmpt on MacOS:
 1. If not already installed, install [Homebrew](https://brew.sh/)
-2. Install GSL via Homebrew using terminal and command `brew install gsl`
+2. Install [GSL](https://www.gnu.org/software/gsl/) via Homebrew using terminal and command `brew install gsl`
 3. Install Xcode from the App Store and then install the Command Line Tools using `xcode-select --install`
 4. If you use MacOS Mojave, make sure to also run the following command:
     ```
