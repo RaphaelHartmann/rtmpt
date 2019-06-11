@@ -54,9 +54,9 @@ Short instruction for installing rtmpt on MacOS:
 2. Install GSL via Homebrew using terminal and command `brew install gsl`
 3. Install Xcode from the App Store and then install the Command Line Tools using `xcode-select --install`
 4. If you use MacOS Mojave, make sure to also run the following command:
-```
-open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
-```
+    ```
+    open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
+    ```
 5. Also execute `brew install gcc` in your terminal.
 6. Check via `ls /usr/local/bin/` what endings the gcc/g++ executables have (in my case -9)
 7. If `~/.R/Makevars` does not already exist, create it with `mkdir ~/.R/` and `touch ~/.R/Makevars`
