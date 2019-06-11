@@ -25,13 +25,14 @@ Before installing the *R* package `rtmpt` you need to install the latest version
 2. Unzip the file
 3. Assuming you downloaded version 2.5 and unziped the file to ~/Downloads/gsl-2.5, open terminal and change directory via ```$ cd ~/Downloads/gsl-2.5```
 4. Execute the following lines:
-```
-./configure
-make
-sudo make install
-```
+    ```
+    ./configure
+    make
+    sudo make install
+    ```
 For some Linux distributions it is necessary to run `sudo ldconfig -v` in the terminal before installing `rtmpt`.
-Install `rtmpt` is possible either 
+
+Installing `rtmpt` is possible either 
 
 - with the *R* package [devtools](https://cran.r-project.org/web/packages/devtools/index.html) and the command `devtools::install_github("RaphaelHartmann/rtmpt@master")` in *R* **or** 
 - with the following steps:
