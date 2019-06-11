@@ -56,7 +56,16 @@ Short instruction for installing rtmpt on MacOS:
 ```
 open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 ```
-5. If you encounter problems, you might also have to install gcc6 or another gcc version. Try `brew install gcc`
+5. Also execute `brew install gcc` in your terminal.
+6. Check via `ls /usr/local/bin/` what gcc executables you have
+7. If `~/.R/Makevars` does not already exist, create it with `mkdir ~/.R/` and `touch ~/.R/Makevars`
+8. Write the following in the Makevars file (assuming your gcc executables have the ending -9) using `open ~/.R/Makevars`:
+```
+CC=/usr/local/bin/gcc-9
+CXX=/usr/local/bin/g++-9
+CXX11=/usr/local/bin/g++-9
+```
+    and save.
 
 Installing the `rtmpt` package:
 
