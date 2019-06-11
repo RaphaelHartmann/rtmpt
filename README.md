@@ -60,12 +60,12 @@ open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10
 6. Check via `ls /usr/local/bin/` what endings the gcc/g++ executables have (in my case -9)
 7. If `~/.R/Makevars` does not already exist, create it with `mkdir ~/.R/` and `touch ~/.R/Makevars`
 8. Use `open ~/.R/Makevars` to write the following in the Makevars file (assuming your gcc/g++ executables have the ending -9):
-```
-CC=/usr/local/bin/gcc-9
-CXX=/usr/local/bin/g++-9
-CXX11=/usr/local/bin/g++-9
-```
-  and save.
+    ```
+    CC=/usr/local/bin/gcc-9
+    CXX=/usr/local/bin/g++-9
+    CXX11=/usr/local/bin/g++-9
+    ```
+    and save.
 
 Installing the `rtmpt` package:
 
