@@ -49,7 +49,7 @@ Installing `rtmpt` is possible either
     where XYZ stands for the version number.
 
 ### MacOS
-Short instruction for installing rtmpt on MacOS:
+Before installing the *R* package `rtmpt` you need to do the following:
 1. If not already installed, install [Homebrew](https://brew.sh/)
 2. Install [GSL](https://www.gnu.org/software/gsl/) via Homebrew using terminal and command `brew install gsl`
 3. Install Xcode from the App Store and then install the Command Line Tools using `xcode-select --install`
