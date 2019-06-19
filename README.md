@@ -4,6 +4,8 @@
 # rtmpt
 *R* package for fitting Response-Time extended Multinomial Processing Tree (RT-MPT) models by Klauer and Kellen (2018)
 
+## Description
+
 The model class RT-MPT incorporate response frequencies and response latencies. This enables the estimation of 
 * process-completion times: the time a process takes
 * encoding plus motor execution times (aka non-decision times): the time for encoding a stimuli plus executing the response
