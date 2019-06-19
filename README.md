@@ -30,7 +30,8 @@ For more information about the functionalities check the help files or the vigne
 ### CRAN
 Unfortunately, an installation via [CRAN](https://cran.r-project.org/) is not yet possible, but will become possible in the future.
 
-### Windows
+### Windows <!-- <img src="https://diymediahome.org/wp-content/uploads/Windows_7_logo.png" width="50" hspace="20" style="border:0px"> -->
+
 The installation from source requires the installation of [GSL](https://www.gnu.org/software/gsl/) (>=2.3) and is rather complicated.
 
 An easier way is to install the `rtmpt`package via binaries:
@@ -40,7 +41,8 @@ An easier way is to install the `rtmpt`package via binaries:
 * [![Binary](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.7/rtmpt_0.1-14.zip) - R devel
 2. Open Rstudio and install via *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
 
-### Linux
+### Linux <!-- <img src="https://maxcdn.icons8.com/Share/icon/Operating_Systems/linux1600.png" width="50" hspace="20" style="border:0px"> -->
+
 Before installing the *R* package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
 1. Download the latest `*tar.gz` file from [GSL](http://ftpmirror.gnu.org/gsl/)
 2. Unzip the file
@@ -69,7 +71,7 @@ Installing `rtmpt` is possible either
     ```
     where XYZ stands for the version number.
 
-### MacOS
+### MacOS <!-- <img src="https://maxcdn.icons8.com/Color/PNG/512/Operating_Systems/mac_os_copyrighted-512.png" width="50" hspace="20" style="border:0px"> -->
 Before installing the *R* package `rtmpt` you need to do the following:
 1. If not already installed, install [Homebrew](https://brew.sh/)
 2. Install [GSL](https://www.gnu.org/software/gsl/) via Homebrew using terminal and command `brew install gsl`
