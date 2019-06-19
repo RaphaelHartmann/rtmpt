@@ -2,7 +2,26 @@
 [![Library](https://img.shields.io/badge/library-GSL(>=2.3)-C11B17.svg)](https://www.gnu.org/software/gsl/)
 
 # rtmpt
-*R* package for fitting Response-Time extended Multinomial Processing Tree models by Klauer and Kellen (2018)
+*R* package for fitting Response-Time extended Multinomial Processing Tree (RT-MPT) models by Klauer and Kellen (2018)
+
+The model class RT-MPT incorporate response frequencies and response latencies. This enables the estimation of 
+* process-completion times: the time a process takes
+* encoding plus motor execution times (aka non-decision times): the time for encoding a stimuli plus executing the response
+* process-probabilities: the probability with which a process occures (as in traditional MPTs).
+
+In total we have for each process one probability parameter and two process completion times (for each outcome of the process one).
+
+`rtmpt` uses a Metropolis-within-Gibbs sampler and builds on the *C++* code by Klauer and Kellen (2018) with some modification. The main modification is the change from a proprietary *C* library to the free and open source *C* library GSL (GNU Scientific Library; Galassi et al., 2018).
+
+In the old *C++* program it was possible to
+* set process probabilities to constants
+* set the time of both outcomes of a process to zero (i.e. suppress the time for both outcomes of a process)
+
+In addition to the features of the old *C++* program in `rtmpt` it is also possible to 
+* set the time for only one outcome of a process to zero (i.e. still estimate the process completion time for the other outcome of the same process).
+* set some prior parameters
+
+For more information about the functionalities check the help files or the vignette of the package with the commands in the *Example* section below.
 
 ## Installation
 
@@ -100,3 +119,5 @@ or the vignette via `vignette("rtmpt_intro")`.
 
 ## References
 Klauer, K. C., & Kellen, D. (2018). RT-MPTs: Process models for response-time distributions based on multinomial processing trees with applications to recognition memory. *Journal of Mathematical Psychology, 82*, 111-130.
+
+Galassi, M., Davies, J., Theiler, J., Gough, B., Jungman, G., Alken, P., . . . Ulerich, R. (2018). GNU scientific library [Computer software]. Retrieved from http://www.gnu.org/software/gsl/
