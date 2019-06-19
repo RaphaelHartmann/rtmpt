@@ -17,11 +17,11 @@ In total we have for each process one probability parameter and two process comp
 
 In the old *C++* program it was possible to
 * set process probabilities to constants
-* set the time of both outcomes of a process to zero (i.e. suppress the time for both outcomes of a process)
+* set the time of both outcomes of a process to zero (i.e. suppress the time for both outcomes of a process).
 
 In addition to the features of the old *C++* program in `rtmpt` it is also possible to 
 * set the time for only one outcome of a process to zero (i.e. still estimate the process completion time for the other outcome of the same process).
-* set some prior parameters
+* set some prior parameters.
 
 For more information about the functionalities check the help files or the vignette of the package with the commands in the *Example* section below.
 
