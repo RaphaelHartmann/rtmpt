@@ -39,7 +39,9 @@ An easier way is to install the `rtmpt`package via binaries:
 * [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.5/rtmpt_0.1-14.zip) - *R* old release
 * [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.6/rtmpt_0.1-14.zip) - *R* release
 * [![Binary](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/binaries/3.7/rtmpt_0.1-14.zip) - *R* devel
-2. Open Rstudio and install via *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
+2. Installation via .Package Archive File (.zip) in
+    * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
+    * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
 
 ### Linux <!-- <img src="https://maxcdn.icons8.com/Share/icon/Operating_Systems/linux1600.png" width="50" hspace="20" style="border:0px"> -->
 
