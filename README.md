@@ -4,6 +4,8 @@
 # rtmpt
 *R* package for fitting Response-Time extended Multinomial Processing Tree (RT-MPT) models by Klauer and Kellen (2018)
 
+The manual for the package: [rtmpt_manual](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/rtmpt-manual.pdf)
+
 ## Description
 
 The model class RT-MPT incorporate response frequencies and response latencies. This enables the estimation of 
