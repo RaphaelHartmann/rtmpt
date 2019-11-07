@@ -30,9 +30,14 @@ For more information about the functionalities check the help files or the vigne
 ## Installation
 
 ### CRAN
-Unfortunately, an installation via [CRAN](https://cran.r-project.org/) is not yet possible, but will become possible in the future.
+An installation via [CRAN](https://cran.r-project.org/) is now possible. Write in the command line in R:
+```
+    install.packages("rtmpt")
+```
 
-### Windows <!-- <img src="http://de.fordesigner.com/imguploads/Image/cjbc/zcool/png20080526/1211779560.png" width="30" hspace="20" style="border:0px"> -->
+### Alternative instructions
+
+#### Windows <!-- <img src="http://de.fordesigner.com/imguploads/Image/cjbc/zcool/png20080526/1211779560.png" width="30" hspace="20" style="border:0px"> -->
 
 The installation from source requires the installation of [GSL](https://www.gnu.org/software/gsl/) (>=2.3) and is rather complicated.
 
@@ -45,7 +50,7 @@ An easier way is to install the `rtmpt`package via binaries:
     * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
     * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
 
-### Linux <!-- <img src="https://maxcdn.icons8.com/Share/icon/Operating_Systems/linux1600.png" width="30" hspace="20" style="border:0px"> -->
+#### Linux <!-- <img src="https://maxcdn.icons8.com/Share/icon/Operating_Systems/linux1600.png" width="30" hspace="20" style="border:0px"> -->
 
 Before installing the *R* package `rtmpt` you need to install the latest version of the GNU Scientific Library (GSL):
 1. Download the latest `*tar.gz` file from [GSL](http://ftpmirror.gnu.org/gsl/)
@@ -75,9 +80,9 @@ Installing `rtmpt` is possible either
     ```
     where XYZ stands for the version number.
 
-### MacOS <!-- <img src="https://maxcdn.icons8.com/Color/PNG/512/Operating_Systems/mac_os_copyrighted-512.png" width="30" hspace="20" style="border:0px"> -->
+#### MacOS <!-- <img src="https://maxcdn.icons8.com/Color/PNG/512/Operating_Systems/mac_os_copyrighted-512.png" width="30" hspace="20" style="border:0px"> -->
 
-#### via binaries
+##### via binaries
 The installation via the binaries is much easier than from source:
 1. Download the MacOS binaries for your corresponding R version from this list or from the [releases](https://github.com/RaphaelHartmann/rtmpt/releases) (For example, if your *R* vesion is 3.5.3 choose `R(3.5.X)`)
 * [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/MacOS_binaries/R_3.5.X/rtmpt_0.1-14.tgz) - *R* old release
@@ -86,7 +91,7 @@ The installation via the binaries is much easier than from source:
     * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
     * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
 
-#### from source
+##### from source
 Before installing the *R* package `rtmpt` from source you need to do the following:
 1. If not already installed, install [Homebrew](https://brew.sh/)
 2. Install [GSL](https://www.gnu.org/software/gsl/) via Homebrew using terminal and command `brew install gsl`
