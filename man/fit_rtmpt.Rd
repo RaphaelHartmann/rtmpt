@@ -4,9 +4,9 @@
 \alias{fit_rtmpt}
 \title{Posterior sample, diagnostics and some optional stuff}
 \usage{
-fit_rtmpt(model, data, Nchains = 4, Nsamples = 5000, Nwarmup = 200,
-  thin = 1, Rhat_max = 1.05, Irep = 1000, prior_params = NULL,
-  indices = FALSE, save_log_lik = FALSE)
+fit_rtmpt(model, data, n.chains = 4, n.iter = 5000, n.burnin = 200,
+  n.thin = 1, Rhat_max = 1.05, Irep = 1000, prior_params = NULL,
+  indices = FALSE, save_log_lik = FALSE, old_label = FALSE)
 }
 \arguments{
 \item{model}{A list of the class \code{rtmpt_model}.}
@@ -17,25 +17,25 @@ path to the text file. Both, \code{data.frame} and the text file must contain th
 be in milliseconds. It is always advised to use \code{\link{to_rtmpt_data}} first, which gives back an \code{rtmpt_data} list
 with informations about the changes in the data, that were needed.}
 
-\item{Nchains}{Number of chains to use. Default is 4. Must be larger than 1 and smaller or equal to 16.}
+\item{n.chains}{Number of chains to use. Default is 4. Must be larger than 1 and smaller or equal to 16.}
 
-\item{Nsamples}{Number of samples per chain. Default is 5000.}
+\item{n.iter}{Number of samples per chain. Default is 5000.}
 
-\item{Nwarmup}{Number of warm-up samples. Default is 200.}
+\item{n.burnin}{Number of warm-up samples. Default is 200.}
 
-\item{thin}{Thinning factor. Default is 1.}
+\item{n.thin}{Thinning factor. Default is 1.}
 
-\item{Rhat_max}{Maximal Potential scale reduction factor: A threshold that needs to be reached before the actual sampling starts. Default is 1.05}
+\item{Rhat_max}{Maximal Potential scale reduction factor: A lower threshold that needs to be reached before the actual sampling starts. Default is 1.05}
 
 \item{Irep}{Every \code{Irep} samples an interim state with the current maximal potential scale reduction
 factor is shown. Default is 1000. The following statements must hold true for \code{Irep}:
 \itemize{
-  \item \code{Nwarmup} is smaller than or equal to \code{Irep},
-  \item \code{Irep} is a multiple of \code{thin} and
-  \item \code{Nsamples} is a multiple of \code{Irep / thin}.
+  \item \code{n.burnin} is smaller than or equal to \code{Irep},
+  \item \code{Irep} is a multiple of \code{n.thin} and
+  \item \code{n.iter} is a multiple of \code{Irep / n.thin}.
 }}
 
-\item{prior_params}{Named list with prior parameters. All parameters have default values, that lead to uninformative priors.
+\item{prior_params}{Named list with prior parameters. All parameters have default values, that lead to uninformative priors. Vectors are not allowed.
 Allowed parameters are:
 \itemize{
   \item \code{mean_of_exp_mu_beta}: This is the a priori expected exponential rate (\code{E(exp(beta)) = E(lambda)}) and 
@@ -76,6 +76,8 @@ output of this function, you can set \code{save_log_lik} to \code{TRUE}. The def
 
 \item{save_log_lik}{If set to \code{TRUE} and \code{indices = TRUE} the log-likelihood matrix for each iteration and trial will
 be saved in the output as a matrix. Its default is \code{FALSE}.}
+
+\item{old_label}{If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list. Default is \code{FALSE}.}
 }
 \value{
 A list of the class \code{rtmpt_fit} containing 
@@ -86,10 +88,11 @@ A list of the class \code{rtmpt_fit} containing
     \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
     \item \code{indices} (optional): if enabled, WAIC and LOO,
     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO. 
+    \item \code{summary} includes posterior mean and median of the main parameters.
   }
 }
 \description{
-Given model and data, this function calls ana altered version of the C++ program by Klauer and Kellen (2018) to sample from
+Given model and data, this function calls an altered version of the C++ program by Klauer and Kellen (2018) to sample from
   the posterior distribution via a Metropolis-Gibbs sampler and storing it in an mcmc.list called \code{samples}. 
   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list 
@@ -117,15 +120,15 @@ dn+(1-dn)*(1-g)
 
 model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
-\dontrun{
-# this is not a working example since rtmpt_data.txt does not exist. 
-# Type ?SimData for a working example.
-data <- read.table(file = "./rtmpt_data.txt", header = TRUE)
-
+data_file <- system.file("extdata/data.txt", package="rtmpt")
+data <- read.table(file = data_file, header = TRUE)
 data_list <- to_rtmpt_data(raw_data = data, model = model)
-
+\donttest{
+# This might take some time
 rtmpt_out <- fit_rtmpt(model = model, data = data_list)
+rtmpt_out
 }
+# Type ?SimData for another working example.
 }
 \references{
 Klauer, K. C. (2010). Hierarchical multinomial processing tree models: A latent-trait approach. \emph{Psychometrika, 75(1)}, 70-98.

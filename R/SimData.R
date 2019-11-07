@@ -20,12 +20,12 @@
 #' 
 #' mdl_2HTM <- "
 #' # targets
-#' d+(1-d)*g
-#' (1-d)*(1-g)
+#' d+(1-d)*g     ; 0
+#' (1-d)*(1-g)   ; 1
 #'
 #' # lures
-#' (1-d)*g
-#' d+(1-d)*(1-g)
+#' (1-d)*g       ; 0
+#' d+(1-d)*(1-g) ; 1
 #' 
 #' # d: detect; g: guess
 #' "
@@ -33,14 +33,13 @@
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' data <- to_rtmpt_data(raw_data = SimData, model = model)
-#' 
-#' \dontrun{
+#' \donttest{
 #' # this might take some time to run
 #' rtmpt_out <- fit_rtmpt(model = model, data = data)
 #' 
 #' # convergence
 #' ## traceplot and summary of the first six parameters  
 #' plot(rtmpt_out$samples[,1:6])
-#' summary(rtmpt_out$samples[,1:6])
+#' summary(rtmpt_out)
 #' }
 "SimData"

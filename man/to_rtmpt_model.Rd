@@ -55,7 +55,7 @@ suppress_process: dn-, do-
 "
 
 model <- to_rtmpt_model(mdl_file = mdl_2HTM)
-
+model
 
 ## 2. using the eqn syntax
 eqn_2HTM <- "
@@ -76,7 +76,7 @@ const_prob: g=0.5
 #   suppress process times:
 suppress_process: dn-, do-
 
-#     Tree ; Cat ; Resp
+#     tree ; cat ; RESP
 resp:    0 ;   0 ;    0
 resp:    0 ;   1 ;    1
 resp:    1 ;   2 ;    0
@@ -85,6 +85,7 @@ resp:    1 ;   3 ;    1
 "
 
 model <- to_rtmpt_model(eqn_file = eqn_2HTM)
+model
 
 }
 \references{

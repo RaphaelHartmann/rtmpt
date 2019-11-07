@@ -1,4 +1,4 @@
-
+#' @importFrom stringr str_count
 make_raw_model <- function(line_char, membership, form) {
   
   fnc1 <- function(row_char, start) {
@@ -13,17 +13,31 @@ make_raw_model <- function(line_char, membership, form) {
   }
   fnc3 <- function(row_char, start) {
     sub_char <- substring(text = row_char, first = start, last = 10000)
-    vec_char <- strsplit(gsub("[[:space:]]", "", sub_char), ";")[[1]]
+    if (2 == str_count(sub_char, ";")) {
+      vec_char <- strsplit(gsub("[[:space:]]", "", sub_char), ";")[[1]]
+    }
+    if (2 == str_count(sub_char, ",")) {
+      vec_char <- strsplit(gsub("[[:space:]]", "", sub_char), ",")[[1]]
+    }
     return(vec_char)
   }
   fnc4 <- function(row_char) {
-    vec_char <- strsplit(gsub("[[:space:]]", "", row_char), ";")[[1]]
+    if (2 == str_count(row_char, ";")) {
+      vec_char <- strsplit(gsub("[[:space:]]", "", row_char), ";")[[1]]
+    }
+    if (2 == str_count(row_char, ",")) {
+      vec_char <- strsplit(gsub("[[:space:]]", "", row_char), ",")[[1]]
+    }
     return(vec_char)
   }
   fnc5 <- function(row_char) {
     output <- list(text = "", resp = NA)
     if (grepl(pattern = "[;]", x = row_char)) {
       vec_char <- strsplit(gsub("[[:space:]]", "", row_char), ";")[[1]]
+      output$resp <- as.numeric(vec_char[2])
+      output$text <- vec_char[1]
+    } else if (grepl(pattern = "[,]", x = row_char)) {
+      vec_char <- strsplit(gsub("[[:space:]]", "", row_char), ",")[[1]]
       output$resp <- as.numeric(vec_char[2])
       output$text <- vec_char[1]
     } else if (grepl(pattern = "#", x = row_char) || row_char == "") {
@@ -68,9 +82,14 @@ make_raw_model <- function(line_char, membership, form) {
         m$mdl <- rep("", len)
         for ( ind in min(index):max(index) ) {
           row_char <- line_char[ind]
-          output <- fnc5(row_char = row_char)
-          m$mdl[ind-min(index)+1] <- output$text
-          m$resp[ind-min(index)+1] <- output$resp
+          if (ind %in% index) {
+            output <- fnc5(row_char = row_char)
+            m$mdl[ind-min(index)+1] <- output$text
+            m$resp[ind-min(index)+1] <- output$resp
+          } else {
+            m$mdl[ind-min(index)+1] <- ""
+            m$resp[ind-min(index)+1] <- NA
+          }
         }
       }
     }

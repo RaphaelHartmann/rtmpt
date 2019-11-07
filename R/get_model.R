@@ -50,7 +50,7 @@
 #' "
 #' 
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
-#' 
+#' model
 #' 
 #' ## 2. using the eqn syntax
 #' eqn_2HTM <- "
@@ -71,7 +71,7 @@
 #' #   suppress process times:
 #' suppress_process: dn-, do-
 #' 
-#' #     Tree ; Cat ; Resp
+#' #     tree ; cat ; RESP
 #' resp:    0 ;   0 ;    0
 #' resp:    0 ;   1 ;    1
 #' resp:    1 ;   2 ;    0
@@ -80,6 +80,7 @@
 #' "
 #' 
 #' model <- to_rtmpt_model(eqn_file = eqn_2HTM)
+#' model
 #' 
 #' @note Within a branch of a (RT-)MPT model it is not allowed to have the same process two or more times.
 #' @seealso 

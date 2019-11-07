@@ -31,24 +31,25 @@ Transform data, such that it can be used in \code{\link{fit_rtmpt}}. This implie
 # The encoding and motor execution times are assumed to be equal for each response.
 ####################################################################################
 
-mdl_2HTM <- "
-# targets
-do+(1-do)*g
-(1-do)*(1-g)
-
-# lures
-(1-dn)*g
-dn+(1-dn)*(1-g)
-
-# do: detect old; dn: detect new; g: guess
+eqn_2HTM <- "
+# CORE MPT EQN
+# tree ; cat  ; mpt
+target ; hit  ; do
+target ; hit  ; (1-do)*g
+target ; miss ; (1-do)*(1-g)
+       
+  lure ;  f_a ; (1-dn)*g
+  lure ;  c_r ; dn
+  lure ;  c_r ; (1-dn)*(1-g)
 "
 
-model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+model <- to_rtmpt_model(eqn_file = eqn_2HTM)
 
-\dontrun{
-data <- read.table(file = "./rtmpt_data", header = TRUE)
+data_file <- system.file("extdata/labeled_data.txt", package="rtmpt")
+data <- read.table(file = data_file, header = TRUE)
+
 data_list <- to_rtmpt_data(raw_data = data, model = model)
-}
+data_list 
 
 }
 \author{

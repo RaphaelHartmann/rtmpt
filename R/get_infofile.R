@@ -1,9 +1,10 @@
-###############################
-# Code carried together from  #
-# MPTinR2 by Henrik Sinmann   #
-# slightly modyfied by        #
-# Raphael Hartmann            #
-###############################
+#################################
+# Code carried together from    #
+# MPTinR2 by Henrik Sinmann     #
+# henrik.singmann@warwick.ac.uk #
+# slightly modyfied by          #
+# Raphael Hartmann              #
+#################################
 
 
 
@@ -672,7 +673,7 @@ get_infofile <- function(model, mdl_txt, mdl_info) {
   writeLines(text = model$lines, con = mdl_txt)
   
   prep.h(mdl_txt, mdl_info)
-  file.remove(mdl_txt)
+  # file.remove(mdl_txt)
   
   return(mdl_info)
 }

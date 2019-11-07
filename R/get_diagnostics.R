@@ -1,5 +1,5 @@
 
-get_diags <- function(diag_file, data_info) {
+get_diags <- function(diag_file, data_info, keep) {
   
   # needed variables
   diag_names <- c("MUs per group", "rho minus per group", "rho plus per group",
@@ -9,6 +9,19 @@ get_diags <- function(diag_file, data_info) {
   diag_lines <- readLines(con = diag_file)
 
   Nall <- data_info$Nprobs+data_info$Nminus+data_info$Nplus
+  
+  # flags
+  group_flag <- FALSE
+  subj_flag <- FALSE
+  if (keep) {
+    if (exists("group", data_info$transformation)) {
+      group_flag <- TRUE
+    }
+    if (exists("subj", data_info$transformation)) {
+      subj_flag <- TRUE
+    }
+  }
+  if (group_flag) gr_labels <- data_info$transformation$group$old[1:(data_info$Ngroups)] else gr_labels <- (1:(data_info$Ngroups))-1 
   
   
   # list to return
@@ -63,9 +76,9 @@ get_diags <- function(diag_file, data_info) {
   time_ind <- get_indices(pattern = diag_names[10], N = 1, add = -1)
 
   # read and save
-  diag_list$mu_probs <- t(save_HDI2list(indices = probs_ind, names = paste0(data_info$probs_string, "[",rep(0:(data_info$Ngroups-1), each=data_info$Nprobs), "]"), skip = 1))
-  diag_list$mu_tau_minus <- t(save_HDI2list(indices = lambda_minus_ind, names = paste0(data_info$minus_string, "[",rep(0:(data_info$Ngroups-1), each=data_info$Nminus), "]"), skip = 1))
-  diag_list$mu_tau_plus <- t(save_HDI2list(indices = lambda_plus_ind, names = paste0(data_info$plus_string, "[",rep(0:(data_info$Ngroups-1), each=data_info$Nplus), "]"), skip = 1))
+  diag_list$mu_probs <- t(save_HDI2list(indices = probs_ind, names = paste0(data_info$probs_string, "[",rep(gr_labels, each=data_info$Nprobs), "]"), skip = 1))
+  diag_list$mu_tau_minus <- t(save_HDI2list(indices = lambda_minus_ind, names = paste0(data_info$minus_string, "[",rep(gr_labels, each=data_info$Nminus), "]"), skip = 1))
+  diag_list$mu_tau_plus <- t(save_HDI2list(indices = lambda_plus_ind, names = paste0(data_info$plus_string, "[",rep(gr_labels, each=data_info$Nplus), "]"), skip = 1))
 
   process_chars <- c(paste0("alpha_prm_", data_info$probs_string), 
                      paste0("beta_prm_", data_info$minus_string, "_minus"), 
@@ -79,7 +92,7 @@ get_diags <- function(diag_file, data_info) {
     }
   }
   diag_list$SD_CORR_Proc <- t(save_HDI2list(indices = SIGMA_ind, names = SIGMA_names, skip = 2))
-  diag_list$mu_gamma <- t(save_HDI2list(indices = resps_ind, names = paste0(paste0("R", 0:(data_info$Nresps-1)), "[",rep(0:(data_info$Ngroups-1), each=data_info$Nresps), "]"), skip = 0))
+  diag_list$mu_gamma <- t(save_HDI2list(indices = resps_ind, names = paste0(paste0("R", 0:(data_info$Nresps-1)), "[",rep(gr_labels, each=data_info$Nresps), "]"), skip = 0))
   diag_list$omega2 <- t(save_HDI2list(indices = omega2_ind, names = "omega2", skip = 0))
 
   resps_chars <- paste0("gamma_prm_", 0:(data_info$Nresps-1))

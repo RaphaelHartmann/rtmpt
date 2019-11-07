@@ -1,6 +1,7 @@
 # LIB_GSL64 = C:/gsl_64
 # LIB_GSL32 = C:/gsl_32
 
+PKG_CFLAGS = -I$(LIB_GSL)/include
 PKG_CXXFLAGS = -I$(LIB_GSL)/include $(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS = -L$(LIB_GSL)/lib -lgsl -lgslcblas -lR $(SHLIB_OPENMP_CXXFLAGS)
 

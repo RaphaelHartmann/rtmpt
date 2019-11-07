@@ -1,7 +1,7 @@
 
 #' Posterior sample, diagnostics and some optional stuff
 #' 
-#' Given model and data, this function calls ana altered version of the C++ program by Klauer and Kellen (2018) to sample from
+#' Given model and data, this function calls an altered version of the C++ program by Klauer and Kellen (2018) to sample from
 #'   the posterior distribution via a Metropolis-Gibbs sampler and storing it in an mcmc.list called \code{samples}. 
 #'   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
 #'   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list 
@@ -15,19 +15,19 @@
 #'   "group", "tree", "cat", and "rt" preferably but not necessarily in this order. The values of the latter must 
 #'   be in milliseconds. It is always advised to use \code{\link{to_rtmpt_data}} first, which gives back an \code{rtmpt_data} list
 #'   with informations about the changes in the data, that were needed.
-#' @param Nchains Number of chains to use. Default is 4. Must be larger than 1 and smaller or equal to 16.
-#' @param Nsamples Number of samples per chain. Default is 5000.
-#' @param Nwarmup Number of warm-up samples. Default is 200.
-#' @param thin Thinning factor. Default is 1.
-#' @param Rhat_max Maximal Potential scale reduction factor: A threshold that needs to be reached before the actual sampling starts. Default is 1.05
+#' @param n.chains Number of chains to use. Default is 4. Must be larger than 1 and smaller or equal to 16.
+#' @param n.iter Number of samples per chain. Default is 5000.
+#' @param n.burnin Number of warm-up samples. Default is 200.
+#' @param n.thin Thinning factor. Default is 1.
+#' @param Rhat_max Maximal Potential scale reduction factor: A lower threshold that needs to be reached before the actual sampling starts. Default is 1.05
 #' @param Irep Every \code{Irep} samples an interim state with the current maximal potential scale reduction
 #'   factor is shown. Default is 1000. The following statements must hold true for \code{Irep}:
 #'   \itemize{
-#'     \item \code{Nwarmup} is smaller than or equal to \code{Irep},
-#'     \item \code{Irep} is a multiple of \code{thin} and
-#'     \item \code{Nsamples} is a multiple of \code{Irep / thin}.
+#'     \item \code{n.burnin} is smaller than or equal to \code{Irep},
+#'     \item \code{Irep} is a multiple of \code{n.thin} and
+#'     \item \code{n.iter} is a multiple of \code{Irep / n.thin}.
 #'   }
-#' @param prior_params Named list with prior parameters. All parameters have default values, that lead to uninformative priors.
+#' @param prior_params Named list with prior parameters. All parameters have default values, that lead to uninformative priors. Vectors are not allowed.
 #'   Allowed parameters are:
 #'   \itemize{
 #'     \item \code{mean_of_exp_mu_beta}: This is the a priori expected exponential rate (\code{E(exp(beta)) = E(lambda)}) and 
@@ -66,6 +66,7 @@
 #'   output of this function, you can set \code{save_log_lik} to \code{TRUE}. The default for \code{indices} is \code{FALSE}.
 #' @param save_log_lik If set to \code{TRUE} and \code{indices = TRUE} the log-likelihood matrix for each iteration and trial will
 #'   be saved in the output as a matrix. Its default is \code{FALSE}.
+#' @param old_label If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list. Default is \code{FALSE}.
 #' @return A list of the class \code{rtmpt_fit} containing 
 #'   \itemize{
 #'     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
@@ -74,6 +75,7 @@
 #'     \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
 #'     \item \code{indices} (optional): if enabled, WAIC and LOO,
 #'     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO. 
+#'     \item \code{summary} includes posterior mean and median of the main parameters.
 #'   }
 #' @references
 #' Klauer, K. C. (2010). Hierarchical multinomial processing tree models: A latent-trait approach. \emph{Psychometrika, 75(1)}, 70-98.
@@ -109,15 +111,15 @@
 #' 
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
-#' \dontrun{
-#' # this is not a working example since rtmpt_data.txt does not exist. 
-#' # Type ?SimData for a working example.
-#' data <- read.table(file = "./rtmpt_data.txt", header = TRUE)
-#' 
+#' data_file <- system.file("extdata/data.txt", package="rtmpt")
+#' data <- read.table(file = data_file, header = TRUE)
 #' data_list <- to_rtmpt_data(raw_data = data, model = model)
-#' 
+#' \donttest{
+#' # This might take some time
 #' rtmpt_out <- fit_rtmpt(model = model, data = data_list)
+#' rtmpt_out
 #' }
+#' # Type ?SimData for another working example.
 #' @author Raphael Hartmann
 #' @useDynLib "rtmpt", .registration=TRUE
 #' @export
@@ -131,31 +133,37 @@
 #' @importFrom methods is
 fit_rtmpt <- function(model, 
                       data,
-                      Nchains = 4, 
-                      Nsamples = 5000, 
-                      Nwarmup = 200, 
-                      thin = 1,
+                      n.chains = 4, 
+                      n.iter = 5000, 
+                      n.burnin = 200, 
+                      n.thin = 1,
                       Rhat_max = 1.05, 
                       Irep = 1000, 
                       prior_params = NULL,
                       indices = FALSE, 
-                      save_log_lik = FALSE) {
+                      save_log_lik = FALSE,
+                      old_label = FALSE) {
   
-  
+  # internal argument name changes
+  Nchains <- n.chains
+  Nsamples <- n.iter
+  Nwarmup <- n.burnin
+  thin <- n.thin
+
   # some controls
   model_elmnts <- c("lines", "params", "responses")
   if (!is.list(model)) stop("\"model\" must be a list.")
   if (!all(model_elmnts  %in% names(model))) stop("\"model\" must contain \"", model_elmnts[which(!(model_elmnts %in% names(model)))[1]], "\".")
   
-  if (Nchains < 2 || Nchains > 16) stop("\"Nchains\" must be larger than 1 and lower or equal to 16.")
+  if (Nchains < 2 || Nchains > 16) stop("\"n.chains\" must be larger than 1 and lower or equal to 16.")
   
   if (Irep < 1) stop("\"Irep\" must be larger than or equal to one.")
-  if (thin < 1) stop("\"thin\" must be larger than or equal to one.")
+  if (thin < 1) stop("\"n.thin\" must be larger than or equal to one.")
   
-  if (Irep %% thin != 0) stop("\"Irep\" must be a multiple of \"thin\".")
-  if (Nsamples %% (Irep/thin) != 0) stop("\"Nsamples\" must be a multiple of \"Irep\" / \"thin\".")
-  if (Nsamples < Irep/thin) stop("\"Nsamples\" must be greater or equal to \"Irep\" / \"thin\" = ", Irep*thin, ".")
-  if (Nwarmup > Irep) stop("\"Nwarmup\" must be smaller than or equal to \"Irep\".")
+  if (Irep %% thin != 0) stop("\"Irep\" must be a multiple of \"n.thin\".")
+  if (Nsamples %% (Irep/thin) != 0) stop("\"n.iter\" must be a multiple of \"Irep\" / \"n.thin\".")
+  if (Nsamples < Irep/thin) stop("\"n.iter\" must be greater or equal to \"Irep\" / \"n.thin\" = ", Irep*thin, ".")
+  if (Nwarmup > Irep) stop("\"n.burnin\" must be smaller than or equal to \"Irep\".")
   
   if (Rhat_max < 1) stop("\"Rhat_max\" must be larger than or equal to one.")
   
@@ -163,6 +171,7 @@ fit_rtmpt <- function(model,
   # if (!is.logical(bridge)) stop("\"bridge\" must either be TRUE or FALSE.")
   bridge = FALSE
   if (!is.logical(save_log_lik)) stop("\"save_log_lik\" must either be TRUE or FALSE.")
+  if (!is.logical(old_label)) stop("\"old_label\" must either be TRUE or FALSE.")
   if (!is.null(prior_params) && !is.list(prior_params)) stop("\"prior_params\" must be a list.")
 
   # prepare data
@@ -170,21 +179,21 @@ fit_rtmpt <- function(model,
   if (is.data.frame(data)) {
     temp_data <- to_rtmpt_data(data, model)
     data_frame <- temp_data$data
-	if("transformation" %in% names(temp_data)) {
-	  transformation <- temp_data$transformation
-	}
+  	if("transformation" %in% names(temp_data)) {
+  	  transformation <- temp_data$transformation
+	  } else transformation <- list()
   } else if (is.character(data)) {
     temp_data <- to_rtmpt_data(read.table(file = data, header = TRUE), model)
     data_frame <- temp_data$data
-	if("transformation" %in% names(temp_data)) {
-	  transformation <- temp_data$transformation
-	}
+  	if("transformation" %in% names(temp_data)) {
+  	  transformation <- temp_data$transformation
+  	} else transformation <- list()
     keep_data_path <- TRUE
   } else if (class(data) == "rtmpt_data") {
     data_frame <- data$data
-	if("transformation" %in% names(data)) {
-	  transformation <- data$transformation
-	}
+  	if("transformation" %in% names(data)) {
+  	  transformation <- data$transformation
+  	} else transformation <- list()
   }
   
   data_elmnts <- c("subj", "group", "tree", "cat", "rt")
@@ -323,38 +332,31 @@ fit_rtmpt <- function(model,
                     # epsilon = 1,
                     probs_string = names(model$params$probs[which(is.na(model$params$probs))]), 
                     minus_string = names(model$params$probs[which(is.na(model$params$taus[1,]))]),
-                    plus_string = names(model$params$probs[which(is.na(model$params$taus[2,]))]))
+                    plus_string = names(model$params$probs[which(is.na(model$params$taus[2,]))]),
+                    transformation = transformation)
   
-  
-  # data_info <- list(Nsubj = length(unique(data_frame$Subj)), 
-  #                   Ngroups = 2, 
-  #                   Nprobs = 4, 
-  #                   Nminus = 2, 
-  #                   Nplus = 4, 
-  #                   Nresps = 1, 
-  #                   epsilon = 1,
-  #                   probs_string = c("A1", "A2", "C", "G"), 
-  #                   minus_string = c("C", "G"),
-  #                   plus_string = c("A1", "A2", "C", "G"))
 
   
   # prepare output list
   rtmpt <- list()
   rtmpt$samples <- make_mcmc_list(file = out$pars_samples, infofile = infofile, 
                                   Nchains = Nchains, Nsamples = Nsamples, 
-                                  data_info = data_info)
+                                  data_info = data_info, keep = old_label)
   out$pars_samples <- NULL
   
   
   # diagnostics
-  rtmpt$diags <- get_diags(diag_file = diag_path, data_info = data_info)
+  rtmpt$diags <- get_diags(diag_file = diag_path, data_info = data_info, keep = old_label)
   if (file.exists(diag_path)) file.remove(diag_path)
   rtmpt$diags$R_hat <- gelman.diag(rtmpt$samples)
   
   
   # specs
-  rtmpt$specs <- list(model = model, Nchains = Nchains, Nsamples = Nsamples, Nwarmup = Nwarmup, Nthin = thin,
-                      Irep = Irep, Rhat_max = Rhat_max, prior_params = prior_params, call = match.call(), Ngroups = max(data_frame[,2]+1))
+  infos <- readinfofile(infofile)
+  rtmpt$specs <- list(model = model, n.chains = Nchains, n.iter = Nsamples, n.burnin = Nwarmup, n.thin = thin, 
+                      n.groups = data_info$Ngroups, n.subj = data_info$Nsubj, Irep = Irep, Rhat_max = Rhat_max, 
+                      prior_params = prior_params, infolist = infos, call = match.call(), 
+					  n.groups = max(data_frame[,2]+1))
   if(exists("transformation")) {
     rtmpt$specs$transformation <- transformation
   }
@@ -414,7 +416,11 @@ fit_rtmpt <- function(model,
   # remove info file and chains
   if (file.exists(infofile)) file.remove(infofile)
   if (file.exists(chains_path)) file.remove(chains_path)
-
+  
+  
+  # summary
+  rtmpt$summary <- writeSummaryRTMPT(rtmpt, keep = old_label)
+  
   
   # output
   class(rtmpt) <- "rtmpt_fit"
@@ -423,45 +429,8 @@ fit_rtmpt <- function(model,
 }
 
 
-#' @export
-print.rtmpt_fit <- function(x, ...) {
-  cat("\nFUNCTION CALL\n\n")
-  print(x$specs$call)
-  
-  cat("\n\nMEDIAN OF THE GROUP-LEVEL PARAMETERS\n\n")
-  rowNms <- names(x$specs$model$params$probs)
-  whole <- as.data.frame(matrix(data = rep(0, 3*length(rowNms)*x$specs$Ngroups), nrow = length(rowNms)*x$specs$Ngroups))
-  rownames(whole) <- paste0(rep(rowNms, x$specs$Ngroups), "[", rep(0:(x$specs$Ngroups-1), each = length(rowNms)), "]")
-  colnames(whole) <- c("mu_probs", "mu_tau_minus", "mu_tau_plus")
-  index <- which(is.na(x$specs$model$params$probs))
-  if (x$specs$Ngroups>1) for (i in 1:(x$specs$Ngroups-1)) {index <- c(index, index+length(rowNms))}
-  whole[index,1] <- x$diags$mu_probs[,3]
-  if (length(which(!is.na(x$specs$model$params$probs)))>0) {
-    index <- which(!is.na(x$specs$model$params$probs))
-    index_orig <- index
-    if (x$specs$Ngroups>1) for (i in 1:(x$specs$Ngroups-1)) {index <- c(index, index+length(rowNms))}
-    whole[index,1] <- rep(x$specs$model$params$probs[1,index_orig], x$specs$Ngroups)
-  }
-  index <- which(is.na(x$specs$model$params$taus[1,]))
-  if (x$specs$Ngroups>1) for (i in 1:(x$specs$Ngroups-1)) {index <- c(index, index+length(rowNms))}
-  whole[index,2] <- x$diags$mu_tau_minus[,3]
-  index <- which(is.na(x$specs$model$params$taus[2,]))
-  if (x$specs$Ngroups>1) for (i in 1:(x$specs$Ngroups-1)) {index <- c(index, index+length(rowNms))}
-  whole[index,3] <- x$diags$mu_tau_plus[,3]
-  cat("Process-related parameters:\n")
-  print(whole)
-  cat("\n* NOTE 1: Process completion times in ms.")
-  if (any(!is.na(x$specs$model$params$probs))) {
-    pass <- paste0("\n* NOTE 2: Constants are also displayed in the process parameter table", 
-                   if(any(!is.na(x$specs$model$params$taus))) {"\n\t  as well as zeros for suppressed process completion times"}, ".")
-    cat(pass)
-  } else if (any(!is.na(x$specs$model$params$taus))) {
-    pass <- paste0("\n* NOTE 2: Zeros for suppressed process completion times are also displayed\n\t  in the process parameter table.")
-  }
-  cat("\n---------------------------\n")
-  
-  cat("\nEncoding plus motor execution parameter(s):\n")
-  print(data.frame(mu_gamma=x$diags$mu_gamma[,3]))
-  cat("\n* NOTE 1: Encoding plus motor execution time(s) in ms.")
-  cat("\n-------------------------------------------\n\n")
-}
+
+
+
+
+

@@ -1,4 +1,4 @@
-// authors: Christoph Klauer
+
 
 #include "rts.h"
 /* C code for the lnnorm(x) function to return the logarithm of the normal

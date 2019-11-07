@@ -117,7 +117,7 @@
 		int j = 0;
 		double temp = log(xstar) + sum;
 		while (temp > s[j]) j++;
-		if (j > k - 1) { Rprintf("Wie das?"); char x; std::cin >> x; }
+		if (j > k - 1) { Rprintf("Wie das?"); }
 
 		double sl = upper[j].slope;
 		double help = log(fabs(sl)); int sign = sl > 0 ? 1 : -1;

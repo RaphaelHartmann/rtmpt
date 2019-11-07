@@ -1,29 +1,29 @@
 ---
 title: "rtmpt_intro"
-author: "Raphael.Hartmann"
+author: "Raphael Hartmann"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{TreeBUGS: Introduction}
+  %\VignetteIndexEntry{rtmpt: Introduction}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+  %\VignetteEncoding{UTF-8}
 ---
 
-# 1 Procedure overview
+# 1 Overview
 
 Given a data file (text file, `data.frame`) with the correct variable names (see section 2.3) and an equation/model file (see section 2.1 and 3) these are the steps needed to fit the data with an RT-MPT model (Klauer and Kellen, 2018):
 
 1. Convert the equation/model file to a `rtmpt_model` via the `to_rtmpt_model()` function
 2. If necessary, specify the restrictions for the model via the `set_params()` and `set_resps()` functions
 3. Convert the data file to a `rtmpt_data` format via the `to_rtmpt_data()` function
-4. Fit the data with the specified model via the `fit_rtmpt()` function
+4. Fit the specified model to the data via the `fit_rtmpt()` function
 5. Check convergence in the output of the last function
 
 
 # 2 Detailed explanation of the steps
 
 ## 2.1 Model converter
-The equation/model file can be provided by a text file or directly like the following. The syntax is comparable to the `EQN` syntax by Heck, Arnold, and Arnold (2018) or Hu (1999).
+The equation/model file can be provided by a text file or directly like the following. The syntax is comparable to the `EQN` syntax by Heck, Arnold, and Arnold (2018) or Hu (1999). To separate trees, categories and paths or responses you can either use semicolons (like in the example below) or commas, but not mixed.
 ```{r, eval=TRUE}
 eqn = "
 # CORE MODEL
@@ -121,19 +121,19 @@ In this function call we used the default values for all the parameters that are
 ## do not run
 rtmpt_out <- fit_rtmpt(model = restr_2HTM, 
                        data = data, 
-                       Nchains = 4, 
-                       Nsamples = 5000, 
-                       Nwarmup = 200,
+                       n.chains = 4, 
+                       n.iter = 5000, 
+                       n.burnin = 200,
+                       n.thin = 1, 
                        Rhat_max = 1.05, 
-                       thin = 1, 
-                       Irep = 1000, 
+					   Irep = 1000, 
                        prior_params = NULL,
                        indices = FALSE,
                        save_log_lik = FALSE)
 ## end not run
 ```
 
-`Nchains` is the number of chains with a maximum of 16, `Nsamples` is the number of samples to draw from the posterior distribution, `Nwarmup` is analogue to the burn-in phase for R package `rjags`, `Rhat_max` is a threshold for the potential scale reduction factor and forces the sampling to start only when the maximal potential scale reduction factor of the parameters is lower or equal to this value, `thin` is the thinning parameter, `Irep` is the number of samples until the next summary is printed, `prior_params` is a list of some prior parameter specifications, `indices` is a logical parameter with which one can allow to compute the WAIC and LOO, and `save_log_lik` is a logical parameter that allows one to save the log-likelihood for each posterior sample and data point.
+`n.chains` is the number of chains with a maximum of 16, `n.iter` is the number of samples to draw from the posterior distribution, `n.burnin` is analogue to the burn-in phase for R package `rjags`, `Rhat_max` is a threshold for the potential scale reduction factor and forces the sampling to start only when the maximal potential scale reduction factor of the parameters is lower or equal to this value, `n.thin` is the thinning parameter, `Irep` is the number of samples until the next summary is printed, `prior_params` is a list of some prior parameter specifications, `indices` is a logical parameter with which one can allow to compute the WAIC and LOO, and `save_log_lik` is a logical parameter that allows one to save the log-likelihood for each posterior sample and data point.
 
 # 3 Equation and model files
 
@@ -239,15 +239,117 @@ When numbers are used in the data set for the trees and categories it is best to
 
 One could use labels in the equation file even though you are using numbers in the data file, but it is **strongly advised against** it. It will be assumed, that the order in which you specify the equations matches the order of the numbers in the data file starting from the lowest to the highest. So if you are using again \{1, 2, 3, 4\} for the four trees, then the first tree you need to define in the equation files (no matter what label you use) must correspond to tree 1 in the data and so on.
 
-# 5 To Dos
-Possible extensions for `rtmpt` might include the following:
+# 5 Data simulation and simulation-based calibration
 
-## 5.1 Simulation
-`sim_rtmpt_data()`: A function to simulate data directly from the model (via equation or model file) with some parameter specifications like in the `fit_rtmpt()` function.
+## Data simulation
+With the function `sim_rtmpt_data()` it is possible to generate data from an RT-MPT model. Required is a model object generated with the function `to_rtmpt_model()`, a random seed number, the number of subjects, the number of trials per tree in the model, and a named list of parameters. Here it is also possible to set the mean of `mean_of_mu_alpha`; A value of zero refers to the probability of `0.5`. If a given probability is desired, say `0.4`, then one might specify `params <- list(mean_of_mu_alpha = qnorm(.4))`. If a mean process time of `200` ms is required, one might specify `params <- list(mean_of_exp_mu_beta = 1000/200)`. The mean parameter of the motor times is easier to transform, since they are already on the second scale; Just write `500/1000` if your mean motor time should be `500` ms. The code below shows a more or less good balance between too large variances (leading to too many extreme values like probabilities of zero and one and RTs of zero) and too small variances (unrealistic data).
 
-## 5.2 Simulation-based calibration
-`sbc_rank()`: A function that will be based on the output of `sim_rtmpt_data()` and `fit_rtmpt()`. It will provide the rank statistic of the simulation-based calibration method by Talts, Betancourt, Simpson, Vehtari, and Gelman (2018).
+Important: If no variances are specified in the `params` argument, then the corresponding mean values are fixed, else they will be randomly drawn.
+```{r, eval=TRUE}
+# randomly drawn group-level mean values
+mdl_2HTM <- "
+# targets
+do+(1-do)*g     ; 0
+(1-do)*(1-g)    ; 1
 
+# lures
+(1-dn)*g        ; 0
+dn+(1-dn)*(1-g) ; 1
+
+# do: detect old; dn: detect new; g: guess
+"
+
+model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+
+# random group-level parameters
+params <- list(mean_of_mu_alpha = 0, 
+               var_of_mu_alpha = 1,         # delete this line to fix mean_of_mu_alpha to 0
+               mean_of_exp_mu_beta = 10, 
+               var_of_exp_mu_beta = 10,     # delete this line to fix mean_of_exp_mu_beta to 10
+               mean_of_mu_gamma = 0.5, 
+               var_of_mu_gamma = 0.0025,    # delete this line to fix mean_of_mu_gamma to 0.5
+               mean_of_omega_sqr = 0.005, 
+               var_of_omega_sqr = 0.000025, # delete this line to fix mean_of_omega_sqr to 0.005
+               df_of_sigma_sqr = 10, 
+               sf_of_scale_matrix_SIGMA = 0.1, 
+               sf_of_scale_matrix_GAMMA = 0.01, 
+               prec_epsilon = 10,
+               add_df_to_invWish = 5)
+
+sim_dat <- sim_rtmpt_data(model, seed = 123, n.subj = 40, n.trials = 30, params = params)
+head(sim_dat$data_frame)
+
+```
+
+## 5.1 Simulation-based calibration
+With the function `fit_rtmpt_SBC()` it is possible to generate data and fit the model to that data using the same priors / ground truths. The main output of this function will be the rank statistic for each parameter in the model, which is needed for the simulation-based calibration (SBC) method by Talts, Betancourt, Simpson, Vehtari, and Gelman (2018). For example, if this function is repeated, say `2000` times, with different `seeds` one might add all the rank statistics to a matrix (`2000` rows and number of parameters as columns) and then calculate the pearsons' chi-squared statistic. This allows one to test for how many of the parameters the rank statistics are not uniformly distributed. A value of about `0.05` is typical for a test with an alpha level of `0.05`.
+
+Here is an example of one replication of the SBC procedure:
+```
+mdl_2HTM <- "
+# targets
+d+(1-d)*g     ; 0
+(1-d)*(1-g)    ; 1
+
+# lures
+(1-d)*g        ; 0
+d+(1-d)*(1-g) ; 1
+
+# d: detect; g: guess
+"
+
+model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+
+params <- list(mean_of_exp_mu_beta = 10, 
+               var_of_exp_mu_beta = 10, 
+               mean_of_mu_gamma = 0.5, 
+               var_of_mu_gamma = 0.0025, 
+               mean_of_omega_sqr = 0.005, 
+               var_of_omega_sqr = 0.000025,
+               df_of_sigma_sqr = 10, 
+               sf_of_scale_matrix_SIGMA = 0.1, 
+               sf_of_scale_matrix_GAMMA = 0.01, 
+               prec_epsilon = 10,
+               add_df_to_invWish = 5)
+
+SBC_out <- fit_rtmpt_SBC(model, seed = 123, prior_params = params)
+SBC_out$ranks
+
+```
+
+With the following code it would essentially be possible to calculate the rank statistics of each parameter and then test it with the pearsons' chi-squared test, but much is not considered here (e.g. the convergence and the effective sample size).
+```
+# For 2000 replications
+## This takes too long to run and in addition, Rhat should always be 
+## checked as well as the effective sample size.
+R = 2000
+rank_mat <- data.frame()
+
+for (r in 1:R) {
+  SBC_out <- fit_rtmpt_SBC(model, seed = r*123, prior_params = params, n.eff_samples = 99)
+  rank_mat <- rbind(rank_mat, SBC_out$ranks)
+}
+
+## pearsons' chi-square for testing uniformity
+x <- apply(rank_mat[1:R,], 2, table)
+expect <- R/100 # 100 = number of bins/cells (0:99)
+pearson <- apply(X = x, MARGIN = 2, FUN = function(x) {sum((x-expect)^2/expect)})
+z95 <- qchisq(0.95, 99) # 99 = degrees of freedom
+sum(pearson>z95) / length(pearson)
+```
+
+With the following code a rank matrix is generated from a uniform distribution and then tested for uniformity:
+```{r, eval=TRUE}
+R <- 2000
+rand_rankmat <- matrix(data = sample(0:99, R*393, replace=TRUE), nrow = R, ncol = 393)
+
+## pearsons' chi-square for testing uniformity
+x <- apply(rand_rankmat[1:R,], 2, table)
+expect <- R/100 # 100 = number of bins/cells (0:99)
+pearson <- apply(X = x, MARGIN = 2, FUN = function(x) {sum((x-expect)^2/expect)})
+z95 <- qchisq(0.95, 99) # 99 = degrees of freedom
+sum(pearson>z95) / length(pearson)
+```
 
 # References
 * Heck, D. W., Arnold, N. R., & Arnold, D. (2018). TreeBUGS: An R package for hierarchical multinomial-processing-tree modeling. Behavior Research Methods, 50(1), 264-284. doi: 10.3758/s13428-017-0869-7
