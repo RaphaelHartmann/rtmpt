@@ -43,9 +43,9 @@ The installation from source requires the installation of [GSL](https://www.gnu.
 
 An easier way is to install the `rtmpt`package via binaries:
 1. Download the Windows binaries for your corresponding R version from this list or from the [releases](https://github.com/RaphaelHartmann/rtmpt/releases) (For example, if your *R* vesion is 3.5.3 choose `R(3.5.X)`)
-* [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/Windows_binaries/3.5/rtmpt_0.1-14.zip) - *R* old release
-* [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/Windows_binaries/3.6/rtmpt_0.1-14.zip) - *R* release
-* [![Binary](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/Windows_binaries/3.7/rtmpt_0.1-14.zip) - *R* devel
+* [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/Windows_binaries/R_3.5.X/rtmpt_0.1-17.zip) - *R* old release
+* [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/Windows_binaries/R_3.6.X/rtmpt_0.1-17.zip) - *R* release
+* [![Binary](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/Windows_binaries/R_3.7.X/rtmpt_0.1-17.zip) - *R* devel
 2. Installation via Package Archive File (.zip) in
     * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
     * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
@@ -85,8 +85,8 @@ Installing `rtmpt` is possible either
 ##### via binaries
 The installation via the binaries is much easier than from source:
 1. Download the MacOS binaries for your corresponding R version from this list or from the [releases](https://github.com/RaphaelHartmann/rtmpt/releases) (For example, if your *R* vesion is 3.5.3 choose `R(3.5.X)`)
-* [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/MacOS_binaries/R_3.5.X/rtmpt_0.1-14.tgz) - *R* old release
-* [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/MacOS_binaries/R_3.6.X/rtmpt_0.1-14.tgz) - *R* release
+* [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/MacOS_binaries/R_3.5.X/rtmpt_0.1-17.tgz) - *R* old release
+* [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/MacOS_binaries/R_3.6.X/rtmpt_0.1-17.tgz) - *R* release
 2. Installation via Package Archive File (.zip) in
     * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
     * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
