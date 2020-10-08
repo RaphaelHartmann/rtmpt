@@ -1,6 +1,6 @@
 [![License](https://img.shields.io/badge/license-GPL(>=2)-C11B17.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
 [![Library](https://img.shields.io/badge/library-GSL(>=2.3)-C11B17.svg)](https://www.gnu.org/software/gsl/)
-[![BRM](https://img.shields.io/badge/BRM-10.3758/s13428-019-01318-x-C11B17.svg)](https://dx.doi.org/10.18637/jss.v040.i08)
+[![BRM](https://img.shields.io/badge/BRM-10.3758%2Fs13428-019-01318-x-C11B17.svg)](https://dx.doi.org/10.18637/jss.v040.i08)
 
 
 # rtmpt
