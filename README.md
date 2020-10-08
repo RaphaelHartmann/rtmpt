@@ -1,5 +1,6 @@
 [![License](https://img.shields.io/badge/license-GPL(>=2)-C11B17.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
 [![Library](https://img.shields.io/badge/library-GSL(>=2.3)-C11B17.svg)](https://www.gnu.org/software/gsl/)
+[![JMP](https://img.shields.io/static/v1?label=JMP&message=10.1016/j.jmp.2017.12.003&color=C11B17)](https://doi.org/10.1016/j.jmp.2017.12.003)
 [![BRM](https://img.shields.io/static/v1?label=BRM&message=10.3758/s13428-019-01318-x&color=C11B17)](https://doi.org/10.3758/s13428-019-01318-x)
 [![JMP](https://img.shields.io/static/v1?label=JMP&message=10.1016/j.jmp.2020.102340&color=C11B17)](https://doi.org/10.1016/j.jmp.2020.102340)
 
