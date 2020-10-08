@@ -1,7 +1,6 @@
 [![License](https://img.shields.io/badge/license-GPL(>=2)-C11B17.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
 [![Library](https://img.shields.io/badge/library-GSL(>=2.3)-C11B17.svg)](https://www.gnu.org/software/gsl/)
-[![BRM](https://img.shields.io/badge/BRM-10.3758/s13428-C11B17.svg)](https://doi.org/10.3758/s13428-019-01318-x)
-
+[![BRM](https://img.shields.io/static/v1?label=BRM&message=10.3758/s13428-019-01318-x&color=C11B17)](https://doi.org/10.3758/s13428-019-01318-x)
 
 # rtmpt
 *R* package for fitting Response-Time extended Multinomial Processing Tree (RT-MPT) models by Klauer and Kellen (2018)
