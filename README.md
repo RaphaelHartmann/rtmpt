@@ -147,4 +147,8 @@ or the vignette via `vignette("rtmpt_intro")`.
 ## References
 Klauer, K. C., & Kellen, D. (2018). RT-MPTs: Process models for response-time distributions based on multinomial processing trees with applications to recognition memory. *Journal of Mathematical Psychology, 82*, 111-130.
 
+Hartmann, R., Johannsen, L., & Klauer, K. C. (2020). rtmpt: An R package for fitting response-time extended multinomial processing tree models. *Behavior Research Methods, 52(3)*, 1313–1338. doi:10.3758/s13428-019-01318-x
+
+Hartmann, R., & Klauer, K. C. (2020). Extending RT-MPTs to enable equal process times. *Journal of Mathematical Psychology, 96*, 102340. doi:10.1016/j.jmp.2020.102340
+
 Galassi, M., Davies, J., Theiler, J., Gough, B., Jungman, G., Alken, P., . . . Ulerich, R. (2018). GNU scientific library [Computer software]. Retrieved from http://www.gnu.org/software/gsl/
