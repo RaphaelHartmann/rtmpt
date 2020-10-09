@@ -145,6 +145,28 @@ For an example download the [example](https://github.com/RaphaelHartmann/rtmpt-f
 ```
 or the vignette via `vignette("rtmpt_intro")`.
 
+## Citation
+If you want to cite this package write
+
+Hartmann, R., Johannsen, L., & Klauer, K. C. (2020). rtmpt: An R package for fitting response-time extended multinomial processing tree models. *Behavior Research Methods, 52(3)*, 1313–1338. doi:10.3758/s13428-019-01318-x
+
+or use the BibTeX code:
+```
+@article{Hartmann_2020,
+	doi = {10.3758/s13428-019-01318-x},
+	url = {https://doi.org/10.3758%2Fs13428-019-01318-x},
+	year = 2020,
+	month = {may},
+	publisher = {Springer Science and Business Media {LLC}},
+	volume = {52},
+	number = {3},
+	pages = {1313--1338},
+	author = {Raphael Hartmann and Lea Johannsen and Karl Christoph Klauer},
+	title = {rtmpt: An R package for fitting response-time extended multinomial processing tree models},
+	journal = {Behavior Research Methods}
+}
+```
+
 ## References
 Klauer, K. C., & Kellen, D. (2018). RT-MPTs: Process models for response-time distributions based on multinomial processing trees with applications to recognition memory. *Journal of Mathematical Psychology, 82*, 111-130. 111–130. doi: 10.1016/j.jmp.2017.12.003
 
