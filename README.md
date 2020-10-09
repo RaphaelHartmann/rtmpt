@@ -148,7 +148,7 @@ or the vignette via `vignette("rtmpt_intro")`.
 ## Citation
 If you want to cite this package write
 
-Hartmann, R., Johannsen, L., & Klauer, K. C. (2020). rtmpt: An R package for fitting response-time extended multinomial processing tree models. *Behavior Research Methods, 52(3)*, 1313–1338. doi:10.3758/s13428-019-01318-x
+Hartmann, R., Johannsen, L., & Klauer, K. C. (2020). rtmpt: An R package for fitting response-time extended multinomial processing tree models. *Behavior Research Methods, 52(3)*, 1313–1338. doi: 10.3758/s13428-019-01318-x
 
 or use the BibTeX code:
 ```
