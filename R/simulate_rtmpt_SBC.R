@@ -87,7 +87,6 @@
 #'                                       n.trials = 30, params = params)
 #' 
 #' @author Raphael Hartmann
-#' @importFrom LaplacesDemon rinvchisq rinvwishart rmvn
 #' @importFrom truncnorm rtruncnorm
 #' @importFrom stats rgamma rnorm pnorm rexp
 sim_rtmpt_data_SBC<- function(model, 

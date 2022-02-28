@@ -220,7 +220,8 @@ make_model <- function(RAW_MODEL, save_model = FALSE, form) {
     index <- 1
     for (i in 1:length(comment_lines)) {
       ind <- which(mapping_tree==i)
-      ind2 <- which(grepl(pattern = paste0(RAW_MODEL$eqn$TREE[ind[1]], " "), x = uniq_char_vec))
+      pat <- paste0(RAW_MODEL$eqn$TREE[ind[1]], " ")
+      ind2 <- which(grepl(pattern = pat, x = substr(uniq_char_vec, 1, nchar(pat))))
       all_lines[index:(index+length(ind2)+1)] <- c(comment_lines[i], model_lines[ind2], "")
       index <- index+length(ind2)+2
     }
@@ -236,6 +237,38 @@ make_model <- function(RAW_MODEL, save_model = FALSE, form) {
   model <- list()
   model$lines <- all_lines
   return(model)
+  
+}
+
+#' @importFrom stringr str_replace_all
+#' @importFrom Ryacas yac_str
+check_one <- function(raw_model, variables) {
+  
+  new_vars <- paste0("var", 1:length(variables))
+  
+  unq_tree <- unique(raw_model[,1])
+  
+  nmbr <- vector(mode = "list", length = length(unq_tree))
+  
+  for(i in 1:length(nmbr)) {
+    
+    nmbr[[i]] <- raw_model[which(raw_model[,1] == unq_tree[i]), 3]
+    for(j in 1:length(new_vars)) {
+      nmbr[[i]] <- unlist(str_replace_all(nmbr[[i]], variables[j], new_vars[j]))
+    }
+    nmbr[[i]] <- paste(nmbr[[i]], collapse = "+")
+    
+    nmbr[[i]] <- yac_str(paste0("Simplify(", nmbr[[i]], ")"))
+    
+  }
+  
+  resp <- NULL
+  if(all(unlist(nmbr)=="1")) {
+    resp <- 0
+  } else {
+    resp <- which(unlist(nmbr)!="1")
+  }
+  return(resp)
   
 }
 

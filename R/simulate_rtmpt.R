@@ -1,3 +1,125 @@
+# check if matrix is square
+# Copied from the R package matrixcalc
+is.square.matrix <- function (x) {
+  if (!is.matrix(x)) 
+    stop("argument x is not a matrix")
+  return(nrow(x) == ncol(x))
+}
+
+
+# check if matrix is symmetric
+# Copied from the R package matrixcalc
+is.symmetric.matrix <- function (x) {
+  if (!is.matrix(x)) {
+    stop("argument x is not a matrix")
+  }
+  if (!is.numeric(x)) {
+    stop("argument x is not a numeric matrix")
+  }
+  if (!is.square.matrix(x)) 
+    stop("argument x is not a square numeric matrix")
+  return(sum(x == t(x)) == (nrow(x)^2))
+}
+
+
+# check if matrix positive definite
+# Copied from the R package matrixcalc
+is.positive.definite <- function (x, tol = 1e-08) {
+  if (!is.square.matrix(x)) 
+    stop("argument x is not a square matrix")
+  if (!is.symmetric.matrix(x)) 
+    stop("argument x is not a symmetric matrix")
+  if (!is.numeric(x)) 
+    stop("argument x is not a numeric matrix")
+  eigenvalues <- eigen(x, only.values = TRUE)$values
+  n <- nrow(x)
+  for (i in 1:n) {
+    if (abs(eigenvalues[i]) < tol) {
+      eigenvalues[i] <- 0
+    }
+  }
+  if (any(eigenvalues <= 0)) {
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
+
+# check if matrix is positive semi definite
+is.positive.semi.definite <- function (x, tol = 1e-08) {
+  if (!is.square.matrix(x)) 
+    stop("argument x is not a square matrix")
+  if (!is.symmetric.matrix(x)) 
+    stop("argument x is not a symmetric matrix")
+  if (!is.numeric(x)) 
+    stop("argument x is not a numeric matrix")
+  eigenvalues <- eigen(x, only.values = TRUE)$values
+  n <- nrow(x)
+  for (i in 1:n) {
+    if (abs(eigenvalues[i]) < tol) {
+      eigenvalues[i] <- 0
+    }
+  }
+  if (any(eigenvalues < 0)) {
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
+
+
+# multivariate normal distribution
+# Copied from the R package LaplacesDemon
+rmvn <- function(n=1, mu=rep(0,k), Sigma) {
+  mu <- rbind(mu)
+  if(missing(Sigma)) Sigma <- diag(ncol(mu))
+  if(!is.matrix(Sigma)) Sigma <- matrix(Sigma)
+  if(!is.positive.definite(Sigma))
+    stop("Matrix Sigma is not positive-definite.")
+  k <- ncol(Sigma)
+  if(n > nrow(mu)) mu <- matrix(mu, n, k, byrow=TRUE)
+  z <- matrix(rnorm(n*k),n,k) %*% chol(Sigma)
+  x <- mu + z
+  return(x)
+}
+
+# scaled inverse chi-square distribution
+# Copied from the R package LaplacesDemon
+#' @importFrom stats rchisq
+rinvchisq <- function(n, df, scale=1/df) {
+  df <- rep(df, len=n); scale <- rep(scale, len=n)
+  if(any(df <= 0)) stop("The df parameter must be positive.")
+  if(any(scale <= 0)) stop("The scale parameter must be positive.")
+  z <- rchisq(n, df=df)
+  z[which(z == 0)] <- 1e-100
+  x <- (df*scale) / z
+  return(x)
+}
+
+# scaled (inverse) wishart distribution
+# Copied from the R package LaplacesDemon
+rwishartc <- function(nu, S) {
+  if(!is.matrix(S)) S <- matrix(S)
+  if(!is.positive.semi.definite(S))
+    stop("Matrix S is not positive-semidefinite.")
+  if(nu < nrow(S)) {
+    stop("The nu parameter is less than the dimension of S.")}
+  k <- nrow(S)
+  Z <- matrix(0, k, k)
+  x <- rchisq(k, nu:{nu - k + 1})
+  x[which(x == 0)] <- 1e-100
+  diag(Z) <- sqrt(x)
+  if(k > 1) {
+    kseq <- 1:(k-1)
+    Z[rep(k*kseq, kseq) +
+        unlist(lapply(kseq, seq))] <- rnorm(k*{k - 1}/2)
+  }
+  return(Z %*% chol(S))
+}
+rinvwishart <- function(nu, S) {
+  return(chol2inv(rwishartc(nu, chol2inv(chol(S)))))
+}
+
 
 # READ INFOS OF INFOFILE ----
 readinfofile <- function(infofile) {
@@ -108,13 +230,13 @@ readinfofile <- function(infofile) {
 #'           distributed within \code{[-1, 1]}.
 #'     \item \code{SIGMA}: Variance-covariance matrix of the process-related parameters. It must match the number of process-related parameters to be estimated. 
 #'           If scalars or vectors are given, they will be transformed into diagonal matrices using \code{diag(SIGMA)}.
-#'           If not specified it will be randomly generated using \code{diag(xi)\%*\%LaplacesDemon::rinvwishart(nu, S)\%*\%diag(xi)}, where nu is the number of
+#'           If not specified it will be randomly generated using \code{diag(xi)\%*\%rinvwishart(nu, S)\%*\%diag(xi)}, where nu is the number of
 #'           process-related group-level parameters to be estimated plus \code{add_df_to_invWish}, S is the identity matrix multiplied by 
 #'           \code{sf_of_scale_matrix_SIGMA}, and xi (randomly generated from N(\code{1, 1/prec_epsilon})) are the scaling factors for the scaled inverse wishart distribution.
 #'           If \code{SIGMA} is used, \code{sf_of_scale_matrix_SIGMA} and \code{add_df_to_invWish} will be ignored for the process-related parameters.
 #'     \item \code{GAMMA}: Variance-covariance matrix of the motor time parameters. It must match the number of motor time parameters to be estimated. 
 #'           If scalars or vectors are given, they will be transformed into diagonal matrices using \code{diag(SIGMA)}.
-#'           If not specified it will be randomly generated using \code{diag(xi)\%*\%LaplacesDemon::rinvwishart(nu, S)\%*\%diag(xi)}, where nu is the number of
+#'           If not specified it will be randomly generated using \code{diag(xi)\%*\%rinvwishart(nu, S)\%*\%diag(xi)}, where nu is the number of
 #'           motor time group-level parameters to be estimated plus \code{add_df_to_invWish}, S is the identity matrix multiplied by 
 #'           \code{sf_of_scale_matrix_GAMMA}, and xi (randomly generated from N(\code{1, 1/prec_epsilon})) are the scaling factors for the scaled inverse wishart distribution.
 #'           If \code{GAMMA} is used, \code{sf_of_scale_matrix_GAMMA} and \code{add_df_to_invWish} will be ignored for the motor time parameters.
@@ -181,7 +303,6 @@ readinfofile <- function(infofile) {
 #' 
 #' @author Raphael Hartmann
 #' @export
-#' @importFrom LaplacesDemon is.positive.definite rinvchisq rinvwishart rmvn
 #' @importFrom truncnorm rtruncnorm
 #' @importFrom stats rgamma rnorm pnorm rexp
 sim_rtmpt_data <- function(model, 
@@ -222,10 +343,14 @@ sim_rtmpt_data <- function(model,
   if (any(!is.na(model$params$taus[2,]))) {SupprPlus <- which(!is.na(model$params$taus[2,]))} else {SupprPlus <- 0}
   SIGMA_flag <- FALSE
   GAMMA_flag <- FALSE
-  alpha_flag <- ifelse(exists("var_of_mu_alpha", where = params), TRUE, FALSE)
-  beta_flag <- ifelse(exists("var_of_exp_mu_beta", where = params), TRUE, FALSE)
-  gamma_flag <- ifelse(exists("var_of_mu_gamma", where = params), TRUE, FALSE)
-  omega_flag <- ifelse(exists("var_of_omega_sqr", where = params), TRUE, FALSE)
+  if (!is.null(params)) {
+    alpha_flag <- ifelse(exists("var_of_mu_alpha", where = params), TRUE, FALSE)
+    beta_flag <- ifelse(exists("var_of_exp_mu_beta", where = params), TRUE, FALSE)
+    gamma_flag <- ifelse(exists("var_of_mu_gamma", where = params), TRUE, FALSE)
+    omega_flag <- ifelse(exists("var_of_omega_sqr", where = params), TRUE, FALSE)
+  } else {
+    alpha_flag <- beta_flag <- gamma_flag <- omega_flag <- FALSE
+  }
   
   # produce infofile ----
   mdl_txt <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".txt"))

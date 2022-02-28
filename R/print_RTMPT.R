@@ -26,7 +26,9 @@ writeSummaryRTMPT <- function(x, keep, ...) {
   tauP_names <- colnames(x$specs$model$params$taus[2, which(is.na(x$specs$model$params$taus[2,]))])
   tau_names <- c(tauM_names, tauP_names)
   Nprobs <- sum(is.na(x$specs$model$params$probs))
-  Ntaus <- sum(is.na(x$specs$model$params$taus))
+  Ntau_m <- sum(is.na(x$specs$model$params$taus[1,]))
+  Ntau_p <- sum(is.na(x$specs$model$params$taus[2,]))
+  Ntaus <- Ntau_m + Ntau_p
   Nparams <- Nprobs+Ntaus
   Nresps <- length(unique(x$specs$model$responses$RESP))
   Ngroups <- x$specs$n.groups
@@ -96,8 +98,8 @@ writeSummaryRTMPT <- function(x, keep, ...) {
   n_eff <- effectiveSize(samp)
   n_eff_orig <- effectiveSize(x$samples)
   n_eff_delta <- effectiveSize(delta)
-  R_hat <- gelman.diag(samp)
-  R_hat_delta <- gelman.diag(delta)
+  R_hat <- gelman.diag(samp, multivariate = FALSE)
+  R_hat_delta <- gelman.diag(delta, multivariate = FALSE)
   
   
   # output
@@ -111,7 +113,7 @@ writeSummaryRTMPT <- function(x, keep, ...) {
   ind_main <- c(ind_probs, ind_taus)
   main_mat <- cbind(su$statistics[ind_main, c(1,2)], su$quantiles[ind_main, c(1,3,5)], 
                     su$statistics[ind_main, c(3,4)], n_eff[ind_main], R_hat$psrf[ind_main,])
-  if (Nresps > 1) {
+  if (Nresps > 1 | Ngroups > 1) {
 	main_mat <- rbind(main_mat, cbind(sudelta$statistics[, c(1,2)], sudelta$quantiles[, c(1,3,5)], 
                                     sudelta$statistics[, c(3,4)], n_eff_delta, R_hat_delta$psrf))
   } else {
@@ -127,9 +129,9 @@ writeSummaryRTMPT <- function(x, keep, ...) {
   delta_names <- paste0(rnams[4], rep(paste0("R", 0:(Nresps-1))))
   if(Ngroups>1) {
     theta_names <- paste0(rep(theta_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nprobs))
-    tau_M_names <- paste0(rep(tau_M_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nprobs))
-    tau_P_names <- paste0(rep(tau_P_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nprobs))
-    delta_names <- paste0(rep(delta_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nprobs))
+    tau_M_names <- paste0(rep(tau_M_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Ntau_m))
+    tau_P_names <- paste0(rep(tau_P_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Ntau_p))
+    delta_names <- paste0(rep(delta_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nresps))
   }
   rownames(main_mat) <- c(theta_names, tau_M_names, tau_P_names, delta_names)
 
