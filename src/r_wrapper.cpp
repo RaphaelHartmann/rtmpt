@@ -134,8 +134,8 @@ extern "C" {
 				}
 			}
 		}
-		if (complete_sample) free(complete_sample);
-		if (complete_bridge) free(complete_bridge);
+		if (complete_sample) R_Free(complete_sample);
+		if (complete_bridge) R_Free(complete_bridge);
 
 
 		SET_VECTOR_ELT(ans,0,prob);
@@ -152,11 +152,11 @@ extern "C" {
 
 		Rf_setAttrib(ans,R_NamesSymbol,names);
 
-		// // free variables
-		// free(CatToResp);
-		// free(ConstProb);
-		// free(CompMinus);
-		// free(CompPlus);
+		// // R_Free variables
+		// R_Free(CatToResp);
+		// R_Free(ConstProb);
+		// R_Free(CompMinus);
+		// R_Free(CompPlus);
 
 
 		/* Unprotect the ans and names objects */

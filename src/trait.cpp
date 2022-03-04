@@ -16,7 +16,7 @@ void invwis(int cases, int nvar, double *xx, double *ssig, double *sigi, double 
 	//gsl_vector *s = gsl_vector_alloc(nvar);
 
 
-	xb = (double *)malloc(nvar*(cases + nvar + 1 + pr_df_add_inv_wish) * sizeof(double));
+	xb = (double *)R_Calloc(nvar*(cases + nvar + 1 + pr_df_add_inv_wish), double);
 
 
 	for (int j = 0; j != nvar; j++)
@@ -70,7 +70,7 @@ void invwis(int cases, int nvar, double *xx, double *ssig, double *sigi, double 
 
 	gsl_matrix_free(cx);
 	//gsl_vector_free(s);
-	free(xb);
+	R_Free(xb);
 
 }
 
@@ -94,9 +94,9 @@ void bayesreg(int n, double *mean, double *sigma, double *out, gsl_rng *rst) {
 
 
 	double *xb = 0, *hout = 0, *ntig = 0;
-	xb = (double *)malloc(n * sizeof(double));
-	hout = (double *)malloc(n * sizeof(double));
-	ntig = (double *)malloc(n*n * sizeof(double));
+	xb = (double *)R_Calloc(n, double);
+	hout = (double *)R_Calloc(n, double);
+	ntig = (double *)R_Calloc(n*n, double);
 
 	gsl_matrix *cx = gsl_matrix_alloc(n, n);
 	//gsl_vector *s  = gsl_vector_alloc(n);
@@ -137,9 +137,9 @@ void bayesreg(int n, double *mean, double *sigma, double *out, gsl_rng *rst) {
 		out[i] += hout[i];
 	}
 
-	if (xb) free(xb);
-	if (hout) free(hout);
-	free(ntig);
+	if (xb) R_Free(xb);
+	if (hout) R_Free(hout);
+	R_Free(ntig);
 	gsl_matrix_free(cx);
 	// gsl_vector_free(s);
 }
@@ -196,12 +196,12 @@ void make_pij_for_individual(double *x, double *pij, double *pj) {
 
 
 void make_mu(double *mu, double *lams, double *beta, int *nnodes, double *z, gsl_rng *rst) {
-	
-	double *mean = 0;	mean = (double *)calloc((igroup * ifree),  sizeof(double));
-	double *xtx = 0;	xtx = (double *)calloc((igroup * ifree) , sizeof(double));
-	
-	
-	
+
+	double *mean = 0;	mean = (double *)R_Calloc((igroup * ifree),  double);
+	double *xtx = 0;	xtx = (double *)R_Calloc((igroup * ifree) , double);
+
+
+
 	int jj = -1;
 	for (int ip = 0; ip != kernpar; ip++) if (comp[ip]) {
 	  int iz = kern2free[ip];
@@ -223,7 +223,7 @@ void make_mu(double *mu, double *lams, double *beta, int *nnodes, double *z, gsl
 	    mu[ix * ifree + iz] = mean[ix * ifree + iz] / xtx[ix * ifree + iz] + onenorm(rst) / sqrt(xtx[ix * ifree + iz]);
 	  }
 	}
-	
+
 	/*
 	for (int iz = 0; iz != ifree; iz++) {
 		int ip = free2kern[iz];
@@ -245,19 +245,19 @@ void make_mu(double *mu, double *lams, double *beta, int *nnodes, double *z, gsl
 		}
 	}
 	*/
-	 
-	if (xtx) free(xtx);
-	if (mean) free(mean);
+
+	if (xtx) R_Free(xtx);
+	if (mean) R_Free(mean);
 }
 
 void make_lams(double *mu, double *lams, double *beta, int *nnodes, double *z, gsl_rng *rst) {
 
-  double *w = 0;	w = (double *)calloc(ifree , sizeof(double));
-  double *u = 0;	u = (double *)malloc(ifree * sizeof(double));
-  
+  double *w = 0;	w = (double *)R_Calloc(ifree , double);
+  double *u = 0;	u = (double *)R_Calloc(ifree, double);
+
   for (int iz = 0; iz != ifree; iz++) u[iz] = PRIOR;
-  
-  
+
+
   int jj = -1;
   for (int ip = 0; ip != kernpar; ip++) if (comp[ip]) {
     int iz = kern2free[ip];
@@ -273,13 +273,13 @@ void make_lams(double *mu, double *lams, double *beta, int *nnodes, double *z, g
       w[iz] += wiz * BETA(t, iz);
     }
   }
-  
+
   for (int iz = 0; iz != ifree; iz++) {
     if (u[iz] <= 0) u[iz] = DBL_MIN;
     lams[iz] = (PRIOR + w[iz]) / u[iz] + onenorm(rst) / sqrt(u[iz]);
   }
-  
-  
+
+
   /*
 	for (int iz = 0; iz != ifree; iz++) {
 		int ip = free2kern[iz];
@@ -302,6 +302,6 @@ void make_lams(double *mu, double *lams, double *beta, int *nnodes, double *z, g
 	}
   */
 
-	if (w) free(w);
-	if (u) free(u);
+	if (w) R_Free(w);
+	if (u) R_Free(u);
 }

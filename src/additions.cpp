@@ -40,7 +40,7 @@ bool step(int k, int a, int *iz, int ll) {
 }
 
 void logPhikl(int k, int a, vector<int> r, double *lams, double *loglams, int l, double &hypoplus, double &hypominus) {
-	int *iz = 0; iz = (int *)malloc(a * sizeof(int));
+	int *iz = 0; iz = (int *)R_Calloc(a, int);
 
 	hypoplus = hypominus = GSL_NEGINF;
 //	double zwi = 0;
@@ -82,7 +82,7 @@ void logPhikl(int k, int a, vector<int> r, double *lams, double *loglams, int l,
 	// 	hypominus = temp;
 	// }
 
-	free(iz);
+	R_Free(iz);
 //	hypoplus += gsl_sf_lnfact(l - 1);
 //	hypominus += gsl_sf_lnfact(l - 1);
 }
@@ -437,9 +437,9 @@ void test() {
 	int a = 5;
 //nt l = 3;
 //nt k = 3;
-	int *iz = 0; iz = (int *)malloc(a * sizeof(int));
+	int *iz = 0; iz = (int *)R_Calloc(a, int);
 	vector<int> r = { 2,1,2,2,1 };
-	double *lams = 0; lams = (double *)malloc(a * sizeof(double));
+	double *lams = 0; lams = (double *)R_Calloc(a, double);
 
 
 	lams[0] = 1.0;
@@ -480,14 +480,14 @@ void test() {
 	// 	char x; std::cin >> x;
 	// }
 
-	free(iz);
-	free(lams);
+	R_Free(iz);
+	R_Free(lams);
 }
 */
 
 
 void extract_pfadinfo(int *pfad_index,  vector<pfadinfo> &path_info) {
-	int *counts = 0; counts = (int *)malloc(2*kernpar * sizeof(int));
+	int *counts = 0; counts = (int *)R_Calloc(2*kernpar, int);
 	path_info.clear();
 	for (int c = 0; c != kerncat; c++) {
 		int tree = cat2tree[c];
@@ -521,5 +521,5 @@ void extract_pfadinfo(int *pfad_index,  vector<pfadinfo> &path_info) {
 			// else PFAD_INDEX(c, j) = -1;
 		}
 	}
-	free(counts);
+	R_Free(counts);
 }

@@ -50,7 +50,7 @@ void make_tij_for_one_trial_new_new(trial one, double *lambdas, double rmu, doub
 	for (int k = 0; k != branch[j]; k++) {
 		int pfadlength = NDRIN(j, k);
 
-		double *lams = 0; lams = (double *)malloc(pfadlength * sizeof(double));
+		double *lams = 0; lams = (double *)R_Calloc(pfadlength, double);
 		int complength = 0;
 		for (int ir = 0; ir != pfadlength; ir++) {
 			int r = DRIN(j, k, ir); int ip = TREE_AND_NODE2PAR(itree, r); int pm = (AR(j, k, r) > 0) ? 1 : 0;
@@ -65,7 +65,7 @@ void make_tij_for_one_trial_new_new(trial one, double *lambdas, double rmu, doub
 
 		}
 		if (complength >= 2) {
-			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
+			double *loglams = 0; loglams = (double *)R_Calloc(complength, double);
 
 			double hypo_plus = 0, hypo_minus = 0; bool f_plus = true, f_minus = true;
 			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
@@ -93,10 +93,10 @@ void make_tij_for_one_trial_new_new(trial one, double *lambdas, double rmu, doub
 				restart = true;
 
 			}
-			if (loglams) free(loglams);
+			if (loglams) R_Free(loglams);
 		}
 
-		free(lams);
+		R_Free(lams);
 		if (DEBUG) {if ((pfadlength > 5) || (pfadlength == 0)) Rprintf("pfadlength\n");}
 	}
 
@@ -112,7 +112,7 @@ void make_tij_for_repetitions(trial one, double *lambdas, double rmu, double rsi
 	for (int k = 0; k != branch[j]; k++) {
 		int pfadlength = NDRIN(j, k);
 
-		double *lams = 0; lams = (double *)malloc(pfadlength * sizeof(double));
+		double *lams = 0; lams = (double *)R_Calloc(pfadlength, double);
 		int complength = 0;
 		/*if (PFAD_INDEX(j,k)==-1) {
 			for (int ir = 0; ir != pfadlength; ir++) {
@@ -155,7 +155,7 @@ void make_tij_for_repetitions(trial one, double *lambdas, double rmu, double rsi
 			// printf("end ==1\n");
 		}
 /*		if ((complength >= 2) && (PFAD_INDEX(j, k) == -1)) {
-			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
+			double *loglams = 0; loglams = (double *)R_Calloc(complength, double);
 
 			double hypo_plus = 0, hypo_minus = 0; bool f_plus = true, f_minus = true;
 			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
@@ -183,11 +183,11 @@ void make_tij_for_repetitions(trial one, double *lambdas, double rmu, double rsi
 				restart = true;
 
 			}
-			if (loglams) free(loglams);
+			if (loglams) R_Free(loglams);
 		}*/
 		if ((complength >= 2) /*&& (PFAD_INDEX(j, k) > -1)*/) {
 			// printf("in >= 2\n");
-			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
+			double *loglams = 0; loglams = (double *)R_Calloc(complength, double);
 			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
 			// int ipfad = PFAD_INDEX(j, k);
 			// pfadinfo akt_pfad = path_info[ipfad];
@@ -197,11 +197,11 @@ void make_tij_for_repetitions(trial one, double *lambdas, double rmu, double rsi
 				restart = true;
 			}
 			else pij[k] = (temp)-xsi;
-			if (loglams) free(loglams);
+			if (loglams) R_Free(loglams);
 			// printf("end >= 2\n");
 		}
 
-		free(lams);
+		R_Free(lams);
 	}
 
 }
@@ -218,15 +218,15 @@ double objfun(const gsl_vector * y, void * params)
 {
 	double *pars = (double *)params;
 	int n = static_cast<int>(trunc(pars[0]));
-	double *x = 0; x = (double *)malloc(n * sizeof(double));
+	double *x = 0; x = (double *)R_Calloc(n, double);
 	for (int i = 0; i != n; i++) x[i] = gsl_vector_get(y, i);
 	trans(n, x, pars, false);
 	if (DEBUG) {if (!(x[1] == x[1])) Rprintf("x[1] is NaN\n");}
 
 
-	double *lambdas = 0; lambdas = (double *)malloc(ilamfree * sizeof(double));
-	double *x_for_all = 0; x_for_all = (double *)malloc(ifree * sizeof(double));
-	double *pij = 0; pij = (double *)malloc(zweig * sizeof(double));
+	double *lambdas = 0; lambdas = (double *)R_Calloc(ilamfree, double);
+	double *x_for_all = 0; x_for_all = (double *)R_Calloc(ifree, double);
+	double *pij = 0; pij = (double *)R_Calloc(zweig, double);
 
 	int trialno = static_cast<int>(itdaten.size());
 
@@ -258,10 +258,10 @@ double objfun(const gsl_vector * y, void * params)
 		if (DEBUG) printf("unfortunate\n");
 	}
 	else restart = false;
-	free(x);
-	free(pij);
-	free(lambdas);
-	free(x_for_all);
+	R_Free(x);
+	R_Free(pij);
+	R_Free(lambdas);
+	R_Free(x_for_all);
 
 	return(loglik);
 
@@ -274,9 +274,9 @@ void tby_individuals(vector<trial> daten, int kerntree, double *beta, double *la
 
 	double *pars = 0, *x = 0, *xsave = 0;
 	int n = ifree + ilamfree + 2;
-	x = (double *)malloc(n * sizeof(double));
-	xsave = (double *)malloc(n * sizeof(double));
-	pars = (double *)malloc((2 * n + 1) * sizeof(double));
+	x = (double *)R_Calloc(n, double);
+	xsave = (double *)R_Calloc(n, double);
+	pars = (double *)R_Calloc((2 * n + 1), double);
 
 
 	double oldfit;
@@ -438,9 +438,9 @@ void tby_individuals(vector<trial> daten, int kerntree, double *beta, double *la
 	}
 	Rprintf("\n\n");
 
-	free(x);
-	free(xsave);
-	free(pars);
+	R_Free(x);
+	R_Free(xsave);
+	R_Free(pars);
 }
 
 // }
