@@ -1,5 +1,5 @@
 Package: rtmpt
-Version: 0.2-5
+Version: 0.2-6
 Title: Fitting RT-MPT Models
 Authors@R: c(person("Raphael", "Hartmann", email = "raphael.hartmann@protonmail.com", role = c("aut", "cre")),
              person("Karl C.", "Klauer", email="christoph.klauer@psychologie.uni-freiburg.de", role=c("cph", "aut", "ctb", "ths")),

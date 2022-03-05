@@ -378,9 +378,30 @@ int mainx() {
 
 	free2kern = (int *)R_Calloc((ifree + ilamfree), int);
 	kern2free = (int *)R_Calloc(3 * kernpar, int);
-	int iz = 0; for (int ip = 0; ip != 3 * kernpar; ip++) if (comp[ip]) { kern2free[ip] = iz; free2kern[iz] = ip; iz++; }
-	else kern2free[ip] = -1;
+	int iz = 0; 
+	for (int ip = 0; ip != 3 * kernpar; ip++) {
+	  if (comp[ip]) { 
+	    kern2free[ip] = iz; free2kern[iz] = ip; iz++; 
+	  } else kern2free[ip] = -1;
+	}	
+  /* example
+	ifree = ifree;
+	ilamfree = ilamfree - 2;
+	kern2free[kernpar + 0] = ifree;
+	kern2free[kernpar + 1] = ifree;
+	kern2free[kernpar + 2] = ifree + 1;
 
+	kern2free[2*kernpar + 0] = ifree + (ilamfree) / 2;
+	kern2free[2*kernpar + 1] = ifree + (ilamfree) / 2;
+	kern2free[2*kernpar + 2] = ifree + (ilamfree) / 2 + 1;
+
+	free2kern[ifree + 0] = kernpar + 0;
+	free2kern[ifree + 1] = kernpar + 2;	
+	
+	free2kern[ifree + (ilamfree) / 2 + 0] = 2*kernpar + 0;
+	free2kern[ifree + (ilamfree) / 2 + 1] = 2*kernpar + 2;
+  */
+	
 		// Analysis by individuals
 
 	//double *g2 = 0; if (!(g2 = (double *)R_Calloc(indi, double))) { printf("Allocation failure\n");	exit_status = -1; }

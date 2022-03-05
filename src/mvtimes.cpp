@@ -727,14 +727,14 @@ void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *beta
 	Rprintf("THETAS\nmean:"); //std::cout << "MUS" << std::endl;
 	jz = -1;
 	for (int ig = 0; ig != igroup; ig++) {
-		for (int jp = 0; jp != kernpar; jp++) if (comp[jp]) { jz++; Rprintf("%15g", gsl_cdf_ugaussian_P(PARMON(1, jz))); /*std::cout << setw(15) << gsl_cdf_ugaussian_P(PARMON(1, jz));*/ }
+		for (int jp = 0; jp != kernpar; jp++) if (comp[jp]) { jz= kern2free[jp] + ig * ifree; Rprintf("%15g", gsl_cdf_ugaussian_P(PARMON(1, jz))); /*std::cout << setw(15) << gsl_cdf_ugaussian_P(PARMON(1, jz));*/ }
 		else Rprintf("%15g", gsl_cdf_ugaussian_P(consts[jp])); //std::cout << setw(15) << gsl_cdf_ugaussian_P(consts[jp]);
 		Rprintf("\n");
 	}
 	Rprintf("Rhat:"); //std::cout << "R-statistic MUS" << std::endl;
 	jz = -1;
 	for (int ig = 0; ig != igroup; ig++) {
-		for (int jp = 0; jp != kernpar; jp++) if (comp[jp]) { jz++; Rprintf("%15g", XWBR(3, jz)); /*std::cout << setw(15) << XWBR(3, jz);*/ }
+		for (int jp = 0; jp != kernpar; jp++) if (comp[jp]) { jz= kern2free[jp] + ig * ifree; Rprintf("%15g", XWBR(3, jz)); /*std::cout << setw(15) << XWBR(3, jz);*/ }
 		else Rprintf("%15g", 0.0); //std::cout << setw(15) << 0.0;
 		Rprintf("\n");
 	}
@@ -743,14 +743,14 @@ void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *beta
 	Rprintf("LAMBDAS_MINUS\nmean:"); //std::cout << "RHOS MINUS" << std::endl;
 	jz = ifree * igroup;
 	for (int ig = 0; ig != igroup; ig++) {
-		for (int jp = 0; jp != kernpar; jp++) if (comp[jp + kernpar]) { Rprintf("%15g", PARMON(1, jz)); /*std::cout << setw(15) << PARMON(1, jz);*/ jz++; }
+		for (int jp = 0; jp != kernpar; jp++) if (comp[jp + kernpar]) { jz = ifree * igroup + kern2free[kernpar + jp]-ifree + ig * ilamfree; Rprintf("%15g", PARMON(1, jz)); /*std::cout << setw(15) << PARMON(1, jz);*/ jz++; }
 		else Rprintf("%15g", 0.0); //std::cout << setw(15) << 0.0;
 		Rprintf("\n");
 	}
 	Rprintf("Rhat:"); //std::cout << "R-statistic RHOS MINUS" << std::endl;
 	jz = ifree * igroup;
 	for (int ig = 0; ig != igroup; ig++) {
-		for (int jp = 0; jp != kernpar; jp++) if (comp[kernpar + jp]) { Rprintf("%15g", XWBR(3, jz)); /*std::cout << setw(15) << XWBR(3, jz);*/ jz++; }
+		for (int jp = 0; jp != kernpar; jp++) if (comp[kernpar + jp]) { jz = ifree * igroup + kern2free[kernpar + jp]-ifree + ig * ilamfree; Rprintf("%15g", XWBR(3, jz)); /*std::cout << setw(15) << XWBR(3, jz);*/ jz++; }
 		else Rprintf("%15g", 0.0); //std::cout << setw(15) << 0.0;
 		Rprintf("\n");
 	}
@@ -759,14 +759,14 @@ void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *beta
 	Rprintf("LAMBDAS_PLUS\nmean:"); //std::cout << "RHOS PLUS" << std::endl;
 	int js = jz;
 	for (int ig = 0; ig != igroup; ig++) {
-		for (int jp = 0; jp != kernpar; jp++) if (comp[jp + 2 * kernpar]) { Rprintf("%15g", PARMON(1, jz)); /*std::cout << setw(15) << PARMON(1, jz);*/ jz++; }
+		for (int jp = 0; jp != kernpar; jp++) if (comp[jp + 2 * kernpar]) { jz = ifree * igroup + kern2free[2* kernpar + jp]-ifree + ig * ilamfree; Rprintf("%15g", PARMON(1, jz)); /*std::cout << setw(15) << PARMON(1, jz);*/ jz++; }
 		else Rprintf("%15g", 0.0); //std::cout << setw(15) << 0.0;
 		Rprintf("\n");
 	}
 	Rprintf("Rhat:"); //std::cout << "R-statistic RHOS PLUS" << std::endl;
 	jz = js;
 	for (int ig = 0; ig != igroup; ig++) {
-		for (int jp = 0; jp != kernpar; jp++) if (comp[jp + 2 * kernpar]) { Rprintf("%15g", XWBR(3, jz)); /*std::cout << setw(15) << XWBR(3, jz);*/ jz++; }
+		for (int jp = 0; jp != kernpar; jp++) if (comp[jp + 2 * kernpar]) { jz = ifree * igroup + kern2free[2* kernpar + jp]-ifree + ig * ilamfree; Rprintf("%15g", XWBR(3, jz)); /*std::cout << setw(15) << XWBR(3, jz);*/ jz++; }
 		else Rprintf("%15g", 0.0); //std::cout << setw(15) << 0.0;
 		Rprintf("\n");
 	}
