@@ -271,6 +271,11 @@ fit_rtmpt <- function(model,
   shape_omega_sqr <- prior_params$mean_of_omega_sqr * rate_omega_sqr
   add_df_invWish <- prior_params$add_df_to_invWish - 1
 
+  
+  # process names and number of precesses in total
+  proc_names <- names(model$params$probs)
+  nprocs <- length(proc_names)
+  
   # prepare arguments for RTMPT
   CHAR <- c(Data = data_path, 
             Model = infofile, 
@@ -291,8 +296,8 @@ fit_rtmpt <- function(model,
                nRESP = length(unique(model$responses$RESP)))
   INTEGER2 <- model$responses$RESP  # cat2resp
   
-  BOOL1 <- sapply(X = model$params$taus[1,], FUN = function(x) {ifelse(is.na(x), 1, 0)})  # tau minus
-  BOOL2 <- sapply(X = model$params$taus[2,], FUN = function(x) {ifelse(is.na(x), 1, 0)})  # tau plus
+  BOOL1 <- sapply(X = model$params[["taus"]]["minus",], FUN = function(x) {ifelse(is.na(x) | x %in% proc_names, 1, 0)})  # tau minus
+  BOOL2 <- sapply(X = model$params[["taus"]]["plus",], FUN = function(x) {ifelse(is.na(x) | x %in% proc_names, 1, 0)})  # tau plus
   
   BOOL3 <- c(loglik = indices, bridge = FALSE)#bridge)
   
@@ -309,6 +314,28 @@ fit_rtmpt <- function(model,
   
   INTEGER3 <- add_df_invWish
   
+
+  K2F <- integer(3*nprocs)
+  for(i in 1:nprocs) {
+    theta <- model$params$probs[i]
+    K2F[i] <- ifelse(theta %in% proc_names, which(proc_names==theta), i)
+    tauminus <- model$params[["taus"]]["minus", i]
+    K2F[i+nprocs] <- nprocs + ifelse(tauminus %in% proc_names, which(proc_names==tauminus), 
+                                     ifelse(BOOL1, i, -1))
+    tauplus <- model$params[["taus"]]["plus", i]
+    K2F[i+2*nprocs] <- 2*nprocs + ifelse(tauplus %in% proc_names, which(proc_names==tauplus), 
+                                         ifelse(BOOL2, i, -1))
+  }
+  INTEGER5 <- unique(K2F[K2F != -1])-1
+  for(i in 1:(3*nprocs)) {
+    if(!(i %in% K2F)) {
+      K2F[which(K2F > i)] <- K2F[which(K2F > i)]-1
+    }
+  }
+  INTEGER4 <- K2F-1
+  
+  
+  
   # call C++ function RTMPT
   out <- .Call("rtmpt_fit", 
                as.numeric(REAL), 
@@ -318,6 +345,8 @@ fit_rtmpt <- function(model,
                as.integer(INTEGER), 
                as.integer(INTEGER2),
                as.integer(INTEGER3),
+               as.integer(INTEGER4),
+               as.integer(INTEGER5),
                as.logical(BOOL1), 
                as.logical(BOOL2), 
                as.logical(BOOL3))

@@ -170,14 +170,14 @@ print.rtmpt_model <- function(x, ...) {
   cat("\n* NOTE 1: Each line in the MDL syntax represents one response category.\n")
   cat("----------------------------\n")
   
-  cat("\nProcess probability parameters:\n")
+  cat("\nProcess probability parameters (thetas):\n")
   print(x$params$probs)
   cat("\n* NOTE 1: NA means the parameter will be estimated.\n") 
   cat("* NOTE 2: A value larger than 0 and smaller than 1 means it will be held constant.\n")
   cat("* INFO:", length(which(!is.na(x$params$probs))), "of the process probabilities will be held constant.\n")
   cat("-------------------------------\n")
   
-  cat("\nProcess completion time parameters:\n")
+  cat("\nProcess completion time parameters (taus):\n")
   print(x$params$taus)
   cat("\n* NOTE 1: \"minus\" refers to the negative outcome (1-P) and \"plus\" to the positive.\n")
   cat("* NOTE 2: NA means the parameter will be estimated. 0 means it will be suppressed.\n")

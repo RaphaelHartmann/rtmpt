@@ -803,6 +803,9 @@ void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *beta
 	BURNIN_flag = false;
 
 	if (sig) R_Free(sig);
+	
+	R_CheckUserInterrupt();
+	
 } // end on_screen3
 
 void belege_bridge(int ithread, int ix, int n_bridge_store, double *bridge_sample, double *mu, double *lams,

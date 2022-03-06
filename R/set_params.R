@@ -1,4 +1,426 @@
 
+
+############ THETA TO CONSTANT ############
+
+#' Set Process Probabilities to a Constant
+#' 
+#' Setting process probabilities (thetas) to constants or change it back to be estimated. 
+#'
+#' @param model An object of the class \code{rtmpt_model}.
+#' @param names Character vector with process names.
+#' @param constants Numerical vector of length one or \code{length(names)}. You have the following options for the elements of the numeric vector:
+#'   \itemize{
+#'    \item \code{0 < constants < 1}: set the named probability to a constant value between zero and one
+#'    \item \code{NA}: estimate the named probability
+#'   }
+#' @return An object of the class \code{rtmpt_model}.
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process probability for guessing (g) will be set to 0.5.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## setting g to a constant (0.5):
+#' model <- theta2const(model = model, names = c("g"), constants = c(0.5))
+#' model
+#'                     
+#' @seealso \code{\link{set_resps}}, \code{\link{tau2zero}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
+#' @author Raphael Hartmann
+#' @export
+theta2const <- function(model, names, constants = NA) {
+  
+  if (class(model) != "rtmpt_model") stop("model must be of class \"rtmpt_model\".")
+  if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
+  
+  params_list <- model$params
+  if (!is.list(params_list)) stop("params must be a list.")
+  if ( !("probs" %in% names(params_list)) || 
+       !("taus" %in% names(params_list)) ) stop("\"params\" must contain \"probs\" and \"taus\".")
+  if (!is.vector(names)) stop("\"names\" must be a vector")
+  if (!is.vector(constants)) stop("\"constants\" must be a vector")
+  if (!is.character(names)) stop("\"names\" must be characters.")
+  if (!is.numeric(constants) && !is.logical(constants)) stop("\"constants\" must be numerical.")
+  if (length(constants)!=1 & length(names) != length(constants)) stop("Length of \"names\" and \"constants\" must match.")
+  if (length(constants)==1 & length(names) != 1) constants <- rep(constants, length(names))
+  if (any(!(names %in% names(params_list$probs)))) stop("\"names\" do not match with the names of the processes in the \"model\".")
+  
+  for (i in 1:length(constants)) {
+    if (!is.na(constants[i])) if ( (constants[i] <= 0) || (constants[i] >= 1) ) stop("\"constants\" must be larger than zero and lower than one.")
+  }
+  params_list[["probs"]][names] <- constants
+  model$params <- params_list
+  return(model)
+}
+
+#' @rdname theta2const
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process probability for guessing (g) will be set to 0.5.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## setting g to a constant (0.5):
+#' model <- set_theta_const(model = model, names = c("g"), constants = c(0.5))
+#' model
+#' @export
+set_theta_const <- theta2const
+
+
+
+############ TAU TO ZERO ############
+
+#' Set Process Completion Times to Zero
+#' 
+#' Setting process completion times (taus) to zero or change it back to be estimated.
+#'
+#' @param model A list of the class \code{rtmpt_model}.
+#' @param names Character vector with process names.
+#' @param outputs Character vector of length \code{length(names)} indicating for which process outcome the process completion time should 
+#'   be zero or changed back to be estimated. Allowed characters are:
+#'   \itemize{
+#'    \item \code{"minus"}: the negative outcome of the process.
+#'    \item \code{"plus"}: the positive outcome of the process.
+#'   }
+#' @param values Numerical vector of length one or \code{length(names)}. You have the following options for the elements of the numeric vector:
+#'   \itemize{
+#'    \item \code{0}: suppress the process time/rate, i.e., set the process completion time (tau) with the specified output to zero.
+#'    \item \code{NA}: estimate the process time (tau)
+#'   }
+#' @return A list of the class \code{rtmpt_model}.
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process completion times for both failed detections will be suppressed.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
+#' model <- tau2zero(model = model, names = c("dn", "do"),
+#'                   outputs = c("minus", "minus"), values = 0)
+#' model
+#' 
+#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
+#' @author Raphael Hartmann
+#' @export
+tau2zero <- function(model, names, outputs, values = 0) {
+  
+  if (class(model) != "rtmpt_model") stop("model must be of class \"rtmpt_model\".")
+  if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
+
+  params_list <- model$params
+  if (!is.list(params_list)) stop("params must be a list.")
+  if ( !("probs" %in% names(params_list)) || 
+       !("taus" %in% names(params_list)) ) stop("\"params\" must contain \"probs\" and \"taus\".")
+  if (!is.character(outputs)) stop("\"outputs\" must be a character.")
+  if (!is.vector(names)) stop("\"names\" must be a vector")
+  if (!is.vector(values)) stop("\"values\" must be a vector")
+  if ( !(all(outputs %in% c("minus", "plus"))) ) stop("Allowed \"outputs\" are \"minus\" or \"plus\".")
+  if (!is.character(names)) stop("\"names\" must be characters.")
+  if (!is.numeric(values) && !is.logical(values)) stop("\"values\" must be numerical.")
+  if (length(outputs)!=1 & length(names) != length(outputs)) stop("Length of \"names\" and \"outputs\" must match.")
+  if (length(values)!=1 & length(names) != length(values)) stop("Length of \"names\" and \"values\" must match.")
+  if (length(values)==1 & length(names) != length(values)) values <- rep(values, length(names))
+  if (any(!(names %in% names(params_list$probs)))) stop("\"names\" do not match with the names of the processes in the \"model\".")
+  
+  uniq_values <- unique(values)
+  if (any(!(uniq_values %in% c(0,NA)))) stop("\"values\" must either be zero or NA.")
+  for(i in 1:length(outputs)) {
+    if (outputs[i] == "minus") {
+      params_list[["taus"]]["minus", names[i]] <- values[i]
+    }
+    if (outputs[i] == "plus") {
+      params_list[["taus"]]["plus", names[i]] <- values[i]
+    }
+  }
+  
+  model$params <- params_list
+  return(model)
+}
+
+
+#' @rdname tau2zero
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process completion times for both failed detections will be suppressed.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
+#' model <- set_tau_zero(model = model, names = c("dn", "do"),
+#'                       outputs = c("minus", "minus"), values = 0)
+#' model
+#' @export
+set_tau_zero <- tau2zero
+
+
+
+############ MAKE THETAS EQUAL ############
+
+#' Set Process Probabilities Equal
+#' 
+#' Setting multiple process probabilities (thetas) equal. One of the process probabilities will be estimated and
+#'   the other named process(es) will be set to equal the former. The equality can be removed by only using one name of a process. 
+#'
+#' @param model A list of the class \code{rtmpt_model}.
+#' @param names Character vector giving the names of the processes for which the process probabilities should be equal. If 
+#'   \code{length(names) = 1} then the corresponding process probability will be estimates (i.e., it will be set to NA)
+#' @return A list of the class \code{rtmpt_model}.
+#' @note If you use \code{theta2theta()} and \code{tau2tau()} with the same process names you might just change the EQN or MDL file accordingly
+#'   by using the same process name for all processes which should have equal process times and probabilities.
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process probabilities for both detection processes ("do" and "dn") will be
+#' # set equal.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## make do = dn
+#' model <- theta2theta(model = model, names = c("do", "dn"))
+#' model
+#' 
+#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{tau2tau}}
+#' @author Raphael Hartmann
+#' @export
+theta2theta <- function(model, names) {
+  
+  if (class(model) != "rtmpt_model") stop("model must be of class \"rtmpt_model\".")
+  if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
+  
+  params_list <- model$params
+  if (!is.list(params_list)) stop("params must be a list.")
+  if ( !("probs" %in% names(params_list)) || 
+       !("taus" %in% names(params_list)) ) stop("\"params\" must contain \"probs\" and \"taus\".")
+  if (!is.vector(names)) stop("\"names\" must be a vector")
+  if (!is.character(names)) stop("\"names\" must be characters.")
+  if (any(!(names %in% names(params_list$probs)))) stop("\"names\" do not match with the names of the processes in the \"model\".")
+  
+  if (length(names) == 1) {
+    params_list[["probs"]][names] <- NA
+  } else {
+    sorted_names <- sort(names)
+    params_list[["probs"]][names] <- sorted_names[1]
+    params_list[["probs"]][sorted_names[1]] <- NA
+  }
+  
+  model$params <- params_list
+  return(model)
+}
+
+
+#' @rdname theta2theta
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process probabilities for both detection processes ("do" and "dn") will be
+#' # set equal.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## make do = dn
+#' model <- set_thetas_equal(model = model, names = c("do", "dn"))
+#' model
+#' @export
+set_thetas_equal <- theta2theta
+
+
+
+############ MAKE TAUS EQUAL ############
+
+#' Set Process Completion Times Equal
+#' 
+#' Setting multiple process completion times (taus) equal. This means all process times of negative outcomes will be
+#'   set equal and all process times of positive outcomes will be set equal. Only two process times (one for the negative
+#'   and one for the positive outcome) of the named processes will be estimated. The equality can be removed by just 
+#'   naming only one process name.
+#'
+#' @param model A list of the class \code{rtmpt_model}.
+#' @param names Character vector giving the names of the processes for which the process completion times should be equal. If 
+#'   \code{length(names) = 1} then the corresponding process completion times (for negative and positive outcomes) will be 
+#'   estimates (i.e., they will be set to NA)
+#' @return A list of the class \code{rtmpt_model}.
+#' @note If you use \code{theta2theta()} and \code{tau2tau()} with the same process names you might just change the EQN or MDL file accordingly
+#'   by using the same process name for all processes which should have equal process times and probabilities.
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process completion times for both detection processes ("do" and "dn") will be
+#' # set equal.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## make do = dn
+#' model <- tau2tau(model = model, names = c("d0", "dn"))
+#' model
+#' 
+#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{theta2theta}}
+#' @author Raphael Hartmann
+#' @export
+tau2tau <- function(model, names) {
+  
+  if (class(model) != "rtmpt_model") stop("model must be of class \"rtmpt_model\".")
+  if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
+  
+  params_list <- model$params
+  if (!is.list(params_list)) stop("params must be a list.")
+  if ( !("probs" %in% names(params_list)) || 
+       !("taus" %in% names(params_list)) ) stop("\"params\" must contain \"probs\" and \"taus\".")
+  if (!is.vector(names)) stop("\"names\" must be a vector")
+  if (!is.character(names)) stop("\"names\" must be characters.")
+  if (any(!(names %in% names(params_list$probs)))) stop("\"names\" do not match with the names of the processes in the \"model\".")
+  
+  if (length(names) == 1) {
+    params_list[["taus"]][names] <- "NA"
+  } else {
+    sorted_names <- sort(names)
+    params_list[["taus"]][names] <- sorted_names[1]
+    params_list[["taus"]][sorted_names[1]] <- NA
+  }
+  
+  model$params <- params_list
+  return(model)
+}
+
+
+#' @rdname tau2tau
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each category.
+#' # The process completion times for both detection processes ("do" and "dn") will be
+#' # set equal.
+#' ####################################################################################
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' 
+#' ## make do = dn
+#' model <- set_taus_equal(model = model, names = c("do", "dn"))
+#' model
+#' @export
+set_taus_equal <- tau2tau
+
+
+
+
+
+
+
+
+############ SUPPRESS TAUS AND SET PROBS TO CONSTANTS ############
+
 #' Set constants for probability parameters and suppress process times in a \code{rtmpt_model} list
 #' 
 #' By using \code{parameter = "probs"} you can specify which of the probability parameters should be set to a constant
@@ -60,6 +482,8 @@
 #' @author Raphael Hartmann
 #' @export
 set_params <- function(model, parameter, names, values = NA) {
+  
+  warning("this function is deprecated and will be removed in a future version. Please use theta2const and tau2zero instead.")
   
   if (!is.list(model)) stop("model must be a list.")
   if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")

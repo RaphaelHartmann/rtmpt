@@ -60,9 +60,9 @@
 
 extern "C" {
 
-	SEXP rtmpt_fit(SEXP re, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP bo1, SEXP bo2, SEXP bo3) {
+	SEXP rtmpt_fit(SEXP re1, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP in4, SEXP in5, SEXP bo1, SEXP bo2, SEXP bo3) {
 
-		RMAX = REAL(re)[0];
+		RMAX = REAL(re1)[0];
 
 		DATA = R_CHAR(STRING_ELT(ch, 0));
 		MODEL = R_CHAR(STRING_ELT(ch, 1));
@@ -98,9 +98,12 @@ extern "C" {
 		pr_sf_scale_matrix_SIG = REAL(re3)[8];
 		pr_sf_scale_matrix_TAU = REAL(re3)[9];
 		pr_df_add_inv_wish = INTEGER(in3)[0];
+		
+		int *k2f = INTEGER(in4);
+		int *f2k = INTEGER(in5);
 
 
-		mainx();
+		mainx(k2f, f2k);
 
 
 		int outCnt = 0, prtCnt = 0;
