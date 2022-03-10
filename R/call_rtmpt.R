@@ -285,8 +285,8 @@ fit_rtmpt <- function(model,
   
   REAL <- c(Rhat_max)
   
-  REAL2 <- sapply(X = model$params$probs, FUN = function(x) {ifelse(is.na(x), -1, x)})  # constants in probs
-  
+  REAL2 <- sapply(X = model$params$probs, FUN = function(x) {ifelse(is.na(x) | x %in% proc_names, -1, x)})  # constants in probs
+
   INTEGER <- c(NoThr = Nchains, 
                BurnIn = Nwarmup, 
                Thin = thin, 
@@ -315,26 +315,44 @@ fit_rtmpt <- function(model,
   INTEGER3 <- add_df_invWish
   
 
-  K2F <- integer(3*nprocs)
+  F2K <- integer(3*nprocs)
   for(i in 1:nprocs) {
     theta <- model$params$probs[i]
-    K2F[i] <- ifelse(theta %in% proc_names, which(proc_names==theta), i)
+    F2K[i] <- ifelse(theta %in% proc_names, which(proc_names==as.character(theta)), 
+                     ifelse(is.na(theta), i, -1))
     tauminus <- model$params[["taus"]]["minus", i]
-    K2F[i+nprocs] <- nprocs + ifelse(tauminus %in% proc_names, which(proc_names==tauminus), 
-                                     ifelse(BOOL1, i, -1))
+    F2K[i+nprocs] <- nprocs + ifelse(tauminus %in% proc_names, which(proc_names==as.character(tauminus)), 
+                                     ifelse(BOOL1[i], i, -1))
     tauplus <- model$params[["taus"]]["plus", i]
-    K2F[i+2*nprocs] <- 2*nprocs + ifelse(tauplus %in% proc_names, which(proc_names==tauplus), 
-                                         ifelse(BOOL2, i, -1))
+    F2K[i+2*nprocs] <- 2*nprocs + ifelse(tauplus %in% proc_names, which(proc_names==as.character(tauplus)), 
+                                         ifelse(BOOL2[i], i, -1))
   }
-  INTEGER5 <- unique(K2F[K2F != -1])-1
+  INTEGER5 <- unique(F2K[F2K != -1])-1
+
+  
+  K2F <- integer(3*nprocs)
+  cntk2f <- 1
   for(i in 1:(3*nprocs)) {
-    if(!(i %in% K2F)) {
-      K2F[which(K2F > i)] <- K2F[which(K2F > i)]-1
+    tmp <- NULL
+    if (i <= nprocs) {
+      tmp <- model$params$probs[i]
+    } else if (i <= 2*nprocs) {
+      tmp <- model$params[["taus"]]["minus", i-nprocs]
+    } else {tmp <- model$params[["taus"]]["plus", i-2*nprocs]}
+    
+    if(is.na(tmp)) {
+      K2F[i] <- cntk2f
+      cntk2f <- cntk2f + 1
+    } else if(tmp == 0 | (tmp < 1 & tmp > 0)) {
+      K2F[i] <- -1
+    } else if(tmp %in% proc_names) {
+      K2F[i] <- K2F[which(proc_names == as.character(tmp)) + (i>nprocs)*nprocs + (i>2*nprocs)*nprocs]
     }
   }
-  INTEGER4 <- K2F-1
+  INTEGER4 <- K2F-1*(K2F!=-1)
   
-  
+  print(INTEGER4)
+  print(INTEGER5)
   
   # call C++ function RTMPT
   out <- .Call("rtmpt_fit", 

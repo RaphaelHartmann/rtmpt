@@ -5,15 +5,25 @@
 \alias{set_thetas_equal}
 \title{Set Process Probabilities Equal}
 \usage{
-theta2theta(model, names)
+theta2theta(model, names, keep_consts = FALSE)
 
-set_thetas_equal(model, names)
+set_thetas_equal(model, names, keep_consts = FALSE)
 }
 \arguments{
 \item{model}{A list of the class \code{rtmpt_model}.}
 
 \item{names}{Character vector giving the names of the processes for which the process probabilities should be equal. If 
 \code{length(names) = 1} then the corresponding process probability will be estimates (i.e., it will be set to NA)}
+
+\item{keep_consts}{Can be one of the following
+\itemize{
+ \item logical value: \code{FALSE} (default) means none of the constants for \code{names} in the \code{model} will be kept; The probability of
+   the reference process (i.e., first of \code{names} in alphabetical order) will be set to \code{NA} (i.e., will be estimated) and the others
+   will be set to the name of the reference process (i.e., will be set to equal the reference process probability). \code{TRUE} means
+   the constant of the reference process probability (if specified) is used for all other processes. 
+ \item numeric value: index for \code{names}. If 1, the constant of the first process in \code{names} (in original order defined by the user) is 
+   used for all other probabilities of the processes in \code{names}. If 2, the constant of the second process is used. And so on.
+}}
 }
 \value{
 A list of the class \code{rtmpt_model}.

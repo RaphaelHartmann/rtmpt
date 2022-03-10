@@ -90,12 +90,12 @@ void make_rhos(int *nnodes, double *lambdas, double *lams, double *taus, double*
 
 
   int jj = 0;
-
-
+  
+  
   for (int ip = 0; ip != kernpar; ip++) if ((comp[kernpar + ip]) || (comp[ip + 2 * kernpar])) {
     for (int t = 0; t != indi; t++) {
       int ig = t2group[t];
-      for (int pm = 0; pm != 2; pm++) {
+      for (int pm = 0; pm != 2; pm++) if (comp[ip + (1 + pm) * kernpar]) {
         int iz = kern2free[ip + (1 + pm) * kernpar] - ifree;
         n[ig * ilamfree + iz] += NNODES(t, ip) * 1.0;
       }
@@ -108,20 +108,23 @@ void make_rhos(int *nnodes, double *lambdas, double *lams, double *taus, double*
       }
     }
   }
-
+  
   for (int iz = 0; iz != ilamfree; iz++) {
-    int pm = (iz < ilamfree / 2) ? 0 : 1;
-    int ip = free2kern[ifree + iz] - (1 + pm) * kernpar;
+    int ip = free2kern[iz + ifree];
+    int pm = (ip < 2 * kernpar) ? 0 : 1;
+    ip -=  (1 + pm) * kernpar;
+    //        std::cout << setw(5) << pm << setw(5) << ip << std::endl;
     for (int t = 0; t != indi; t++) {
       int ig = t2group[t];
       p[ig * ilamfree + iz] += mlamb(t, pm, ip, lambdas, lams) * te[t * ilamfree + iz];
     }
-
+    
     for (int ig = 0; ig != igroup; ig++) {
-      double x[1]; double a = n[ig * ilamfree + iz] + prior; double b = p[ig * ilamfree + iz] + pr_rate_exp_mu_beta;//prior / 10.0;
+      double x; double a = n[ig * ilamfree + iz] + prior; double b = p[ig * ilamfree + iz] + pr_rate_exp_mu_beta;//prior / 10.0;
       b = 1.0 / b;
-      x[0] = gsl_ran_gamma(rst, a, b);
-      RHOS(ig, iz) = x[0];
+      //            std::cout << setw(20) << a << setw(20) << b << std::endl;
+      x = gsl_ran_gamma(rst, a, b);
+      RHOS(ig, iz) = x;
     }
   }
 

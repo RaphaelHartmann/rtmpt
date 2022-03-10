@@ -372,7 +372,6 @@ int mainx(int *k2f, int *f2k) {
 	consts = (double *)R_Calloc(kernpar, double);
 
 	model_design(kerntree, ar, branch, nodes_per_par, nodes_per_tree, tree_and_node2par);
-	extract_pfadinfo(pfad_index, path_info);
 
 
 	
@@ -389,42 +388,44 @@ int mainx(int *k2f, int *f2k) {
 	//   } else kern2free[ip] = -1;
 	// }	
 
-
-ifree = 0;
-ilamfree = 0;
-int ilamfree1 = 0;
-int ilamfree2 = 0;
-int iz = 0;
-for (int ip = 0; ip < 3*kernpar; ip++) {
-  if (ip < kernpar) {
-    if (k2f[ip] == ifree) {
-      ifree++;
-    }
-  } else if (ip < 2*kernpar) {
-    if (k2f[ip] == ifree + ilamfree1) {
-      ilamfree1++;
-      ilamfree++;
-    }
-  } else {
-    if (k2f[ip] == ifree + ilamfree1 + ilamfree2) {
-      ilamfree2++;
-      ilamfree++;
+  
+  ifree = 0;
+  ilamfree = 0;
+  int ilamfree1 = 0;
+  int ilamfree2 = 0;
+  for (int ip = 0; ip < 3*kernpar; ip++) {
+    if (ip < kernpar) {
+      if (k2f[ip] == ifree) {
+        ifree++;
+      }
+    } else if (ip < 2*kernpar) {
+      if (k2f[ip] == ifree + ilamfree1) {
+        ilamfree1++;
+        ilamfree++;
+      }
+    } else {
+      if (k2f[ip] == ifree + ilamfree1 + ilamfree2) {
+        ilamfree2++;
+        ilamfree++;
+      }
     }
   }
-}
 // ilamfree = ilamfree -2;
 
-free2kern = (int *)R_Calloc((ifree + ilamfree), int);
-kern2free = (int *)R_Calloc(3 * kernpar, int);
+  free2kern = (int *)R_Calloc((ifree + ilamfree), int);
+  kern2free = (int *)R_Calloc(3 * kernpar, int);
 
-	Rprintf("ilamfree = %d\n", ilamfree);
+	Rprintf("ilamfree = %d and ifree = %d\n", ilamfree, ifree);
 	
-		for (int ip = 0; ip != 3 * kernpar; ip ++) {
-		  kern2free[ip] = k2f[ip];
-		}
-		for (int iz = 0; iz != ifree + ilamfree; iz++) {
-		  free2kern[iz] = f2k[iz];
-	  }
+	for (int ip = 0; ip != 3 * kernpar; ip++) {
+	  kern2free[ip] = k2f[ip];
+	}
+	for (int iz = 0; iz != ifree + ilamfree; iz++) {
+	  free2kern[iz] = f2k[iz];
+  }
+  for (int ip = 0; ip != 3 * kernpar; ip++) {
+    Rprintf("comp[%d] = %d\n", ip, comp[ip]);
+  }
   
   //example
 //   kern2free[kernpar + 0] = ifree;
@@ -440,7 +441,10 @@ kern2free = (int *)R_Calloc(3 * kernpar, int);
 // 
 // 	free2kern[ifree + (ilamfree) / 2 + 0] = 2*kernpar + 0;
 // 	free2kern[ifree + (ilamfree) / 2 + 1] = 2*kernpar + 2;
-
+  
+  
+  
+  extract_pfadinfo(pfad_index, path_info);
 	
 		// Analysis by individuals
 

@@ -5,9 +5,9 @@
 \alias{set_taus_equal}
 \title{Set Process Completion Times Equal}
 \usage{
-tau2tau(model, names)
+tau2tau(model, names, keep_zeros = FALSE)
 
-set_taus_equal(model, names)
+set_taus_equal(model, names, keep_zeros = FALSE)
 }
 \arguments{
 \item{model}{A list of the class \code{rtmpt_model}.}
@@ -15,6 +15,16 @@ set_taus_equal(model, names)
 \item{names}{Character vector giving the names of the processes for which the process completion times should be equal. If 
 \code{length(names) = 1} then the corresponding process completion times (for negative and positive outcomes) will be 
 estimates (i.e., they will be set to NA)}
+
+\item{keep_zeros}{Can be one of the following
+\itemize{
+ \item logical value: \code{FALSE} (default) means none of the zeros for \code{names} in the \code{model} will be kept; The times of
+   the reference process (i.e., first of \code{names} in alphabetical order) will be set to \code{NA} (i.e., will be estimated) and the others
+   will be set to the name of the reference process (i.e., will be set to equal the reference process times). \code{TRUE} means
+   the zero(s) of the reference process times (if specified) is used for the same outcome of all other processes. 
+ \item numeric value: index for \code{names}. If 1, the zero(s) of the first process in \code{names} (in original order defined by the user) is 
+   used for the same outcome of all other processes in \code{names}. If 2, the zero(s) of the second process is used. And so on.
+}}
 }
 \value{
 A list of the class \code{rtmpt_model}.
@@ -52,7 +62,7 @@ dn+(1-dn)*(1-g)
 model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## make do = dn
-model <- tau2tau(model = model, names = c("d0", "dn"))
+model <- tau2tau(model = model, names = c("do", "dn"))
 model
 
 ####################################################################################

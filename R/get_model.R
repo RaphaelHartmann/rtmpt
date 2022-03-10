@@ -83,11 +83,8 @@
 #' model
 #' 
 #' @note Within a branch of a (RT-)MPT model it is not allowed to have the same process two or more times.
-#' @seealso 
-#' \itemize{
-#'    \item \code{\link{set_params}}
-#'    \item \code{\link{set_resps}}
-#'   }
+#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}}, \code{\link{theta2theta}}, and \code{\link{tau2tau}} for 
+#'   functions to change the model
 #' @author Raphael Hartmann
 #' @export
 to_rtmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {

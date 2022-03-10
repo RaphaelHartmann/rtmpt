@@ -1,6 +1,8 @@
 #include "rts.h"
 #include <gsl/gsl_sf.h>
 
+
+
 #define TREE_AND_NODE2PAR(ITREE,R) tree_and_node2par[ITREE*nodemax+R]
 #define DRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
 #define NDRIN(J,K) ndrin[J*zweig+K]
@@ -486,40 +488,50 @@ void test() {
 */
 
 
-void extract_pfadinfo(int *pfad_index,  vector<pfadinfo> &path_info) {
-	int *counts = 0; counts = (int *)R_Calloc(2*kernpar, int);
-	path_info.clear();
-	for (int c = 0; c != kerncat; c++) {
-		int tree = cat2tree[c];
-		for (int j = 0; j != branch[c]; j++) {
-			int pl = NDRIN(c, j);
+void extract_pfadinfo(int* pfad_index, vector<pfadinfo>& path_info) {
+  int* counts = 0; counts = (int*)R_Calloc(2 * kernpar, int);
+  path_info.clear();
+  
+  for (int c = 0; c != kerncat; c++) {
+    int tree = cat2tree[c];
+    for (int j = 0; j != branch[c]; j++) {
+      int pl = NDRIN(c, j);
+      
+      for (int ip = 0; ip != 2 * kernpar; ip++) counts[ip] = 0;
+      
+      for (int in = 0; in != pl; in++) {
+        int n = DRIN(c, j, in);
+        int ip = TREE_AND_NODE2PAR(tree, n);
+        int pm = (AR(c, j, n) > 0) ? 1 : 0;
+        if (comp[ip + kernpar * (1 + pm)]) {
+          int ipp = free2kern[kern2free[ip + (1 + pm) * kernpar]];
+          counts[ipp - kernpar ]++;
+        }
+      }
+      //            bool temp = false;
+      //            for (int ip = 0; (ip != 2*kernpar) && !(temp); ip++) temp = (counts[ip] > 1);
+      
+      //            if (temp) {
+      pfadinfo one;
 
-			for (int ip = 0; ip != 2*kernpar; ip++) counts[ip] = 0;
-
-			for (int in = 0; in != pl; in++) {
-				int n = DRIN(c, j, in);
-				int ip = TREE_AND_NODE2PAR(tree, n);
-				int pm = (AR(c, j, n) > 0) ? 1 : 0;
-				if (comp[ip + kernpar*(1+pm)]) counts[ip+pm*kernpar]++;
-			}
-			// if (temp) {
-			pfadinfo one;
-
-			one.a = 0;
-			for (int ip = 0; ip != kernpar; ip++)
-				for (int pm = 0; pm != 2; pm++) {
-					if (counts[ip + pm * kernpar] > 0) {
-						one.r.push_back(counts[ip + pm * kernpar]);
-						one.pfad_par.push_back(ip);
-						one.pm.push_back(pm);
-						one.a++;
-					}
-				}
-			PFAD_INDEX(c, j) = path_info.size();
-			path_info.push_back(one);
-			// }
-			// else PFAD_INDEX(c, j) = -1;
-		}
-	}
-	R_Free(counts);
+      one.a = 0;
+      for (int ip = 0; ip != kernpar; ip++) {
+        for (int pm = 0; pm != 2; pm++) {
+          if (counts[ip + pm * kernpar] > 0) {
+            one.r.push_back(counts[ip + pm * kernpar]);
+            one.pfad_par.push_back(ip);
+            one.pm.push_back(pm);
+            one.a++;
+          }
+        }
+      }
+      PFAD_INDEX(c, j) = path_info.size();
+      path_info.push_back(one);
+      //            }
+      //            else PFAD_INDEX(c, j) = -1;
+    }
+  }
+  R_Free(counts);
 }
+
+

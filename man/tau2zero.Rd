@@ -5,16 +5,16 @@
 \alias{set_tau_zero}
 \title{Set Process Completion Times to Zero}
 \usage{
-tau2zero(model, names, outputs, values = 0)
+tau2zero(model, names, outcomes, values = 0)
 
-set_tau_zero(model, names, outputs, values = 0)
+set_tau_zero(model, names, outcomes, values = 0)
 }
 \arguments{
 \item{model}{A list of the class \code{rtmpt_model}.}
 
 \item{names}{Character vector with process names.}
 
-\item{outputs}{Character vector of length \code{length(names)} indicating for which process outcome the process completion time should 
+\item{outcomes}{Character vector of length \code{length(names)} indicating for which process outcome the process completion time should 
 be zero or changed back to be estimated. Allowed characters are:
 \itemize{
  \item \code{"minus"}: the negative outcome of the process.
@@ -56,7 +56,7 @@ model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
 model <- tau2zero(model = model, names = c("dn", "do"),
-                  outputs = c("minus", "minus"), values = 0)
+                  outcomes = c("minus", "minus"), values = 0)
 model
 
 ####################################################################################
@@ -81,7 +81,7 @@ model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
 model <- set_tau_zero(model = model, names = c("dn", "do"),
-                      outputs = c("minus", "minus"), values = 0)
+                      outcomes = c("minus", "minus"), values = 0)
 model
 }
 \seealso{

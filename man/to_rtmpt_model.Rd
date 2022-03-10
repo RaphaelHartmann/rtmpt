@@ -99,10 +99,8 @@ Singmann, H., & Kellen, D. (2013). MPTinR: Analysis of multinomial processing tr
   \emph{Behavior Research Methods, 45(2)}, 560-575.
 }
 \seealso{
-\itemize{
-   \item \code{\link{set_params}}
-   \item \code{\link{set_resps}}
-  }
+\code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}}, \code{\link{theta2theta}}, and \code{\link{tau2tau}} for 
+  functions to change the model
 }
 \author{
 Raphael Hartmann
