@@ -59,36 +59,16 @@ dn+(1-dn)*(1-g)
 model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## make do = dn
-model <- theta2theta(model = model, names = c("do", "dn"))
-model
+new_model <- theta2theta(model = model, names = c("do", "dn"))
+new_model
 
-####################################################################################
-# Detect-Guess variant of the Two-High Threshold model.
-# The encoding and motor execution times are assumed to be equal for each category.
-# The process probabilities for both detection processes ("do" and "dn") will be
-# set equal.
-####################################################################################
-
-mdl_2HTM <- "
-# targets
-do+(1-do)*g
-(1-do)*(1-g)
-
-# lures
-(1-dn)*g
-dn+(1-dn)*(1-g)
-
-# do: detect old; dn: detect new; g: guess
-"
-
-model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## make do = dn
-model <- set_thetas_equal(model = model, names = c("do", "dn"))
-model
+new_model <- set_thetas_equal(model = model, names = c("do", "dn"))
+new_model
 }
 \seealso{
-\code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{tau2tau}}
+\code{\link{delta2delta}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{tau2tau}}
 }
 \author{
 Raphael Hartmann

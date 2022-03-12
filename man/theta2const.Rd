@@ -48,35 +48,16 @@ dn+(1-dn)*(1-g)
 model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## setting g to a constant (0.5):
-model <- theta2const(model = model, names = c("g"), constants = c(0.5))
-model
+new_model <- theta2const(model = model, names = c("g"), constants = c(0.5))
+new_model
                     
-####################################################################################
-# Detect-Guess variant of the Two-High Threshold model.
-# The encoding and motor execution times are assumed to be equal for each category.
-# The process probability for guessing (g) will be set to 0.5.
-####################################################################################
-
-mdl_2HTM <- "
-# targets
-do+(1-do)*g
-(1-do)*(1-g)
-
-# lures
-(1-dn)*g
-dn+(1-dn)*(1-g)
-
-# do: detect old; dn: detect new; g: guess
-"
-
-model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 
 ## setting g to a constant (0.5):
-model <- set_theta_const(model = model, names = c("g"), constants = c(0.5))
-model
+new_model <- set_theta_const(model = model, names = c("g"), constants = c(0.5))
+new_model
 }
 \seealso{
-\code{\link{set_resps}}, \code{\link{tau2zero}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
+\code{\link{delta2delta}}, \code{\link{tau2zero}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
 }
 \author{
 Raphael Hartmann

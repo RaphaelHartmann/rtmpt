@@ -415,17 +415,16 @@ int mainx(int *k2f, int *f2k) {
   free2kern = (int *)R_Calloc((ifree + ilamfree), int);
   kern2free = (int *)R_Calloc(3 * kernpar, int);
 
-	Rprintf("ilamfree = %d and ifree = %d\n", ilamfree, ifree);
-	
+
 	for (int ip = 0; ip != 3 * kernpar; ip++) {
 	  kern2free[ip] = k2f[ip];
 	}
 	for (int iz = 0; iz != ifree + ilamfree; iz++) {
 	  free2kern[iz] = f2k[iz];
   }
-  for (int ip = 0; ip != 3 * kernpar; ip++) {
-    Rprintf("comp[%d] = %d\n", ip, comp[ip]);
-  }
+  // for (int ip = 0; ip != 3 * kernpar; ip++) {
+  //   Rprintf("comp[%d] = %d\n", ip, comp[ip]);
+  // }
   
   //example
 //   kern2free[kernpar + 0] = ifree;

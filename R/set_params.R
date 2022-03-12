@@ -36,10 +36,10 @@
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## setting g to a constant (0.5):
-#' model <- theta2const(model = model, names = c("g"), constants = c(0.5))
-#' model
+#' new_model <- theta2const(model = model, names = c("g"), constants = c(0.5))
+#' new_model
 #'                     
-#' @seealso \code{\link{set_resps}}, \code{\link{tau2zero}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
+#' @seealso \code{\link{delta2delta}}, \code{\link{tau2zero}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
 #' @author Raphael Hartmann
 #' @export
 theta2const <- function(model, names, constants = NA) {
@@ -90,29 +90,10 @@ theta2const <- function(model, names, constants = NA) {
 
 #' @rdname theta2const
 #' @examples
-#' ####################################################################################
-#' # Detect-Guess variant of the Two-High Threshold model.
-#' # The encoding and motor execution times are assumed to be equal for each category.
-#' # The process probability for guessing (g) will be set to 0.5.
-#' ####################################################################################
-#' 
-#' mdl_2HTM <- "
-#' # targets
-#' do+(1-do)*g
-#' (1-do)*(1-g)
-#'
-#' # lures
-#' (1-dn)*g
-#' dn+(1-dn)*(1-g)
-#' 
-#' # do: detect old; dn: detect new; g: guess
-#' "
-#' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## setting g to a constant (0.5):
-#' model <- set_theta_const(model = model, names = c("g"), constants = c(0.5))
-#' model
+#' new_model <- set_theta_const(model = model, names = c("g"), constants = c(0.5))
+#' new_model
 #' @export
 set_theta_const <- theta2const
 
@@ -160,11 +141,11 @@ set_theta_const <- theta2const
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
-#' model <- tau2zero(model = model, names = c("dn", "do"),
-#'                   outcomes = c("minus", "minus"), values = 0)
-#' model
+#' new_model <- tau2zero(model = model, names = c("dn", "do"),
+#'                       outcomes = c("minus", "minus"), values = 0)
+#' new_model
 #' 
-#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
+#' @seealso \code{\link{delta2delta}}, \code{\link{theta2const}}, \code{\link{theta2theta}} and \code{\link{tau2tau}}
 #' @author Raphael Hartmann
 #' @export
 tau2zero <- function(model, names, outcomes, values = 0) {
@@ -267,30 +248,11 @@ tau2zero <- function(model, names, outcomes, values = 0) {
 
 #' @rdname tau2zero
 #' @examples
-#' ####################################################################################
-#' # Detect-Guess variant of the Two-High Threshold model.
-#' # The encoding and motor execution times are assumed to be equal for each category.
-#' # The process completion times for both failed detections will be suppressed.
-#' ####################################################################################
-#' 
-#' mdl_2HTM <- "
-#' # targets
-#' do+(1-do)*g
-#' (1-do)*(1-g)
-#'
-#' # lures
-#' (1-dn)*g
-#' dn+(1-dn)*(1-g)
-#' 
-#' # do: detect old; dn: detect new; g: guess
-#' "
-#' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
-#' model <- set_tau_zero(model = model, names = c("dn", "do"),
-#'                       outcomes = c("minus", "minus"), values = 0)
-#' model
+#' new_model <- set_tau_zero(model = model, names = c("dn", "do"),
+#'                           outcomes = c("minus", "minus"), values = 0)
+#' new_model
 #' @export
 set_tau_zero <- tau2zero
 
@@ -341,10 +303,10 @@ set_tau_zero <- tau2zero
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## make do = dn
-#' model <- theta2theta(model = model, names = c("do", "dn"))
-#' model
+#' new_model <- theta2theta(model = model, names = c("do", "dn"))
+#' new_model
 #' 
-#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{tau2tau}}
+#' @seealso \code{\link{delta2delta}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{tau2tau}}
 #' @author Raphael Hartmann
 #' @export
 theta2theta <- function(model, names, keep_consts = FALSE) {
@@ -399,30 +361,10 @@ theta2theta <- function(model, names, keep_consts = FALSE) {
 
 #' @rdname theta2theta
 #' @examples
-#' ####################################################################################
-#' # Detect-Guess variant of the Two-High Threshold model.
-#' # The encoding and motor execution times are assumed to be equal for each category.
-#' # The process probabilities for both detection processes ("do" and "dn") will be
-#' # set equal.
-#' ####################################################################################
-#' 
-#' mdl_2HTM <- "
-#' # targets
-#' do+(1-do)*g
-#' (1-do)*(1-g)
-#'
-#' # lures
-#' (1-dn)*g
-#' dn+(1-dn)*(1-g)
-#' 
-#' # do: detect old; dn: detect new; g: guess
-#' "
-#' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## make do = dn
-#' model <- set_thetas_equal(model = model, names = c("do", "dn"))
-#' model
+#' new_model <- set_thetas_equal(model = model, names = c("do", "dn"))
+#' new_model
 #' @export
 set_thetas_equal <- theta2theta
 
@@ -476,10 +418,10 @@ set_thetas_equal <- theta2theta
 #' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## make do = dn
-#' model <- tau2tau(model = model, names = c("do", "dn"))
-#' model
+#' new_model <- tau2tau(model = model, names = c("do", "dn"))
+#' new_model
 #' 
-#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{theta2theta}}
+#' @seealso \code{\link{delta2delta}}, \code{\link{theta2const}}, \code{\link{tau2zero}} and \code{\link{theta2theta}}
 #' @author Raphael Hartmann
 #' @export
 tau2tau <- function(model, names, keep_zeros = FALSE) {
@@ -584,30 +526,10 @@ tau2tau <- function(model, names, keep_zeros = FALSE) {
 
 #' @rdname tau2tau
 #' @examples
-#' ####################################################################################
-#' # Detect-Guess variant of the Two-High Threshold model.
-#' # The encoding and motor execution times are assumed to be equal for each category.
-#' # The process completion times for both detection processes ("do" and "dn") will be
-#' # set equal.
-#' ####################################################################################
-#' 
-#' mdl_2HTM <- "
-#' # targets
-#' do+(1-do)*g
-#' (1-do)*(1-g)
-#'
-#' # lures
-#' (1-dn)*g
-#' dn+(1-dn)*(1-g)
-#' 
-#' # do: detect old; dn: detect new; g: guess
-#' "
-#' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## make do = dn
-#' model <- set_taus_equal(model = model, names = c("do", "dn"))
-#' model
+#' new_model <- set_taus_equal(model = model, names = c("do", "dn"))
+#' new_model
 #' @export
 set_taus_equal <- tau2tau
 
@@ -677,7 +599,7 @@ set_taus_equal <- tau2tau
 #' model <- set_params(model = model, parameter = "tau_minus", 
 #'                     names = c("dn", "do"), values = c(0,0))
 #'                     
-#' @seealso \code{\link{set_resps}}
+#' @seealso \code{\link{delta2delta}}
 #' @author Raphael Hartmann
 #' @export
 set_params <- function(model, parameter, names, values = NA) {

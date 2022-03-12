@@ -71,7 +71,7 @@
 #' #   suppress process times:
 #' suppress_process: dn-, do-
 #' 
-#' #     tree ; cat ; RESP
+#' #     tree ; cat ;  MAP
 #' resp:    0 ;   0 ;    0
 #' resp:    0 ;   1 ;    1
 #' resp:    1 ;   2 ;    0
@@ -181,11 +181,11 @@ print.rtmpt_model <- function(x, ...) {
   cat("* INFO:", length(which(x$params$taus==0)), "of the process completion times will be suppressed.\n")
   cat("-----------------------------------\n")
   
-  cat("\nNumber and membership of responses:\n")
+  cat("\nMapping of response categories and encoding plus motor execution times (deltas):\n")
   print(x$responses)
   cat("\n* NOTE 1: Unique representation of trees and categories.\n")
-  cat("* NOTE 2: Each response number corresponds to a distinct encoding plus motor execution time.\n")
-  cat("* INFO:", max(x$responses$RESP)+1,"distinct response(s) assumed, namely [", paste(unique(x$responses$RESP), collapse = ", "),"].\n")
+  cat("* NOTE 2: Each mapping number corresponds to a distinct encoding plus motor execution time.\n")
+  cat("* INFO:", max(x$responses$MAP)+1,"distinct delta(s) assumed, namely with mapping [", paste(unique(x$responses$MAP), collapse = ", "),"].\n")
   cat("-----------------------------------\n\n")
 }
 

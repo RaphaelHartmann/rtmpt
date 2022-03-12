@@ -179,7 +179,7 @@ fit_rtmpt_SBC <- function(model,
   nminus <- sum(is.na(model$params$taus[1,]))
   nplus <- sum(is.na(model$params$taus[2,]))
   npars <- nprobs + nminus + nplus
-  nresp <- length(unique(model$responses$RESP))
+  nresp <- length(unique(model$responses$MAP))
 
   nparams <- length(coda::varnames(fit_list$samples)) - 1
   rankmat <- matrix(NA, ncol = nparams, nrow = 1)

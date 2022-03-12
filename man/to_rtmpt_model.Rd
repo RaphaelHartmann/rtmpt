@@ -76,7 +76,7 @@ const_prob: g=0.5
 #   suppress process times:
 suppress_process: dn-, do-
 
-#     tree ; cat ; RESP
+#     tree ; cat ;  MAP
 resp:    0 ;   0 ;    0
 resp:    0 ;   1 ;    1
 resp:    1 ;   2 ;    0

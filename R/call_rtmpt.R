@@ -293,8 +293,8 @@ fit_rtmpt <- function(model,
                SampSize = Nchains*Nsamples,
                Irep = Irep,
                nKERN = dim(model$responses)[1], 
-               nRESP = length(unique(model$responses$RESP)))
-  INTEGER2 <- model$responses$RESP  # cat2resp
+               nRESP = length(unique(model$responses$MAP)))
+  INTEGER2 <- model$responses$MAP  # cat2resp
   
   BOOL1 <- sapply(X = model$params[["taus"]]["minus",], FUN = function(x) {ifelse(is.na(x) | x %in% proc_names, 1, 0)})  # tau minus
   BOOL2 <- sapply(X = model$params[["taus"]]["plus",], FUN = function(x) {ifelse(is.na(x) | x %in% proc_names, 1, 0)})  # tau plus
@@ -351,8 +351,7 @@ fit_rtmpt <- function(model,
   }
   INTEGER4 <- K2F-1*(K2F!=-1)
   
-  print(INTEGER4)
-  print(INTEGER5)
+  
   
   # call C++ function RTMPT
   out <- .Call("rtmpt_fit", 
@@ -376,7 +375,7 @@ fit_rtmpt <- function(model,
                     Nprobs = sum(is.na(model$params$probs)), 
                     Nminus = sum(is.na(model$params$taus[1,])), 
                     Nplus = sum(is.na(model$params$taus[2,])), 
-                    Nresps = length(unique(model$responses$RESP)), 
+                    Nresps = length(unique(model$responses$MAP)), 
                     # epsilon = 1,
                     probs_string = names(model$params$probs[which(is.na(model$params$probs))]), 
                     minus_string = names(model$params$probs[which(is.na(model$params$taus[1,]))]),

@@ -22,7 +22,8 @@ void lies(int n_all_parameters, double *sample) {
 	std::ifstream rein(RAUS);
 	int is, in;
 	rein >> is >> in;
-	if (is != SAMPLE_SIZE) Rprintf("HM\n"); if (in != (n_all_parameters+1)) Rprintf("HO\n");
+	if (is != SAMPLE_SIZE) Rprintf("HM\n"); 
+	if (in != (n_all_parameters+1)) Rprintf("HO\n");
 	for (int i = 0; i != is; i++)
 		for (int j = 0; j != in; j++) rein >> SAMPLE(i, j);
 	rein.close();
@@ -72,40 +73,49 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 	//std::streamsize prec = cout.precision(); std::cout << std::setprecision(4);
 	if (save_diagnose) tests_out << std::setprecision(4);
 	Rprintf("theta per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "MUs per group" << std::endl;
-	for (int ig = 0; ig != igroup; ig++)
-		for (int ip = 0; ip != kernpar; ip++) if (comp[ip]) {
-			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = gsl_cdf_ugaussian_P(SAMPLE(j, kern2free[ip] + ig * ifree));
-			gsl_sort(temp, 1, SAMPLE_SIZE);
-			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
-			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
-			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
-		}
+	for (int ig = 0; ig != igroup; ig++) {
+		for (int ip = 0; ip != kernpar; ip++) { 
+		  if (comp[ip]) if(free2kern[kern2free[ip]] == ip) {
+  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = gsl_cdf_ugaussian_P(SAMPLE(j, kern2free[ip] + ig * ifree));
+  			gsl_sort(temp, 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+  			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
+		  }
+	  }
+	}
 
 	Rprintf("tau- in ms per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "rho minus per group" << std::endl;
-	for (int ig = 0; ig != igroup; ig++)
-		for (int ip = 0; ip != kernpar; ip++) if (comp[kernpar + ip]) {
-			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[kernpar + ip] - ifree);
-			gsl_sort(temp, 1, SAMPLE_SIZE);
-			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
-			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
-			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
+	for (int ig = 0; ig != igroup; ig++) {
+		for (int ip = 0; ip != kernpar; ip++) {
+		  if (comp[kernpar + ip]) if(free2kern[kern2free[ip+kernpar]] == ip+kernpar) {
+  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[kernpar + ip] - ifree);
+  			gsl_sort(temp, 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+  			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
+	  	}
 		}
+	}
 	Rprintf("tau+ in ms per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "rho plus per group" << std::endl;
-	for (int ig = 0; ig != igroup; ig++)
-		for (int ip = 0; ip != kernpar; ip++) if (comp[ip + 2 * kernpar]) {
-			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[2 * kernpar + ip] - ifree);
-			gsl_sort(temp, 1, SAMPLE_SIZE);
-			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
-			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
-			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
+	for (int ig = 0; ig != igroup; ig++) {
+		for (int ip = 0; ip != kernpar; ip++) { 
+		  if (comp[ip + 2 * kernpar]) if(free2kern[kern2free[ip+2*kernpar]] == ip+2*kernpar) {
+  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[2 * kernpar + ip] - ifree);
+  			gsl_sort(temp, 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+  			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
+  		}
 		}
+	}
 
 	Rprintf("SD and CORR of process params [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "SIG" << std::endl;
 	int iz = igroup * (ifree + ilamfree) - 1;
-	for (int ix = 0; ix != ifree + ilamfree; ix++)
+	for (int ix = 0; ix != ifree + ilamfree; ix++) {
 		for (int jz = ix; jz != ifree + ilamfree; jz++) {
 			iz++;
 			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = SAMPLE(j, iz);
@@ -115,6 +125,7 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 			Rprintf("%3d%3d", free2kern[ix]+1, free2kern[jz] + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
 			if (save_diagnose) { tests_out << setw(3) << free2kern[ix] + 1 << setw(3) << free2kern[jz] + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
 		}
+	}
 
 	//Rprintf("Restpars: Mean per group, Residual Variance in motor/encoding, Due to individual differences in motor/encoding\n");
 	Rprintf("mu_gamma in ms per group [median, 95 and 99%% HDI]\n");
@@ -130,7 +141,8 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 		if (ir == igroup*respno) {
 			Rprintf("omega^2 [median, 95 and 99%% HDI]\n");
 		}
-		for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+		for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
+		Rprintf("\n");
 		if (save_diagnose) { for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
 	}
 
@@ -156,7 +168,8 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 	for (int i = 0; i != no_trials; i++) { u[daten[i].person] += daten[i].rt / 1000.0; nj[daten[i].person]++; }
 	for (int t = 0; t != indi; t++) { u[t] /= nj[t]; }
 
-	for (int i = 0; i != no_trials; i++) s += gsl_pow_2(daten[i].rt / 1000.0 - u[daten[i].person]); s = s / (no_trials - 1);
+	for (int i = 0; i != no_trials; i++) s += gsl_pow_2(daten[i].rt / 1000.0 - u[daten[i].person]); 
+	s = s / (no_trials - 1);
 	double grand = 0.0; for (int t = 0; t != indi; t++) grand += (u[t] * nj[t]) / no_trials;
 	double salph = 0.0; for (int t = 0; t != indi; t++) salph += gsl_pow_2(u[t] - grand); salph = salph / (indi - 1);
 	//Rprintf("Daten: Mean, Residual Variance, Due to Individual differences\n");
@@ -235,7 +248,7 @@ void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double
 		// 	double lam = lams[0]; pij[k] = (logexgaussian(lam, rmu, rsig, rt));
 		// 	if (DEBUG) {if (pij[k] < 0.0) Rprintf("pij[k] < 0; pf = 1 %.4g\n", pij[k]);}
 		// }
-		if ((complength == 1) /*&& (PFAD_INDEX(j, k) > -1)*/) {
+		if (complength == 1 /*&& (PFAD_INDEX(j, k) > -1)*/) {
 			// int ipfad = PFAD_INDEX(j, k);
 			// pfadinfo akt_pfad = path_info[ipfad];
 			// if (complength != akt_pfad.a) Rprintf("complength != a");
@@ -407,9 +420,11 @@ void test(double *t1, double *t2, string what) {
 	gsl_sort(t1, 1, SAMPLE_SIZE);
 	hdi(SAMPLE_SIZE, t1, .95, iv);
 	Rprintf("95%% HDI\n"); if (save_diagnose) tests_out << "95% HDI" << std::endl;
-	for (int iq = 0; iq != 2; iq++) Rprintf("%12.4g", iv[iq]); Rprintf("\n");
+	for (int iq = 0; iq != 2; iq++) Rprintf("%12.4g", iv[iq]); 
+	Rprintf("\n");
 	if (save_diagnose) {
-		for (int iq = 0; iq != 2; iq++) tests_out << setw(12) << iv[iq]; tests_out << std::endl;
+		for (int iq = 0; iq != 2; iq++) tests_out << setw(12) << iv[iq]; 
+	  tests_out << std::endl;
 	}
 }
 
