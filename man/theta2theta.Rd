@@ -3,7 +3,7 @@
 \name{theta2theta}
 \alias{theta2theta}
 \alias{set_thetas_equal}
-\title{Set Process Probabilities Equal}
+\title{Set process probabilities equal}
 \usage{
 theta2theta(model, names, keep_consts = FALSE)
 

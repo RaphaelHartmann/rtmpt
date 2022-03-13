@@ -1,9 +1,8 @@
 
-#' Set Mapping Between Response Categories and Encoding Plus Motor Execution Times
+#' Set mapping between response categories and encoding plus motor execution times
 #' 
-#' Mapping response categories with encoding and motor execution times (deltas). Unlike, e.g., in 
-#'   \code{\link{theta2theta}} there are no names for the different deltas and therefore a mapping from
-#'   response categories to different deltas must be specified.
+#' Mapping response categories with encoding and motor execution times (deltas). Unlike the processes there are no names for 
+#'   the different deltas and therefore a mapping from response categories to different deltas must be specified.
 #'
 #' @param model A list of the class \code{rtmpt_model}.
 #' @param trees Character or numerical vector giving the trees
@@ -116,7 +115,7 @@ set_deltas_equal <- delta2delta
 
 
 
-#' Set responses in a \code{rtmpt_model}
+#' Set responses in an \code{rtmpt_model}
 #' 
 #' Change the responses for a tree and the categories within that tree.
 #'

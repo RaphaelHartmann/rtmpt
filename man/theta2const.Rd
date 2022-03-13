@@ -3,7 +3,7 @@
 \name{theta2const}
 \alias{theta2const}
 \alias{set_theta_const}
-\title{Set Process Probabilities to a Constant}
+\title{Set process probabilities to constants}
 \usage{
 theta2const(model, names, constants = NA)
 

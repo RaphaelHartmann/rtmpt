@@ -1,5 +1,5 @@
 
-#' Simulate data from RT-MPT models
+#' Simulate data from an RT-MPT model
 #' 
 #' Simulate data from RT-MPT models using \code{rtmpt_model} objects. The difference to \code{\link{sim_rtmpt_data}} is that here only scalars are allowed. This makes it usable for 
 #'   simulation-based calibration (SBC; Talts et al., 2018). You can specify the random seed, number of subjects, number of trials, and some

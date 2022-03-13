@@ -99,7 +99,8 @@
 
 		kerncat=nKERN;
 		cat2resp = (int *)R_Calloc(kerncat, int);
-		for (int i=0;i!=kerncat;i++) cat2resp[i]= CatToResp[i]; respno = nRESP;
+		for (int i=0;i!=kerncat;i++) cat2resp[i]= CatToResp[i]; 
+		respno = nRESP;
 	  // char y; std::cin >> y;
 	}
 

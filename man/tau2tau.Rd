@@ -3,7 +3,7 @@
 \name{tau2tau}
 \alias{tau2tau}
 \alias{set_taus_equal}
-\title{Set Process Completion Times Equal}
+\title{Set process completion times equal}
 \usage{
 tau2tau(model, names, keep_zeros = FALSE)
 

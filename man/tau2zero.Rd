@@ -3,7 +3,7 @@
 \name{tau2zero}
 \alias{tau2zero}
 \alias{set_tau_zero}
-\title{Set Process Completion Times to Zero}
+\title{Set process completion times to zero}
 \usage{
 tau2zero(model, names, outcomes, values = 0)
 

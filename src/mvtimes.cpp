@@ -212,12 +212,13 @@ void make_lambdas_new(int *nnodes, double *taus, double *beta, double *sigi, dou
     for (int t = 0; t != indi; t++) {
       p[t * ilamfree + iz] *= RHOS(t2group[t], iz);
 
-      int ipar = iz + ifree;
-      double b = p[t * ilamfree + iz];
+      //int ipar = iz + ifree;
+      //double b = p[t * ilamfree + iz];
       double a = n[t * ilamfree + iz];
       double start = 0.0;
 
-      AGAIN:			double step = 1, scale = (a > 0) ? sqrt(a) : 1.0; start = start * scale; double totallow = -DBL_MAX;//GSL_NEGINF;
+      //AGAIN:			
+      double step = 1, scale = (a > 0) ? sqrt(a) : 1.0; start = start * scale; double totallow = -DBL_MAX;//GSL_NEGINF;
       double temp = ars(step, scale, totallow, a, p[t * ilamfree + iz], beta, sigi, lambdas, lams, t, iz, start, rst, lambda_cond);
       temp = temp / scale;
       LAMBDAS(t, iz) = temp;
@@ -564,7 +565,7 @@ void make_taus_one_trial_new_new(trial one, int itrial, int ipath, double *rhos,
 
 void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double *xlams, double *restpars, double* slams, double *pij) {
 
-	int t = one.person; int itree = one.tree; int j = one.category; double rt = one.rt / 1000.0; int resp = cat2resp[j];
+	int t = one.person; /*int itree = one.tree;*/ int j = one.category; double rt = one.rt / 1000.0; int resp = cat2resp[j];
 
 	double rmu = restpars[t2group[t] * respno + resp] + malpha(t, resp, restpars, slams); double rsig = sqrt(restpars[t + sigalphaoff]);
 
@@ -800,7 +801,8 @@ void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *beta
 	if (kernpar > igroup*respno) {
 		for (int i = 0; i < kernpar; i++) Rprintf("_______________");
 	} else {
-		for (int i = 0; i < (igroup*respno); i++) Rprintf("_______________"); Rprintf("_______________");
+		for (int i = 0; i < (igroup*respno); i++) Rprintf("_______________"); 
+	  Rprintf("_______________");
 	}
 	Rprintf("\n\n");
 	BURNIN_flag = false;

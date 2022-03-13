@@ -134,13 +134,13 @@ void make_pij_for_one_trial(trial one, double *x_for_all, double *pij, double &p
 }
 
 int make_path_for_one_trial(int branchno, double *pij, double pj, gsl_rng *rst) {
-	int exit_status = 0;
+	//int exit_status = 0;
 	int help = 0; double temp;
 	if (branchno > 1) {
 		double u = log(oneuni(rst)) + pj; temp = pij[help];
 		while (u > temp) {
 			help++;
-			if (DEBUG) {if (help > branchno - 1) { Rprintf("Achtung non-multinomial"); exit_status = -1; }}
+			if (DEBUG) {if (help > branchno - 1) { Rprintf("Achtung non-multinomial"); /*exit_status = -1;*/ }}
 			temp =logsum(temp, pij[help]);
 		}
 	}

@@ -1,5 +1,5 @@
 
-#' Create a model list for \code{\link{fit_rtmpt}}
+#' Create a model list to fit an RT-MPT
 #' 
 #' Create a model list of the class \code{rtmpt_model} by providing either \code{eqn_file} or \code{mdl_file}.
 #' If both are provided \code{mdl_file} will be used.
@@ -83,7 +83,7 @@
 #' model
 #' 
 #' @note Within a branch of a (RT-)MPT model it is not allowed to have the same process two or more times.
-#' @seealso \code{\link{set_resps}}, \code{\link{theta2const}}, \code{\link{tau2zero}}, \code{\link{theta2theta}}, and \code{\link{tau2tau}} for 
+#' @seealso \code{\link{delta2delta}}, \code{\link{theta2const}}, \code{\link{tau2zero}}, \code{\link{theta2theta}}, and \code{\link{tau2tau}} for 
 #'   functions to change the model
 #' @author Raphael Hartmann
 #' @export

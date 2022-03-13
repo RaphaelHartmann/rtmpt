@@ -2,7 +2,7 @@
 
 ############ THETA TO CONSTANT ############
 
-#' Set Process Probabilities to a Constant
+#' Set process probabilities to constants
 #' 
 #' Setting process probabilities (thetas) to constants or change it back to be estimated. 
 #'
@@ -101,7 +101,7 @@ set_theta_const <- theta2const
 
 ############ TAU TO ZERO ############
 
-#' Set Process Completion Times to Zero
+#' Set process completion times to zero
 #' 
 #' Setting process completion times (taus) to zero or change it back to be estimated.
 #'
@@ -260,7 +260,7 @@ set_tau_zero <- tau2zero
 
 ############ MAKE THETAS EQUAL ############
 
-#' Set Process Probabilities Equal
+#' Set process probabilities equal
 #' 
 #' Setting multiple process probabilities (thetas) equal. One of the process probabilities will be estimated and
 #'   the other named process(es) will be set to equal the former. The equality can be removed by only using one name of a process. 
@@ -372,7 +372,7 @@ set_thetas_equal <- theta2theta
 
 ############ MAKE TAUS EQUAL ############
 
-#' Set Process Completion Times Equal
+#' Set process completion times equal
 #' 
 #' Setting multiple process completion times (taus) equal. This means all process times of negative outcomes will be
 #'   set equal and all process times of positive outcomes will be set equal. Only two process times (one for the negative

@@ -3,7 +3,7 @@
 \name{delta2delta}
 \alias{delta2delta}
 \alias{set_deltas_equal}
-\title{Set Mapping Between Response Categories and Encoding Plus Motor Execution Times}
+\title{Set mapping between response categories and encoding plus motor execution times}
 \usage{
 delta2delta(model, trees, categories, mappings = 0)
 
@@ -23,9 +23,8 @@ the specified \code{trees} for which the deltas should be changed.}
 A list of the class \code{rtmpt_model}.
 }
 \description{
-Mapping response categories with encoding and motor execution times (deltas). Unlike, e.g., in 
-  \code{\link{theta2theta}} there are no names for the different deltas and therefore a mapping from
-  response categories to different deltas must be specified.
+Mapping response categories with encoding and motor execution times (deltas). Unlike the processes there are no names for 
+  the different deltas and therefore a mapping from response categories to different deltas must be specified.
 }
 \examples{
 ###########################################################################
