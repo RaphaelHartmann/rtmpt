@@ -89,7 +89,7 @@ void make_nodes_by_ind(int *idaten, int kerntree, int *nodes_per_par, int &nz, i
 #define NODES_PER_PAR(I,J) nodes_per_par[I*kernpar + J]
 #define TREE_AND_NODE2PAR(I,J) tree_and_node2par[I*nodemax+J]
 
-	int *nks = 0; nks = (int *)R_Calloc(indi*kerntree, int);
+	int *nks = 0; nks = (int *)malloc(indi*kerntree * sizeof(int));
 	for (int i = 0; i != kerntree * indi; i++) nks[i] = 0;
 	for (int i = 0; i != kerncat; ++i) for (int t = 0; t != indi; t++) NKS(t, cat2tree[i]) += IDATEN(t, i);
 	for (int t = 0; t != indi; t++) for (int ip = 0; ip != kernpar; ip++) {
@@ -102,16 +102,16 @@ void make_nodes_by_ind(int *idaten, int kerntree, int *nodes_per_par, int &nz, i
 		if (comp[ip + kernpar]) for (int t = 0; t != indi; t++) ntau += NNODES(t, ip);
 		if (comp[ip + 2 * kernpar]) for (int t = 0; t != indi; t++) ntau += NNODES(t, ip);
 	}
-	if (nks) R_Free(nks);
+	if (nks) free(nks);
 }
 
 void make_positions(vector<trial> daten, int *nnodes, int *nz_position, int *ntau_position) {
 #define NZ_POSITION(X,J) nz_position[X*nodemax+J]
 #define NTAU_POSITION(X,J,PM) ntau_position[2*X*nodemax+2*J+PM]
-	int *boffset = 0; boffset = (int *)R_Calloc(indi*kernpar, int);
-	int *loffset = 0; loffset = (int *)R_Calloc(indi*kernpar, int);
-	int *btemp = 0; btemp = (int *)R_Calloc(indi*kernpar, int);
-	int *ltemp = 0; ltemp = (int *)R_Calloc(indi*kernpar, int);
+	int *boffset = 0; boffset = (int *)malloc(indi*kernpar * sizeof(int));
+	int *loffset = 0; loffset = (int *)malloc(indi*kernpar * sizeof(int));
+	int *btemp = 0; btemp = (int *)malloc(indi*kernpar * sizeof(int));
+	int *ltemp = 0; ltemp = (int *)malloc(indi*kernpar * sizeof(int));
 #define BOFFSET(T,I) boffset[T*kernpar+I]
 #define LOFFSET(T,I) loffset[T*kernpar+I]
 #define BTEMP(T,I) btemp[T*kernpar+I]
@@ -152,10 +152,10 @@ void make_positions(vector<trial> daten, int *nnodes, int *nz_position, int *nta
 		if ((!(comp[i + kernpar]) && (comp[i + 2 * kernpar])) && (LTEMP(t, i) != NNODES(t, i))) Rprintf("L_PROBLEM%12d%12d\n", t, i);
 		if ((!(comp[i + kernpar]) && !(comp[i + 2 * kernpar])) && (LTEMP(t, i) != 0)) Rprintf("L_PROBLEM%12d%12d\n", t, i);
 	}
-	if (boffset) R_Free(boffset);
-	if (loffset) R_Free(loffset);
-	if (btemp) R_Free(btemp);
-	if (ltemp) R_Free(ltemp);
+	if (boffset) free(boffset);
+	if (loffset) free(loffset);
+	if (btemp) free(btemp);
+	if (ltemp) free(ltemp);
 }
 
 
@@ -341,55 +341,39 @@ int mainx(int *k2f, int *f2k) {
 	//REPEAT:
 	set_ns(daten, indi, kerntree, kerncat, igroup, ntot);
 
-	cat2tree = (int *)R_Calloc(kerncat, int);
+	cat2tree = (int *)malloc(kerncat * sizeof(int));
 	set_cat2tree(daten, cat2tree);
-	t2group = (int *)R_Calloc(indi, int);
+	t2group = (int *)malloc(indi * sizeof(int));
 	set_t2group(daten, t2group);
-	int *idaten = 0; idaten = (int *)R_Calloc(indi*kerncat, int);
+	int *idaten = 0; idaten = (int *)malloc(indi*kerncat * sizeof(int));
 	make_idaten(daten, idaten);
 	//	std::cout<< std::endl;
 	//	for (int t=0;t!=indi;t++) {for (int j=0;j!=kerncat;j++) std::cout << setw(4) << IDATEN(t,j); std::cout<< std::endl;}
 
 		// Model Design
 	// in lies gesetzt	zweig=2; kernpar = 2; nodemax=2;
-	//a = (int *)R_Calloc(kerncat*zweig*kernpar, int);
-	ar = (int *)R_Calloc(kerncat*zweig*nodemax, int);
+	//a = (int *)malloc(kerncat*zweig*kernpar * sizeof(int));
+	ar = (int *)malloc(kerncat*zweig*nodemax * sizeof(int));
 	//    #define A(I,J,K) a[I*zweig*kernpar + J*kernpar + K]
-	//if (!(b = (int *)R_Calloc(kerncat*zweig*kernpar, int))) { printf("Allocation failure\n");	exit_status = -1; }
-	branch = (int *)R_Calloc(kerncat, int);
+	//if (!(b = (int *)malloc(kerncat*zweig*kernpar * sizeof(int)))) { printf("Allocation failure\n");	exit_status = -1; }
+	branch = (int *)malloc(kerncat * sizeof(int));
 	//    #define B(I,J,K) b[I*zweig*kernpar + J*kernpar + K]
-	int *nodes_per_par = 0;  nodes_per_par = (int *)R_Calloc(kerntree*kernpar, int);
+	int *nodes_per_par = 0;  nodes_per_par = (int *)malloc(kerntree*kernpar * sizeof(int));
 	//    #define NODES(I,J) nodes_per_par[I*kernpar + J]
-	nodes_per_tree = (int *)R_Calloc(kerntree, int);
-	tree_and_node2par = (int *)R_Calloc(kerntree*nodemax, int);
-	drin = (int *)R_Calloc(kerncat*zweig*nodemax, int);
-	ndrin = (int *)R_Calloc(kerncat*zweig, int);
-	pfad_index = (int *)R_Calloc(kerncat*zweig, int);
+	nodes_per_tree = (int *)malloc(kerntree * sizeof(int));
+	tree_and_node2par = (int *)malloc(kerntree*nodemax * sizeof(int));
+	drin = (int *)malloc(kerncat*zweig*nodemax * sizeof(int));
+	ndrin = (int *)malloc(kerncat*zweig * sizeof(int));
+	pfad_index = (int *)malloc(kerncat*zweig * sizeof(int));
 
 	// Model specifications
 		// Parameter: beta_comp yes/no
-	comp = (bool *)R_Calloc(3 * kernpar, bool);
-	consts = (double *)R_Calloc(kernpar, double);
+	comp = (bool *)malloc(3 * kernpar * sizeof(bool));
+	consts = (double *)malloc(kernpar * sizeof(double));
 
 	model_design(kerntree, ar, branch, nodes_per_par, nodes_per_tree, tree_and_node2par);
 
-
-	
-
-// int gg = 5;
-// while(gg == 5) {
-//   R_CheckUserInterrupt();
-// }
-
-	// int iz = 0; 
-	// for (int ip = 0; ip != 3 * kernpar; ip++) {
-	//   if (comp[ip]) { 
-	//     kern2free[ip] = iz; free2kern[iz] = ip; iz++; 
-	//   } else kern2free[ip] = -1;
-	// }	
-
-  
-  ifree = 0;
+	ifree = 0;
   ilamfree = 0;
   int ilamfree1 = 0;
   int ilamfree2 = 0;
@@ -410,62 +394,48 @@ int mainx(int *k2f, int *f2k) {
       }
     }
   }
-// ilamfree = ilamfree -2;
 
-  free2kern = (int *)R_Calloc((ifree + ilamfree), int);
-  kern2free = (int *)R_Calloc(3 * kernpar, int);
 
+	free2kern = (int *)malloc((ifree + ilamfree) * sizeof(int));
+	kern2free = (int *)malloc(3 * kernpar * sizeof(int));
 
 	for (int ip = 0; ip != 3 * kernpar; ip++) {
-	  kern2free[ip] = k2f[ip];
+		kern2free[ip] = k2f[ip];
 	}
 	for (int iz = 0; iz != ifree + ilamfree; iz++) {
-	  free2kern[iz] = f2k[iz];
-  }
-  // for (int ip = 0; ip != 3 * kernpar; ip++) {
-  //   Rprintf("comp[%d] = %d\n", ip, comp[ip]);
-  // }
-  
-  //example
-//   kern2free[kernpar + 0] = ifree;
-// 	kern2free[kernpar + 1] = ifree;
-// 	kern2free[kernpar + 2] = ifree + 1;
-// 
-// 	kern2free[2*kernpar + 0] = ifree + (ilamfree) / 2;
-// 	kern2free[2*kernpar + 1] = ifree + (ilamfree) / 2;
-// 	kern2free[2*kernpar + 2] = ifree + (ilamfree) / 2 + 1;
-// 
-// 	free2kern[ifree + 0] = kernpar + 0;
-// 	free2kern[ifree + 1] = kernpar + 2;
-// 
-// 	free2kern[ifree + (ilamfree) / 2 + 0] = 2*kernpar + 0;
-// 	free2kern[ifree + (ilamfree) / 2 + 1] = 2*kernpar + 2;
-  
-  
-  
-  extract_pfadinfo(pfad_index, path_info);
-	
+		free2kern[iz] = f2k[iz];
+	}
+
+	// int iz = 0; for (int ip = 0; ip != 3 * kernpar; ip++) if (comp[ip]) { kern2free[ip] = iz; free2kern[iz] = ip; iz++; }
+	// else kern2free[ip] = -1;
+
+
+	extract_pfadinfo(pfad_index, path_info);
+
+
+
+
 		// Analysis by individuals
 
-	//double *g2 = 0; if (!(g2 = (double *)R_Calloc(indi, double))) { printf("Allocation failure\n");	exit_status = -1; }
-	//double *likeli = 0; if (!(likeli = (double *)R_Calloc(indi, double))) { printf("Allocation failure\n");	exit_status = -1; }
+	//double *g2 = 0; if (!(g2 = (double *)malloc(indi * sizeof(double)))) { printf("Allocation failure\n");	exit_status = -1; }
+	//double *likeli = 0; if (!(likeli = (double *)malloc(indi * sizeof(double)))) { printf("Allocation failure\n");	exit_status = -1; }
 
 
 	//by_individuals(daten, kerntree, beta, g2, likeli, rst);
 
 	//nnodes berechnen
-	int *nnodes = 0; nnodes = (int *)R_Calloc(indi*kernpar, int);
+	int *nnodes = 0; nnodes = (int *)malloc(indi*kernpar * sizeof(int));
 	int nz, ntau;
 	make_nodes_by_ind(idaten, kerntree, nodes_per_par, nz, nnodes, ntau);
 
 	//NZ und NTAU Positions berechnen
 	int trialno = static_cast<int>(daten.size());
-	int *nz_position = 0; nz_position = (int *)R_Calloc(trialno*nodemax, int);
-	int *ntau_position = 0; ntau_position = (int *)R_Calloc(2 * trialno*nodemax, int);
+	int *nz_position = 0; nz_position = (int *)malloc(trialno*nodemax * sizeof(int));
+	int *ntau_position = 0; ntau_position = (int *)malloc(2 * trialno*nodemax * sizeof(int));
 	make_positions(daten, nnodes, nz_position, ntau_position);
 
 	//nppr berechnen, factor definieren
-	nppr = (int *)R_Calloc(indi*respno, int);
+	nppr = (int *)malloc(indi*respno * sizeof(int));
 
 	for (int t = 0; t != indi * respno; t++) nppr[t] = 0;
 	for (int x = 0; x != static_cast<int>(daten.size()); x++)
@@ -482,9 +452,9 @@ int mainx(int *k2f, int *f2k) {
 	sigalphaoff = alphaoff + indi * respno;
 	restparsno = sigalphaoff + indi;
 
-	double *beta = 0;	beta = (double *)R_Calloc(indi*ifree, double);;
-	double *lambdas = 0; lambdas = (double *)R_Calloc(indi*(ilamfree), double);
-	double *restpars = 0; restpars = (double *)R_Calloc(restparsno, double);
+	double *beta = 0;	beta = (double *)malloc(indi*ifree * sizeof(double));;
+	double *lambdas = 0; lambdas = (double *)malloc(indi*(ilamfree) * sizeof(double));
+	double *restpars = 0; restpars = (double *)malloc(restparsno * sizeof(double));
 
 	//compute individual fits for starting points
 
@@ -505,9 +475,9 @@ int mainx(int *k2f, int *f2k) {
 																						lambdas, restpars);
 
 
-	if (lambdas) R_Free(lambdas);
-	if (restpars) R_Free(restpars);
-	if (beta) R_Free(beta);
+	if (lambdas) free(lambdas);
+	if (restpars) free(restpars);
+	if (beta) free(beta);
 
 	Rprintf("\nCalculating some diagnostics. This might take some time.\n\n");
 
@@ -515,31 +485,31 @@ int mainx(int *k2f, int *f2k) {
 	// char x; std::cin >> x;
 
 
-	if (cat2tree) R_Free(cat2tree);
-	R_Free(t2group);
-	//if (a) R_Free(a);
-	if (ar) R_Free(ar);
-	//if (b) R_Free(b);
-	if (branch) R_Free(branch);
-	if (nodes_per_par) R_Free(nodes_per_par);
-	if (nodes_per_tree) R_Free(nodes_per_tree);
-	if (tree_and_node2par) R_Free(tree_and_node2par);
-	//if (g2) R_Free(g2);
-	//if (likeli) R_Free(likeli);
-	if (nnodes) R_Free(nnodes);
-	if (idaten) R_Free(idaten);
+	if (cat2tree) free(cat2tree);
+	free(t2group);
+	//if (a) free(a);
+	if (ar) free(ar);
+	//if (b) free(b);
+	if (branch) free(branch);
+	if (nodes_per_par) free(nodes_per_par);
+	if (nodes_per_tree) free(nodes_per_tree);
+	if (tree_and_node2par) free(tree_and_node2par);
+	//if (g2) free(g2);
+	//if (likeli) free(likeli);
+	if (nnodes) free(nnodes);
+	if (idaten) free(idaten);
 
-	if (comp) R_Free(comp);
-	if (nz_position) R_Free(nz_position);
-	if (ntau_position) R_Free(ntau_position);
-	if (drin) R_Free(drin);
-	if (ndrin) R_Free(ndrin);
-	if (nppr) R_Free(nppr);
+	if (comp) free(comp);
+	if (nz_position) free(nz_position);
+	if (ntau_position) free(ntau_position);
+	if (drin) free(drin);
+	if (ndrin) free(ndrin);
+	if (nppr) free(nppr);
 
-	if (free2kern) R_Free(free2kern);
-	if (kern2free) R_Free(kern2free);
-	if (consts) R_Free(consts);
-	if (pfad_index) R_Free(pfad_index);
+	if (free2kern) free(free2kern);
+	if (kern2free) free(kern2free);
+	if (consts) free(consts);
+	if (pfad_index) free(pfad_index);
 	gsl_rng_free(rst);
 	gsl_rng_free(rst1);
 	gsl_rng_free(rst2);

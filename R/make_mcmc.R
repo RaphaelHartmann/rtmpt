@@ -199,23 +199,21 @@ labelnames_keep <- function(data_info) {
 
 
 
-
+#' @importFrom data.table as.data.table
+#' @importFrom coda as.mcmc
 make_mcmc_list <- function(file, infofile, Nchains, Nsamples, data_info, keep) {
-  
-  # load necessary r-package and source
-  # source("C:/Users/hartmann/Desktop/UNI_FREIBURG/U_Freiburg/CPP/DBDA2E-utilities.R")
   
   # read text file with chains
   temp <- c()
   if (is.character(file)) {
-    temp <- as.vector(read.table(file=file,header=F,nrows=1))
+    temp <- as.vector(read.table(file = file, header = FALSE, nrows = 1))
     dt <- fread(file=file,skip=1)
   } else if (is.data.frame(file) || is.matrix(file)) {
     temp <- dim(file)
     dt <- as.data.table(file)
   }
-  
-  
+  rm(file); gc()
+
   
   # specify parameters used in MCMC
   start <- 1
@@ -223,15 +221,15 @@ make_mcmc_list <- function(file, infofile, Nchains, Nsamples, data_info, keep) {
   npar <- temp[2]
   
   
-  
   # generate MCMC-list for coda
-  vec <- vector("list",Nchains)
+  vec <- vector("list", Nchains)
   for (i in 1:Nchains) {
     vec[[i]] <- dt[(i-1)*end + start:end]
-    vec[[i]] <- as.mcmc(vec[[i]],start=start,end=end,thin=1)
+    vec[[i]] <- as.mcmc(vec[[i]], start = start, end = end, thin = 1)
   }
-  samples <- as.mcmc.list(vec,start=start,end=end,thin=1)
-  rm(vec)
+  rm(dt); gc()
+  samples <- as.mcmc.list(vec, start = start, end = end, thin = 1)
+  rm(vec); gc()
   
   
   # name chain columns
@@ -252,11 +250,10 @@ make_mcmc_list <- function(file, infofile, Nchains, Nsamples, data_info, keep) {
   # change beta_prime to log-scale
   for (nc in 1:Nchains) {
     for (ind in label_list$beta_ind) {
-	  samples[[nc]][,ind] <- log(samples[[nc]][,ind])
-	}
+	    samples[[nc]][,ind] <- log(samples[[nc]][,ind])
+  	}
   }
-  
-  
+  gc()
   return(samples)
   
 }

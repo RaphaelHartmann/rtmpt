@@ -194,12 +194,13 @@ fit_rtmpt <- function(model,
   	  transformation <- temp_data$transformation
   	} else transformation <- list()
     keep_data_path <- TRUE
-  } else if (class(data) == "rtmpt_data") {
+  } else if (inherits(data, "rtmpt_data")) {
     data_frame <- data$data
   	if("transformation" %in% names(data)) {
   	  transformation <- data$transformation
   	} else transformation <- list()
   }
+  rm(data); gc()
   
   data_elmnts <- c("subj", "group", "tree", "cat", "rt")
   if (!all(data_elmnts %in% names(data_frame))) stop("\"data\" must contain \"", data_elmnts[which(!(data_elmnts %in% names(data_frame)))[1]], "\".")
@@ -325,11 +326,11 @@ fit_rtmpt <- function(model,
     F2K[i] <- ifelse(theta %in% proc_names, which(proc_names==as.character(theta)), 
                      ifelse(is.na(theta), i, -1))
     tauminus <- model$params[["taus"]]["minus", i]
-    F2K[i+nprocs] <- nprocs + ifelse(tauminus %in% proc_names, which(proc_names==as.character(tauminus)), 
-                                     ifelse(BOOL1[i], i, -1))
+    F2K[i+nprocs] <- ifelse(tauminus %in% proc_names, nprocs + which(proc_names==as.character(tauminus)), 
+                            ifelse(BOOL1[i], nprocs + i, -1))
     tauplus <- model$params[["taus"]]["plus", i]
-    F2K[i+2*nprocs] <- 2*nprocs + ifelse(tauplus %in% proc_names, which(proc_names==as.character(tauplus)), 
-                                         ifelse(BOOL2[i], i, -1))
+    F2K[i+2*nprocs] <- ifelse(tauplus %in% proc_names, 2*nprocs + which(proc_names==as.character(tauplus)), 
+                              ifelse(BOOL2[i], 2*nprocs + i, -1))
   }
   INTEGER5 <- unique(F2K[F2K != -1])-1
 
@@ -393,7 +394,7 @@ fit_rtmpt <- function(model,
   rtmpt$samples <- make_mcmc_list(file = out$pars_samples, infofile = infofile, 
                                   Nchains = Nchains, Nsamples = Nsamples, 
                                   data_info = data_info, keep = old_label)
-  out$pars_samples <- NULL
+  out$pars_samples <- NULL; gc()
   
   
   # diagnostics
@@ -497,6 +498,7 @@ fit_rtmpt <- function(model,
   
   # output
   class(rtmpt) <- "rtmpt_fit"
+  gc()
   return(rtmpt)
   
 }

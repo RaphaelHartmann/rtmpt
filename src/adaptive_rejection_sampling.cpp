@@ -4,10 +4,10 @@
 #include "rts.h"
 #include <mutex>
 
-std::mutex mtx_R_CUI;
 
+// namespace ertmpt {
 
-// namespace rtsNS {
+  std::mutex mtx_R_CUI;
 
 	struct piece {
 		double z;
@@ -164,10 +164,9 @@ std::mutex mtx_R_CUI;
 		double ub, lb;
 		point high, low;
 		int sign = one.dh > 0 ? 1 : -1;
-		
 		// make ldh >2.0 <5.0
 		for (int i = 0; i != 2; i++) {
-		  int cnt_while = 0;
+			int cnt_while = 0;
 			double dh = sign * one.dh;
 			if ((dh <= 2.0) || (dh >= 5.0))
 			{
@@ -192,9 +191,9 @@ std::mutex mtx_R_CUI;
 							gamma_prior(scale, norm, n, one.x, xp, beta, sigi, lambdas, lams, tt, iz, true, one);
 							dh = sign * one.dh;
 							cnt_while++; if (cnt_while % 1024 == 0) {
-							  std::lock_guard<std::mutex> guard(mtx_R_CUI);
-							  R_CheckUserInterrupt();
-							}
+						  std::lock_guard<std::mutex> guard(mtx_R_CUI);
+						  R_CheckUserInterrupt();
+						}
 						}
 						lb = one.x;
 					}
@@ -206,9 +205,9 @@ std::mutex mtx_R_CUI;
 					if (dh <= 2.0) { lb = one.x; }
 					if (dh >= 5.0) { ub = one.x; }
 					cnt_while++; if (cnt_while % 1024 == 0) {
-					  std::lock_guard<std::mutex> guard(mtx_R_CUI);
-					  R_CheckUserInterrupt();
-					}
+						  std::lock_guard<std::mutex> guard(mtx_R_CUI);
+						  R_CheckUserInterrupt();
+						}
 				}
 			}
 			if (sign == 1) low.x = one.x; else high.x = one.x;

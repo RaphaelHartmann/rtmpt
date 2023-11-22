@@ -60,9 +60,9 @@
 
 extern "C" {
 
-	SEXP rtmpt_fit(SEXP re1, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP in4, SEXP in5, SEXP bo1, SEXP bo2, SEXP bo3) {
+	SEXP rtmpt_fit(SEXP re, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP in4, SEXP in5, SEXP bo1, SEXP bo2, SEXP bo3) {
 
-		RMAX = REAL(re1)[0];
+		RMAX = REAL(re)[0];
 
 		DATA = R_CHAR(STRING_ELT(ch, 0));
 		MODEL = R_CHAR(STRING_ELT(ch, 1));
@@ -98,7 +98,7 @@ extern "C" {
 		pr_sf_scale_matrix_SIG = REAL(re3)[8];
 		pr_sf_scale_matrix_TAU = REAL(re3)[9];
 		pr_df_add_inv_wish = INTEGER(in3)[0];
-		
+
 		int *k2f = INTEGER(in4);
 		int *f2k = INTEGER(in5);
 
@@ -137,8 +137,8 @@ extern "C" {
 				}
 			}
 		}
-		if (complete_sample) R_Free(complete_sample);
-		if (complete_bridge) R_Free(complete_bridge);
+		if (complete_sample) free(complete_sample);
+		if (complete_bridge) free(complete_bridge);
 
 
 		SET_VECTOR_ELT(ans,0,prob);
@@ -155,11 +155,11 @@ extern "C" {
 
 		Rf_setAttrib(ans,R_NamesSymbol,names);
 
-		// // R_Free variables
-		// R_Free(CatToResp);
-		// R_Free(ConstProb);
-		// R_Free(CompMinus);
-		// R_Free(CompPlus);
+		// // free variables
+		// free(CatToResp);
+		// free(ConstProb);
+		// free(CompMinus);
+		// free(CompPlus);
 
 
 		/* Unprotect the ans and names objects */

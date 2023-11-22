@@ -68,8 +68,8 @@
 			int indi, kerntree, kerncat, ntot;
 			set_ns(daten, indi, kerntree, kerncat, igroup, ntot);
 			int *cat2tree = 0, *tree2cat = 0;
-			cat2tree = (int *)R_Calloc(kerncat, int);
-			tree2cat = (int *)R_Calloc(kerntree, int);
+			cat2tree = (int *)calloc(kerncat, sizeof(int));
+			tree2cat = (int *)calloc(kerntree, sizeof(int));
 			std::ifstream info(MODEL); int schrott;
 			for (int j = 0; j != 5; j++) info >> schrott;
 			for (int j = 0; j != kerncat; j++) { info >> cat2tree[j]; cat2tree[j]--; }
@@ -98,8 +98,8 @@
 		if (DEBUG) {for (int i=0;i!=20;i++) Rprintf("%6d", o[n-1-i]); Rprintf("\n");}
 
 		kerncat=nKERN;
-		cat2resp = (int *)R_Calloc(kerncat, int);
-		for (int i=0;i!=kerncat;i++) cat2resp[i]= CatToResp[i]; 
+		cat2resp = (int *)calloc(kerncat, sizeof(int));
+		for (int i=0;i!=kerncat;i++) cat2resp[i]= CatToResp[i];
 		respno = nRESP;
 	  // char y; std::cin >> y;
 	}
@@ -167,15 +167,12 @@
 
 		for (int i=0;i!=kerncat*zweig*nodemax;i++) drin[i]=0;
 		for (int i=0;i!=kerncat*zweig;i++) ndrin[i]=0;
-		for (int j=0;j!=kerncat;j++) {
-			for (int k=0;k!=branch[j];k++) {
+		for (int j=0;j!=kerncat;j++)
+			for (int k=0;k!=branch[j];k++)
 				for (int r=0;r!=nodes_per_tree[cat2tree[j]];r++) if (AR(j,k,r)!=0) {
 					DRIN(j,k,NDRIN(j,k))=r;
 					NDRIN(j,k)++;
 				}
-			}
-		}
-				
 		// Konstanten SETZEN
 		for (int i=0; i!=kernpar; i++) {
 			if ((ConstProb[i]<=0.0) || (ConstProb[i]>=1.0)) comp[i]=true;
@@ -185,8 +182,6 @@
 
 		// ifree = 0;
 		// for (int i=0;i!=kernpar;i++) if (comp[i]) ifree++;
-		
-		
 		// GEGEBENENFALLS konstanten setzen
 		for (int i=0;i!=kernpar;i++) if (!comp[i]) consts[i]=ConstProb[i]; else	consts[i]=-1.0;
 

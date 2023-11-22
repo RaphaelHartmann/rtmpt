@@ -2,13 +2,13 @@
 #include <gsl/gsl_sf.h>
 
 
-
 #define TREE_AND_NODE2PAR(ITREE,R) tree_and_node2par[ITREE*nodemax+R]
 #define DRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
 #define NDRIN(J,K) ndrin[J*zweig+K]
 #define AR(I,J,R) ar[I*zweig*nodemax + J*nodemax + R]
 #define PFAD_INDEX(J,K) pfad_index[J*zweig+K]
 
+// namespace ertmpt {
 
 int succ(int x, int k) {
 	int temp;
@@ -42,7 +42,7 @@ bool step(int k, int a, int *iz, int ll) {
 }
 
 void logPhikl(int k, int a, vector<int> r, double *lams, double *loglams, int l, double &hypoplus, double &hypominus) {
-	int *iz = 0; iz = (int *)R_Calloc(a, int);
+	int *iz = 0; iz = (int *)malloc(a * sizeof(int));
 
 	hypoplus = hypominus = GSL_NEGINF;
 //	double zwi = 0;
@@ -84,7 +84,7 @@ void logPhikl(int k, int a, vector<int> r, double *lams, double *loglams, int l,
 	// 	hypominus = temp;
 	// }
 
-	R_Free(iz);
+	free(iz);
 //	hypoplus += gsl_sf_lnfact(l - 1);
 //	hypominus += gsl_sf_lnfact(l - 1);
 }
@@ -439,9 +439,9 @@ void test() {
 	int a = 5;
 //nt l = 3;
 //nt k = 3;
-	int *iz = 0; iz = (int *)R_Calloc(a, int);
+	int *iz = 0; iz = (int *)malloc(a * sizeof(int));
 	vector<int> r = { 2,1,2,2,1 };
-	double *lams = 0; lams = (double *)R_Calloc(a, double);
+	double *lams = 0; lams = (double *)malloc(a * sizeof(double));
 
 
 	lams[0] = 1.0;
@@ -482,56 +482,92 @@ void test() {
 	// 	char x; std::cin >> x;
 	// }
 
-	R_Free(iz);
-	R_Free(lams);
+	free(iz);
+	free(lams);
 }
 */
 
 
-void extract_pfadinfo(int* pfad_index, vector<pfadinfo>& path_info) {
-  int* counts = 0; counts = (int*)R_Calloc(2 * kernpar, int);
+void extract_pfadinfo(int *pfad_index,  vector<pfadinfo> &path_info) {
+
+	int* counts = 0; counts = (int*)malloc(2 * kernpar * sizeof(int));
   path_info.clear();
-  
-  for (int c = 0; c != kerncat; c++) {
-    int tree = cat2tree[c];
-    for (int j = 0; j != branch[c]; j++) {
-      int pl = NDRIN(c, j);
-      
-      for (int ip = 0; ip != 2 * kernpar; ip++) counts[ip] = 0;
-      
-      for (int in = 0; in != pl; in++) {
-        int n = DRIN(c, j, in);
-        int ip = TREE_AND_NODE2PAR(tree, n);
-        int pm = (AR(c, j, n) > 0) ? 1 : 0;
-        if (comp[ip + kernpar * (1 + pm)]) {
-          int ipp = free2kern[kern2free[ip + (1 + pm) * kernpar]];
-          counts[ipp - kernpar ]++;
-        }
-      }
-      //            bool temp = false;
-      //            for (int ip = 0; (ip != 2*kernpar) && !(temp); ip++) temp = (counts[ip] > 1);
-      
-      //            if (temp) {
-      pfadinfo one;
 
-      one.a = 0;
-      for (int ip = 0; ip != kernpar; ip++) {
-        for (int pm = 0; pm != 2; pm++) {
-          if (counts[ip + pm * kernpar] > 0) {
-            one.r.push_back(counts[ip + pm * kernpar]);
-            one.pfad_par.push_back(ip);
-            one.pm.push_back(pm);
-            one.a++;
-          }
-        }
-      }
-      PFAD_INDEX(c, j) = path_info.size();
-      path_info.push_back(one);
-      //            }
-      //            else PFAD_INDEX(c, j) = -1;
-    }
-  }
-  R_Free(counts);
+	for (int c = 0; c != kerncat; c++) {
+			int tree = cat2tree[c];
+			for (int j = 0; j != branch[c]; j++) {
+					int pl = NDRIN(c, j);
+
+					for (int ip = 0; ip != 2 * kernpar; ip++) counts[ip] = 0;
+
+					for (int in = 0; in != pl; in++) {
+							int n = DRIN(c, j, in);
+							int ip = TREE_AND_NODE2PAR(tree, n);
+							int pm = (AR(c, j, n) > 0) ? 1 : 0;
+							if (comp[ip + kernpar * (1 + pm)]) {
+									int ipp = free2kern[kern2free[ip + (1 + pm) * kernpar]];
+									counts[ipp - kernpar ]++;
+							}
+					}
+					//            bool temp = false;
+					//            for (int ip = 0; (ip != 2*kernpar) && !(temp); ip++) temp = (counts[ip] > 1);
+
+					//            if (temp) {
+					pfadinfo one;
+					one.a = 0;
+					for (int ip = 0; ip != kernpar; ip++)
+							for (int pm = 0; pm != 2; pm++) {
+									if (counts[ip + pm * kernpar] > 0) {
+											one.r.push_back(counts[ip + pm * kernpar]);
+											one.pfad_par.push_back(ip);
+											one.pm.push_back(pm);
+											one.a++;
+									}
+							}
+					PFAD_INDEX(c, j) = path_info.size();
+					path_info.push_back(one);
+					//            }
+					//            else PFAD_INDEX(c, j) = -1;
+			}
+	}
+
+	if(counts) free(counts);
+
+
+
+	// int *counts = 0; counts = (int *)malloc(2*kernpar * sizeof(int));
+	// path_info.clear();
+	// for (int c = 0; c != kerncat; c++) {
+	// 	int tree = cat2tree[c];
+	// 	for (int j = 0; j != branch[c]; j++) {
+	// 		int pl = NDRIN(c, j);
+	//
+	// 		for (int ip = 0; ip != 2*kernpar; ip++) counts[ip] = 0;
+	//
+	// 		for (int in = 0; in != pl; in++) {
+	// 			int n = DRIN(c, j, in);
+	// 			int ip = TREE_AND_NODE2PAR(tree, n);
+	// 			int pm = (AR(c, j, n) > 0) ? 1 : 0;
+	// 			if (comp[ip + kernpar*(1+pm)]) counts[ip+pm*kernpar]++;
+	// 		}
+	// 		// if (temp) {
+	// 		pfadinfo one;
+	//
+	// 		one.a = 0;
+	// 		for (int ip = 0; ip != kernpar; ip++)
+	// 			for (int pm = 0; pm != 2; pm++) {
+	// 				if (counts[ip + pm * kernpar] > 0) {
+	// 					one.r.push_back(counts[ip + pm * kernpar]);
+	// 					one.pfad_par.push_back(ip);
+	// 					one.pm.push_back(pm);
+	// 					one.a++;
+	// 				}
+	// 			}
+	// 		PFAD_INDEX(c, j) = path_info.size();
+	// 		path_info.push_back(one);
+	// 		// }
+	// 		// else PFAD_INDEX(c, j) = -1;
+	// 	}
+	// }
+	// free(counts);
 }
-
-

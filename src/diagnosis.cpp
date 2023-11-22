@@ -22,7 +22,7 @@ void lies(int n_all_parameters, double *sample) {
 	std::ifstream rein(RAUS);
 	int is, in;
 	rein >> is >> in;
-	if (is != SAMPLE_SIZE) Rprintf("HM\n"); 
+	if (is != SAMPLE_SIZE) Rprintf("HM\n");
 	if (in != (n_all_parameters+1)) Rprintf("HO\n");
 	for (int i = 0; i != is; i++)
 		for (int j = 0; j != in; j++) rein >> SAMPLE(i, j);
@@ -69,53 +69,44 @@ void belege_nur_lambdas(double *sample, int is, double *lambdas) {
 
 void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 	double qv[5];
-	double *temp = 0; temp = (double *)R_Calloc(SAMPLE_SIZE, double);
+	double *temp = 0; temp = (double *)malloc(SAMPLE_SIZE * sizeof(double));
 	//std::streamsize prec = cout.precision(); std::cout << std::setprecision(4);
 	if (save_diagnose) tests_out << std::setprecision(4);
 	Rprintf("theta per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "MUs per group" << std::endl;
-	for (int ig = 0; ig != igroup; ig++) {
-		for (int ip = 0; ip != kernpar; ip++) { 
-		  if (comp[ip]) if(free2kern[kern2free[ip]] == ip) {
-  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = gsl_cdf_ugaussian_P(SAMPLE(j, kern2free[ip] + ig * ifree));
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
-  			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
-  			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
-		  }
-	  }
-	}
+	for (int ig = 0; ig != igroup; ig++)
+		for (int ip = 0; ip != kernpar; ip++) if (comp[ip]) if(free2kern[kern2free[ip]] == ip) {
+			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = gsl_cdf_ugaussian_P(SAMPLE(j, kern2free[ip] + ig * ifree));
+			gsl_sort(temp, 1, SAMPLE_SIZE);
+			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
+			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
+		}
 
 	Rprintf("tau- in ms per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "rho minus per group" << std::endl;
-	for (int ig = 0; ig != igroup; ig++) {
-		for (int ip = 0; ip != kernpar; ip++) {
-		  if (comp[kernpar + ip]) if(free2kern[kern2free[ip+kernpar]] == ip+kernpar) {
-  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[kernpar + ip] - ifree);
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
-  			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
-  			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
-	  	}
+	for (int ig = 0; ig != igroup; ig++)
+		for (int ip = 0; ip != kernpar; ip++) if (comp[kernpar + ip]) if(free2kern[kern2free[ip+kernpar]] == ip+kernpar) {
+			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[kernpar + ip] - ifree);
+			gsl_sort(temp, 1, SAMPLE_SIZE);
+			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
+			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
 		}
-	}
 	Rprintf("tau+ in ms per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "rho plus per group" << std::endl;
-	for (int ig = 0; ig != igroup; ig++) {
-		for (int ip = 0; ip != kernpar; ip++) { 
-		  if (comp[ip + 2 * kernpar]) if(free2kern[kern2free[ip+2*kernpar]] == ip+2*kernpar) {
-  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[2 * kernpar + ip] - ifree);
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
-  			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
-  			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
-  		}
+	for (int ig = 0; ig != igroup; ig++)
+		for (int ip = 0; ip != kernpar; ip++) if (comp[ip + 2 * kernpar]) if(free2kern[kern2free[ip+2*kernpar]] == ip+2*kernpar) {
+			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[2 * kernpar + ip] - ifree);
+			gsl_sort(temp, 1, SAMPLE_SIZE);
+			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
+			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
+			if (save_diagnose) { tests_out << setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
 		}
-	}
 
 	Rprintf("SD and CORR of process params [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "SIG" << std::endl;
 	int iz = igroup * (ifree + ilamfree) - 1;
-	for (int ix = 0; ix != ifree + ilamfree; ix++) {
+	for (int ix = 0; ix != ifree + ilamfree; ix++)
 		for (int jz = ix; jz != ifree + ilamfree; jz++) {
 			iz++;
 			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = SAMPLE(j, iz);
@@ -125,7 +116,6 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 			Rprintf("%3d%3d", free2kern[ix]+1, free2kern[jz] + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
 			if (save_diagnose) { tests_out << setw(3) << free2kern[ix] + 1 << setw(3) << free2kern[jz] + 1; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
 		}
-	}
 
 	//Rprintf("Restpars: Mean per group, Residual Variance in motor/encoding, Due to individual differences in motor/encoding\n");
 	Rprintf("mu_gamma in ms per group [median, 95 and 99%% HDI]\n");
@@ -161,14 +151,14 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 
 	// Daten zum Vergleich:
 	double s = 0.0; int no_trials = static_cast<int>(daten.size());
-	double *u = 0; u = (double *)R_Calloc(indi, double);
-	int *nj = 0; nj = (int *)R_Calloc(indi, int);
+	double *u = 0; u = (double *)malloc(indi * sizeof(double));
+	int *nj = 0; nj = (int *)malloc(indi * sizeof(int));
 	for (int t = 0; t != indi; t++) { u[t] = 0.0; nj[t] = 0; }
 
 	for (int i = 0; i != no_trials; i++) { u[daten[i].person] += daten[i].rt / 1000.0; nj[daten[i].person]++; }
 	for (int t = 0; t != indi; t++) { u[t] /= nj[t]; }
 
-	for (int i = 0; i != no_trials; i++) s += gsl_pow_2(daten[i].rt / 1000.0 - u[daten[i].person]); 
+	for (int i = 0; i != no_trials; i++) s += gsl_pow_2(daten[i].rt / 1000.0 - u[daten[i].person]);
 	s = s / (no_trials - 1);
 	double grand = 0.0; for (int t = 0; t != indi; t++) grand += (u[t] * nj[t]) / no_trials;
 	double salph = 0.0; for (int t = 0; t != indi; t++) salph += gsl_pow_2(u[t] - grand); salph = salph / (indi - 1);
@@ -180,9 +170,9 @@ void quantiles(vector<trial> daten, int n_all_parameters, double *sample) {
 		tests_out << setw(12) << grand << setw(12) << s << setw(12) << salph << std::endl;
 	}
 
-	R_Free(temp);
-	R_Free(u);
-	R_Free(nj);
+	free(temp);
+	free(u);
+	free(nj);
 }
 
 void make_pij_for_one_trial_new(trial one, double *x_for_all, double *pij, double &pj) {
@@ -221,7 +211,7 @@ void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double
 
 	for (int k = 0; k != branch[j]; k++) {
 		int pfadlength = NDRIN(j, k);
-		double *lams = 0; lams = (double *)R_Calloc(pfadlength, double);
+		double *lams = 0; lams = (double *)malloc(pfadlength * sizeof(double));
 		int complength = 0;
 /*		if (PFAD_INDEX(j, k) == -1){
 			for (int ir = 0; ir != pfadlength; ir++) {
@@ -248,7 +238,7 @@ void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double
 		// 	double lam = lams[0]; pij[k] = (logexgaussian(lam, rmu, rsig, rt));
 		// 	if (DEBUG) {if (pij[k] < 0.0) Rprintf("pij[k] < 0; pf = 1 %.4g\n", pij[k]);}
 		// }
-		if (complength == 1 /*&& (PFAD_INDEX(j, k) > -1)*/) {
+		if ((complength == 1) /*&& (PFAD_INDEX(j, k) > -1)*/) {
 			// int ipfad = PFAD_INDEX(j, k);
 			// pfadinfo akt_pfad = path_info[ipfad];
 			// if (complength != akt_pfad.a) Rprintf("complength != a");
@@ -262,7 +252,7 @@ void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double
 			else pij[k] = (temp);
 		}
 		/*if ((complength >= 2) && (PFAD_INDEX(j, k) == -1)) {
-			double *loglams = 0; loglams = (double *)R_Calloc(complength, double);
+			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
 
 			double hypo_plus, hypo_minus; bool f_plus = true, f_minus = true;
 			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
@@ -282,10 +272,10 @@ void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double
 				pij[k] = GSL_NEGINF;
 			}
 
-			R_Free(loglams);
+			free(loglams);
 		}*/
 		if ((complength >= 2) /*&& (PFAD_INDEX(j, k) > -1)*/) {
-			double *loglams = 0; loglams = (double *)R_Calloc(complength, double);
+			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
 			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
 			// int ipfad = PFAD_INDEX(j, k);
 			// pfadinfo akt_pfad = path_info[ipfad];
@@ -295,10 +285,10 @@ void make_tij_for_one_trial_new(trial one, double *rhos, double *lambdas, double
 
 			}
 			else pij[k] = temp;
-			if (loglams) R_Free(loglams);
+			if (loglams) free(loglams);
 		}
 
-		R_Free(lams);
+		free(lams);
 		//	 if ((pfadlength>5) || (pfadlength==0)) cout<< "pfadlength" << std::endl;
 	}
 }
@@ -310,12 +300,12 @@ void dic(int N_all_parameters, vector <trial> daten, double *beta, double *sampl
 	if (log_lik_flag) log_lik << std::setprecision(12);
 	double dbar = 0.0, pd = 0.0, pv = 0.0;
 
-	double *x_for_all = 0; x_for_all = (double *)R_Calloc(indi*kernpar, double);
-	double *xbar = 0; xbar = (double *)R_Calloc(n_all_parameters, double);
-	double *pij = 0; pij = (double *)R_Calloc(zweig, double);
-	double *lambdas = 0; lambdas = (double *)R_Calloc(ilamfree*indi, double);
-	double *rhos = 0; rhos = (double *)R_Calloc(ilamfree*igroup, double);
-	double *restpars = 0; restpars = (double *)R_Calloc(restparsno, double);
+	double *x_for_all = 0; x_for_all = (double *)malloc(indi*kernpar * sizeof(double));
+	double *xbar = 0; xbar = (double *)malloc(n_all_parameters * sizeof(double));
+	double *pij = 0; pij = (double *)malloc(zweig * sizeof(double));
+	double *lambdas = 0; lambdas = (double *)malloc(ilamfree*indi * sizeof(double));
+	double *rhos = 0; rhos = (double *)malloc(ilamfree*igroup * sizeof(double));
+	double *restpars = 0; restpars = (double *)malloc(restparsno * sizeof(double));
 	//		double *temp=0; if (!(temp=NAG_ALLOC(SAMPLE_SIZE*sizeof(double)))){printf("Allocation failure\n");exit_status = -1;}
 
 	int trialno = static_cast<int>(daten.size());
@@ -387,12 +377,12 @@ void dic(int N_all_parameters, vector <trial> daten, double *beta, double *sampl
 		tests_out << setw(15) << pd + dbar << setw(15) << pv + dbar << setw(15) << pd << std::endl << setw(15) << pv << std::endl;
 	}
 	log_lik.close();
-	R_Free(pij);
-	R_Free(xbar);
-	R_Free(x_for_all);
-	R_Free(rhos);
-	R_Free(lambdas);
-	R_Free(restpars);
+	free(pij);
+	free(xbar);
+	free(x_for_all);
+	free(rhos);
+	free(lambdas);
+	free(restpars);
 }
 
 
@@ -420,11 +410,11 @@ void test(double *t1, double *t2, string what) {
 	gsl_sort(t1, 1, SAMPLE_SIZE);
 	hdi(SAMPLE_SIZE, t1, .95, iv);
 	Rprintf("95%% HDI\n"); if (save_diagnose) tests_out << "95% HDI" << std::endl;
-	for (int iq = 0; iq != 2; iq++) Rprintf("%12.4g", iv[iq]); 
+	for (int iq = 0; iq != 2; iq++) Rprintf("%12.4g", iv[iq]);
 	Rprintf("\n");
 	if (save_diagnose) {
-		for (int iq = 0; iq != 2; iq++) tests_out << setw(12) << iv[iq]; 
-	  tests_out << std::endl;
+		for (int iq = 0; iq != 2; iq++) tests_out << setw(12) << iv[iq];
+		tests_out << std::endl;
 	}
 }
 
@@ -443,39 +433,39 @@ void aggregate(int n_all_parameters, int kerntree, int *idaten, vector<trial> da
 
 	//	Nag_ModeRNG mode = Nag_GenerateWithoutReference;Nag_OrderType order = Nag_RowMajor;NagError fail;	INIT_FAIL(fail);
 
-	double *t1 = 0; t1 = (double *)R_Calloc(SAMPLE_SIZE, double);
-	double *t2 = 0; t2 = (double *)R_Calloc(SAMPLE_SIZE, double);
+	double *t1 = 0; t1 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
+	double *t2 = 0; t2 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
 
-	int *obs = 0; obs = (int *)R_Calloc(kerncat, int);
-	double *expe = 0; expe = (double *)R_Calloc(kerncat, double);
-	int *rep = 0; rep = (int *)R_Calloc(kerncat, int);
+	int *obs = 0; obs = (int *)malloc(kerncat * sizeof(int));
+	double *expe = 0; expe = (double *)malloc(kerncat * sizeof(double));
+	int *rep = 0; rep = (int *)malloc(kerncat * sizeof(int));
 
-	int *sobs = 0; sobs = (int *)R_Calloc(kerncat*igroup, int);
-	double *sexp = 0; sexp = (double *)R_Calloc(kerncat*igroup, double);
-	int *srep = 0; srep = (int *)R_Calloc(kerncat*igroup, int);
+	int *sobs = 0; sobs = (int *)malloc(kerncat*igroup * sizeof(int));
+	double *sexp = 0; sexp = (double *)malloc(kerncat*igroup * sizeof(double));
+	int *srep = 0; srep = (int *)malloc(kerncat*igroup * sizeof(int));
 
-	double *tobs = 0; tobs = (double *)R_Calloc(kerncat, double);
-	double *texp = 0; texp = (double *)R_Calloc(kerncat, double);
-	double *trep = 0; trep = (double *)R_Calloc(kerncat, double);
+	double *tobs = 0; tobs = (double *)malloc(kerncat * sizeof(double));
+	double *texp = 0; texp = (double *)malloc(kerncat * sizeof(double));
+	double *trep = 0; trep = (double *)malloc(kerncat * sizeof(double));
 
-	double *stobs = 0; stobs = (double *)R_Calloc(kerncat*igroup, double);
-	double *stexp = 0; stexp = (double *)R_Calloc(kerncat*igroup, double);
-	double *strep = 0; strep = (double *)R_Calloc(kerncat*igroup, double);
+	double *stobs = 0; stobs = (double *)malloc(kerncat*igroup * sizeof(double));
+	double *stexp = 0; stexp = (double *)malloc(kerncat*igroup * sizeof(double));
+	double *strep = 0; strep = (double *)malloc(kerncat*igroup * sizeof(double));
 
-	double *pij = 0; pij = (double *)R_Calloc(zweig*kerncat, double);
-	double *onepij = 0; onepij = (double *)R_Calloc(zweig, double);
-	double *x = 0; x = (double *)R_Calloc(kernpar, double);
-	double *lambdas = 0; lambdas = (double *)R_Calloc(ilamfree*indi, double);
-	double *tdaten = 0; tdaten = (double *)R_Calloc(indi*kerncat, double);
+	double *pij = 0; pij = (double *)malloc(zweig*kerncat * sizeof(double));
+	double *onepij = 0; onepij = (double *)malloc(zweig * sizeof(double));
+	double *x = 0; x = (double *)malloc(kernpar * sizeof(double));
+	double *lambdas = 0; lambdas = (double *)malloc(ilamfree*indi * sizeof(double));
+	double *tdaten = 0; tdaten = (double *)malloc(indi*kerncat * sizeof(double));
 
-	int *nobs = 0; nobs = (int *)R_Calloc(kerncat*igroup, int);
-	int *nrep = 0; nrep = (int *)R_Calloc(kerncat*igroup, int);
+	int *nobs = 0; nobs = (int *)malloc(kerncat*igroup * sizeof(int));
+	int *nrep = 0; nrep = (int *)malloc(kerncat*igroup * sizeof(int));
 
-	double *d = 0; d = (double *)R_Calloc(kerncat, double);
-	double *x1 = 0; x1 = (double *)R_Calloc(kerncat*igroup*SAMPLE_SIZE, double);
-	double *x2 = 0; x2 = (double *)R_Calloc(kerncat*igroup*SAMPLE_SIZE, double);
-	unsigned int *drep = 0; drep = (unsigned int *)R_Calloc(kerncat, unsigned int);
-	int *ng = 0; ng = (int *)R_Calloc(igroup, int);
+	double *d = 0; d = (double *)malloc(kerncat * sizeof(double));
+	double *x1 = 0; x1 = (double *)malloc(kerncat*igroup*SAMPLE_SIZE * sizeof(double));
+	double *x2 = 0; x2 = (double *)malloc(kerncat*igroup*SAMPLE_SIZE * sizeof(double));
+	unsigned int *drep = 0; drep = (unsigned int *)malloc(kerncat * sizeof(unsigned int));
+	int *ng = 0; ng = (int *)malloc(igroup * sizeof(int));
 
 #define X1(IS,IG,J) x1[IS*igroup*kerncat+ IG*kerncat+J]
 #define X2(IS,IG,J) x2[IS*igroup*kerncat+IG*kerncat+J]
@@ -514,7 +504,7 @@ void aggregate(int n_all_parameters, int kerntree, int *idaten, vector<trial> da
 	for (int ig = 0; ig != igroup; ig++) { ng[ig] = 0; for (int t = 0; t != indi; t++) ng[ig] += (t2group[t] == ig); }
 
 	double qv[5];
-	// int *correct = 0; correct = (int *)R_Calloc(kerncat, int);
+	// int *correct = 0; correct = (int *)malloc(kerncat * sizeof(int));
 	// for (int j = 0; j != kerncat; j++) correct[j] = ((j % 6 == 1) || (j % 6 == 2) || (j % 6 == 4)) ? 1 : 0;
 	//std::cout << std::setprecision(4);
 	for (int ig = 0; ig != igroup; ig++)
@@ -628,34 +618,34 @@ void aggregate(int n_all_parameters, int kerntree, int *idaten, vector<trial> da
 			double iv[2]; hdi(SAMPLE_SIZE, t2, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, t2, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
 			Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
 		}
-	// if (correct) R_Free(correct);
+	// if (correct) free(correct);
 
-	R_Free(t1);
-	R_Free(t2);
-	R_Free(obs);
-	R_Free(expe);
-	R_Free(rep);
-	R_Free(sobs);
-	R_Free(sexp);
-	R_Free(srep);
-	R_Free(tobs);
-	R_Free(texp);
-	R_Free(trep);
-	R_Free(stobs);
-	R_Free(stexp);
-	R_Free(strep);
-	R_Free(pij);
-	R_Free(onepij);
-	R_Free(x);
-	R_Free(lambdas);
-	R_Free(tdaten);
-	R_Free(nobs);
-	R_Free(nrep);
-	R_Free(d);
-	R_Free(drep);
-	R_Free(x1);
-	R_Free(x2);
-	R_Free(ng);
+	free(t1);
+	free(t2);
+	free(obs);
+	free(expe);
+	free(rep);
+	free(sobs);
+	free(sexp);
+	free(srep);
+	free(tobs);
+	free(texp);
+	free(trep);
+	free(stobs);
+	free(stexp);
+	free(strep);
+	free(pij);
+	free(onepij);
+	free(x);
+	free(lambdas);
+	free(tdaten);
+	free(nobs);
+	free(nrep);
+	free(d);
+	free(drep);
+	free(x1);
+	free(x2);
+	free(ng);
 }
 
 
@@ -665,8 +655,8 @@ void correlation(double *sample, int *index1, int *index2)
 {
 #define SIGMA(I,J) sigma[I*(ilamfree+ifree)+J]
 	double qv[5];
-	double *temp = 0; temp = (double *)R_Calloc(SAMPLE_SIZE, double);
-	double *sigma = 0; sigma = (double *)R_Calloc((ilamfree + ifree)*(ilamfree + ifree), double);
+	double *temp = 0; temp = (double *)malloc(SAMPLE_SIZE * sizeof(double));
+	double *sigma = 0; sigma = (double *)malloc((ilamfree + ifree)*(ilamfree + ifree) * sizeof(double));
 	for (int is = 0; is != SAMPLE_SIZE; is++) {
 		int iz = (igroup)*(ifree + ilamfree) - 1;
 		for (int ip = 0; ip != ilamfree + ifree; ip++)
@@ -690,15 +680,15 @@ void correlation(double *sample, int *index1, int *index2)
 	Rprintf("Corr"); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
 	if (save_diagnose) { tests_out << "Corr "; for (int iq = 0; iq != 5; iq++) tests_out << setw(12) << qv[iq]; tests_out << std::endl; }
 
-	R_Free(sigma);
-	R_Free(temp);
+	free(sigma);
+	free(temp);
 }
 
 void groupwise(double *sample) {
 
 
-	double *t1 = 0; t1 = (double *)R_Calloc(SAMPLE_SIZE, double);
-	double *t2 = 0; t2 = (double *)R_Calloc(SAMPLE_SIZE, double);
+	double *t1 = 0; t1 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
+	double *t2 = 0; t2 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
 
 	for (int ip = 0; ip != ifree; ip++)
 	{
@@ -746,21 +736,21 @@ void groupwise(double *sample) {
 	// 	}
 	// }
 
-	R_Free(t1);
-	R_Free(t2);
+	free(t1);
+	free(t2);
 
 }
 
 void diagnosis(vector<trial> daten, int *idaten, int kerntree, gsl_rng *rst) {
-	int *nks = 0; nks = (int *)R_Calloc(indi*kerntree, int);
-	int *jks = 0; jks = (int *)R_Calloc(kerntree, int);
-	int *tree2cat = 0; tree2cat = (int *)R_Calloc(kerntree*kerncat, int);
-	double *beta = 0;	beta = (double *)R_Calloc(indi*ifree, double);
+	int *nks = 0; nks = (int *)malloc(indi*kerntree * sizeof(int));
+	int *jks = 0; jks = (int *)malloc(kerntree * sizeof(int));
+	int *tree2cat = 0; tree2cat = (int *)malloc(kerntree*kerncat * sizeof(int));
+	double *beta = 0;	beta = (double *)malloc(indi*ifree * sizeof(double));
 
 	n_all_parameters = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree + restparsno;
 
 	double *sample = 0;
-	sample = (double *)R_Calloc(SAMPLE_SIZE*(n_all_parameters+1), double);
+	sample = (double *)malloc(SAMPLE_SIZE*(n_all_parameters+1) * sizeof(double));
 	lies(n_all_parameters, sample);
 	if (save_diagnose) tests_out.open(diagn_tests);
 	quantiles(daten, n_all_parameters, sample);
@@ -771,8 +761,8 @@ void diagnosis(vector<trial> daten, int *idaten, int kerntree, gsl_rng *rst) {
 	for (int it = 0; it != kerntree; it++) jks[it] = 0;
 	for (int j = 0; j != kerncat; j++) { TREE2CAT(cat2tree[j], jks[cat2tree[j]]) = j; jks[cat2tree[j]]++; }
 	/*
-	int *index1 = 0; index1 = (int *)R_Calloc((ilamfree + ifree), int);
-	int *index2 = 0; index2 = (int *)R_Calloc((ilamfree + ifree), int);
+	int *index1 = 0; index1 = (int *)malloc((ilamfree + ifree) * sizeof(int));
+	int *index2 = 0; index2 = (int *)malloc((ilamfree + ifree) * sizeof(int));
 
 	for (int i = 0; i != ilamfree + ifree; i++) index1[i] = index2[i] = 0;
 	for (int i = 0; i != ilamfree / 2; i++) index1[ifree + i] = index2[ifree + ilamfree / 2 + i] = 1;
@@ -790,14 +780,14 @@ void diagnosis(vector<trial> daten, int *idaten, int kerntree, gsl_rng *rst) {
 
 	if (save_diagnose) tests_out.close();
 
-	R_Free(nks);
-	// R_Free(index1);
-	// R_Free(index2);
-	R_Free(jks);
-	R_Free(beta);
+	free(nks);
+	// free(index1);
+	// free(index2);
+	free(jks);
+	free(beta);
 
-	R_Free(tree2cat);
-	R_Free(sample);
+	free(tree2cat);
+	free(sample);
 }
 
 // }
