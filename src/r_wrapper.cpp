@@ -1,17 +1,12 @@
-#define R_NO_REMAP
+
 // authors: Raphael Hartmann and Christoph Klauer
-// #include <Rcpp.h>
-// #include <R.h>
-// #include <Rmath.h>
+
+#define R_NO_REMAP
+
 #include "rts.h"
-#include "main.h"
-#include <Rinternals.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 
-// namespace rtsNS {
+namespace ertmpt {
 
 	int log_lik_flag;
 	int for_bridge_flag;
@@ -56,12 +51,14 @@
 	double pr_sf_scale_matrix_TAU;
 	int pr_df_add_inv_wish;
 
-// }
+}
 
 extern "C" {
 
 	SEXP rtmpt_fit(SEXP re, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP in4, SEXP in5, SEXP bo1, SEXP bo2, SEXP bo3) {
 
+	  using namespace ertmpt;
+	  
 		RMAX = REAL(re)[0];
 
 		DATA = R_CHAR(STRING_ELT(ch, 0));

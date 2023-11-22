@@ -15,6 +15,7 @@ Maintainer: Raphael Hartmann <raphael.hartmann@protonmail.com>
 Imports: coda, data.table, loo, methods, Ryacas, stats, stringr,
         truncnorm, utils
 Suggests: knitr, rmarkdown
+Depends: R (>= 3.5.0)
 VignetteBuilder: knitr
 NeedsCompilation: yes
 SystemRequirements: GSL (>=2.3)

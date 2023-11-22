@@ -1,7 +1,8 @@
 // authors: Christoph Klauer and Raphael Hartmann
 
 #include "rts.h"
-// namespace rtsNS {
+
+namespace ertmpt {
 
 	void lieszeile(std::ifstream& rein) {
 		char x = ' '; while (x != '\n') rein.get(x);
@@ -11,11 +12,11 @@
 
 	//Tukey for outlier treatment
 
-	// void tukey(vector<trial>& daten) {
+	// void tukey(std::vector<trial>& daten) {
 	// 	int indi, kerntree, kerncat, ntot;
 	// 	set_ns(daten, indi, kerntree, kerncat, igroup, ntot);
 	//
-	// 	vector<double> o; double ff[3]; double lower, upper; vector<trial> temp; temp.clear();
+	// 	std::vector<double> o; double ff[3]; double lower, upper; std::vector<trial> temp; temp.clear();
 	//
 	// 	for (int t = 0; t != indi; t++) {
 	// 		o.clear();
@@ -40,7 +41,7 @@
 
 	//read in data and set category-to-response mapping
 
-	void lies(vector<trial> &daten)
+	void lies(std::vector<trial> &daten)
 	{
 		std::ifstream rein(DATA);
 		lieszeile(rein);
@@ -88,7 +89,7 @@
 		}
 
 
-		vector<int>  o;
+		std::vector<int>  o;
 		int n = static_cast<int>(daten.size());
 		for (int i = 0; i != static_cast<int>(daten.size()); i++) o.push_back(daten[i].rt);
 		sort(o.begin(),o.end());
@@ -118,7 +119,7 @@
 		// int schrott;
 		// std::ifstream info(MODEL); for (int j = 0; j != 5 + kerncat; j++) info >> schrott;
 		// for (int j = 0; j != kerncat; j++) info >> branch[j];
-		// //for (int j = 0; j != kerncat; j++) std::cout << setw(3) << branch[j];
+		// //for (int j = 0; j != kerncat; j++) std::cout << std::setw(3) << branch[j];
 		//
 		// for (int it = 0; it != kerntree; it++) for (int in = 0; in != nodemax; in++) { info >> TREE_AND_NODE2PAR(it, in); TREE_AND_NODE2PAR(it, in)--; }
 		// for (int it = 0; it != kerntree; it++) info >> nodes_per_tree[it];
@@ -195,4 +196,4 @@
 
 	}
 
-// }
+}
