@@ -6,13 +6,15 @@
 #include "rts.h"
 
 
+const char *MODEL;
+
+
 namespace ertmpt {
 
 	int log_lik_flag;
 	int for_bridge_flag;
 
 	const char *DATA;
-	const char *MODEL;
 	const char *RAUS;
 	const char *diagn_tests;
 	const char *LOGLIK;
@@ -75,11 +77,19 @@ extern "C" {
 		nKERN = INTEGER(in)[5];
 		nRESP = INTEGER(in)[6];
 
-		CatToResp = INTEGER(in2);
+		CatToResp = (int *)calloc(nKERN, sizeof(int));
+		ConstProb = (double *)calloc(nKERN, sizeof(double));
+		CompMinus = (int *)calloc(nKERN, sizeof(int));
+		CompPlus = (int *)calloc(nKERN, sizeof(int));
+		for (int i = 0; i < nKERN; i++) {
+		  CatToResp[i] = INTEGER(in2)[i];
+		  ConstProb[i] = REAL(re2)[i];
+		  CompMinus[i] = INTEGER(bo1)[i];
+		  CompPlus[i] = INTEGER(bo2)[i];
+		}
+		
 
-		ConstProb = REAL(re2);
-		CompMinus = INTEGER(bo1);
-		CompPlus = INTEGER(bo2);
+
 
 		log_lik_flag = INTEGER(bo3)[0];
 		for_bridge_flag = INTEGER(bo3)[1];
@@ -153,10 +163,10 @@ extern "C" {
 		Rf_setAttrib(ans,R_NamesSymbol,names);
 
 		// // free variables
-		// free(CatToResp);
-		// free(ConstProb);
-		// free(CompMinus);
-		// free(CompPlus);
+		free(CatToResp);
+		free(ConstProb);
+		free(CompMinus);
+		free(CompPlus);
 
 
 		/* Unprotect the ans and names objects */

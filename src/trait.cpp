@@ -5,6 +5,20 @@ extern "C" {
 #include "recurse.h"
 }
 
+double onenorm(gsl_rng *rst) {
+  return gsl_ran_ugaussian(rst);
+}
+
+double truncnorm(double b, gsl_rng *rst) {
+  double temp;
+  if (b >= 0.0) {
+    do  temp = onenorm(rst);  while (temp < -b);
+    temp += b;
+  }
+  else temp = gsl_ran_ugaussian_tail(rst, -b) + b;
+  return temp;
+}
+
 namespace ertmpt {
   
   void invwis(int cases, int nvar, double *xx, double *ssig, double *sigi, double eps, gsl_rng *rst) {
@@ -73,21 +87,6 @@ namespace ertmpt {
   	//gsl_vector_free(s);
   	free(xb);
   
-  }
-  
-  double onenorm(gsl_rng *rst) {
-  	return gsl_ran_ugaussian(rst);
-  }
-  
-  
-  double truncnorm(double b, gsl_rng *rst) {
-  	double temp;
-  	if (b >= 0.0) {
-  		do  temp = onenorm(rst);  while (temp < -b);
-  		temp += b;
-  	}
-  	else temp = gsl_ran_ugaussian_tail(rst, -b) + b;
-  	return temp;
   }
   
   void bayesreg(int n, double *mean, double *sigma, double *out, gsl_rng *rst) {

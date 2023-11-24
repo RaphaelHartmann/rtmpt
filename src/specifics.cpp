@@ -54,11 +54,12 @@ namespace ertmpt {
 		}
 		rein.close();
 
-		int indi, kerntree, kerncat, ntot;
-		set_ns(daten, indi, kerntree, kerncat, igroup, ntot);
+		//int indi, kerntree, kerncat, ntot;
+		int kerntree;
+		set_ns(daten, indi, kerntree, kerncat, igroup);
 
 		bool format = false;
-		for (int ix = 0; ix != ntot; ix++) {
+		for (int ix = 0; ix != datenzahl; ix++) {
 			trial one = daten[ix];
 			if ((one.tree > 0) && (one.category == 0)) {
 				format = true;
@@ -66,8 +67,8 @@ namespace ertmpt {
 			}
 		}
 		if (format) {
-			int indi, kerntree, kerncat, ntot;
-			set_ns(daten, indi, kerntree, kerncat, igroup, ntot);
+			//int indi, kerntree, kerncat, ntot;
+			set_ns(daten, indi, kerntree, kerncat, igroup);
 			int *cat2tree = 0, *tree2cat = 0;
 			cat2tree = (int *)calloc(kerncat, sizeof(int));
 			tree2cat = (int *)calloc(kerntree, sizeof(int));
@@ -83,7 +84,7 @@ namespace ertmpt {
 				//			start = temp;
 				tree2cat[it]++;
 			}
-			for (int ix = 0; ix != ntot; ix++) {
+			for (int ix = 0; ix != datenzahl; ix++) {
 				daten[ix].category = (daten[ix].tree == 0) ? daten[ix].category : tree2cat[daten[ix].tree - 1] + daten[ix].category;
 			}
 		}

@@ -33,7 +33,21 @@
 #include <Rinternals.h>
 
 
+struct trial {
+  int person, tree, category, item,group,rt;
+};
+
+extern const char *MODEL;
 const double sqr2pi = 2.506628274631000502415765e0;
+extern int kernpar;
+extern int zweig;
+extern int nodemax;
+extern int kerncat;
+extern int datenzahl;
+extern int* ng;
+extern int indi;
+extern int *t2group;
+
 
 namespace ertmpt {
   
@@ -75,11 +89,7 @@ namespace ertmpt {
   #define LNNORM_MAX_X 38.0
   #define LNNORM_MIN_X -1.00e9
   
-  struct trial {
-  	int person, tree, category, item,group,rt;
-  };
-  
-  
+
   struct pfadinfo {
   int a;
   std::vector<int> r;
@@ -99,7 +109,6 @@ namespace ertmpt {
   extern int for_bridge_flag;
   
   extern const char *DATA;
-  extern const char *MODEL;
   extern const char *RAUS;
   extern const char *diagn_tests;
   extern const char *LOGLIK;
@@ -126,12 +135,7 @@ namespace ertmpt {
   //Globale Variablen
   
   extern int *cat2tree;
-  extern int kernpar;
-  extern int kerncat;
-  extern int indi;
-  extern int zweig;
   extern int *branch;
-  extern int nodemax;
   extern int *ar;
   extern int *nodes_per_tree;
   extern int *tree_and_node2par;
@@ -147,7 +151,6 @@ namespace ertmpt {
   extern bool BURNIN_flag;
   
   extern int igroup;
-  extern int *t2group;
   extern int ireps;
   extern int *cat2resp;
   extern int respno;
@@ -177,10 +180,6 @@ namespace ertmpt {
   
   //void by_individuals(std::vector<trial> daten,int kerntree,double *beta, double *g2,double *likeli,gsl_rng *rst);
   
-  double truncnorm(double b, gsl_rng *rst);
-  
-  double onenorm(gsl_rng *rst);
-  
   void make_pij_for_individual(double *x, double *pij, double *pj);
   
   void make_mu(double *mu, double *lams, double *beta,  int *nnodes, double *z, gsl_rng *rst);
@@ -195,8 +194,6 @@ namespace ertmpt {
   double truncexp(double lambda, double upper, gsl_rng *rst);
   
   double equation(int t, int ip, double *mu, double *lams, double *beta);
-  
-  double oneuni(gsl_rng *rst);
   
   double ars(double step, double &scale,double totallow, double n, double xp, double *beta, double *sigi, double *lambdas,double *lams,int tt, int iz, double start, gsl_rng *rst,
   	void gamma_prior(double scale, double norm, double n, double alpha, double p, double *beta, double *sigi, double *lambdas,double *lams,int t,  int iz, bool deriv, point &h));
@@ -217,8 +214,6 @@ namespace ertmpt {
   void lies(std::vector<trial> &daten);
   
   void model_design(int kerntree,int *ar, int *branch, int *nodes_per_par, int *nodes_per_tree, int *tree_and_node2par);
-  
-  void set_ns(std::vector<trial> daten, int &indi, int &kerntree, int &kerncat,int &igroup, int &ntot);
   
   //void ddf(std::vector <trial> &daten, int kerntree, double *g2);
   
@@ -246,8 +241,6 @@ namespace ertmpt {
   
   double double_truncnorm(double lower, double upper, gsl_rng *rst);
   
-  double logsum(double xa, double xb);
-  
   double logexgaussian(double lam, double mu, double sd, double t);
   
   void gibbs_times_new(std::vector<trial> daten,int *nnodes,int nz, int *nz_position,double *beta,int ntau, int *ntau_position,
@@ -270,6 +263,11 @@ namespace ertmpt {
 
 }
 
+void set_ns(std::vector<trial> daten, int &indi, int &kerntree, int &kerncat,int &igroup);
+double logsum(double xa, double xb);
 double lnnorm(double x);
-  
+double oneuni(gsl_rng *rst);
+double onenorm(gsl_rng *rst);
+double truncnorm(double b, gsl_rng *rst);
+
 #endif

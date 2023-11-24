@@ -30,7 +30,7 @@ Description: Fit response-time extended multinomial processing tree (RT-MPT) mod
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Packaged: 2021-12-15 16:16:13 UTC; hartmann
 Repository: CRAN
 Date/Publication: 2021-12-16 11:10:02 UTC

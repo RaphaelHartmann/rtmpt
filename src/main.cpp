@@ -2,34 +2,80 @@
 
 #include "rts.h"
 #include <ctime>
+#include <chrono>
+
+int kerncat;
+int kernpar;
+int zweig;
+int nodemax;
+int datenzahl;
+int *ng;
+int indi;
+int *t2group=0;
+
+void set_ns(std::vector<trial> daten, int &indi, int &kerntree, int &kerncat, int &igroup)
+{
+  indi = 0; kerntree = 0; kerncat = 0; igroup = 0;
+  for (int i = 0; i != static_cast<int>(daten.size()); i++) {
+    trial one = daten[i];
+    if (one.person > indi) indi = one.person;
+    igroup = std::max(igroup, one.group);
+  }
+  indi++; igroup++;
+  //ntot = static_cast<int>(daten.size());
+  std::ifstream info(MODEL);
+  info >> zweig;
+  info >> kernpar;
+  info >> nodemax;
+  info >> kerntree;
+  info >> kerncat;
+  info.close();
+}
+
+void set_cat2tree(std::vector<trial> &daten, int *cat2tree)
+{
+  std::ifstream info(MODEL); int schrott;
+  for (int j = 0; j != 5; j++) info >> schrott;
+  for (int j = 0; j != kerncat; j++) { info >> cat2tree[j]; cat2tree[j]--; }
+  
+  for (int i = 0; i != datenzahl; i++) {
+    daten[i].tree = cat2tree[daten[i].category];
+  }
+  info.close();
+}
+
+void set_t2group(std::vector<trial> daten, int *t2group, int* ng) {
+
+  for (int i = 0; i != datenzahl; i++) {
+    trial one = daten[i];
+    t2group[one.person] = one.group;
+  }
+
+  for (int t = 0; t != indi; t++) ng[t2group[t]]++;
+}
+
 
 namespace ertmpt {
   
   // Globale Variablen
   int *cat2tree=0;
-  int kernpar;
-  int kerncat;
-  int indi;
-  int zweig;
   int *ar=0;
   int *branch=0;
-  int nodemax;
   int *nodes_per_tree=0;
   int *tree_and_node2par=0;
   bool *comp=0;
   int ifree, ilamfree;
-  int ipred=0;
+  int ipred;
   int *ndrin=0, *drin=0;
   // int n_all_parameters;
   int *nppr=0;
   // int n_bridge_parameters;
   
-  int RMAX_reached = 0;
-  bool BURNIN_flag = true;
+  int RMAX_reached ;
+  bool BURNIN_flag;
   
   int igroup;
-  int *t2group=0;
-  int ireps=IREP;
+  int ireps;
   int *cat2resp=0;
   int respno;
   int alphaoff;
@@ -42,45 +88,6 @@ namespace ertmpt {
   int *pfad_index = 0;
   std::vector<pfadinfo> path_info;
   
-  
-  void set_ns(std::vector<trial> daten, int &indi, int &kerntree, int &kerncat, int &igroup, int &ntot)
-  {
-  	indi = 0; kerntree = 0; kerncat = 0; ntot = 0; igroup = 0;
-  	for (int i = 0; i != static_cast<int>(daten.size()); i++) {
-  		trial one = daten[i];
-  		if (one.person > indi) indi = one.person;
-  		igroup = std::max(igroup, one.group);
-  	}
-  	indi++; kerntree++; kerncat++; igroup++;
-  	ntot = static_cast<int>(daten.size());
-  	std::ifstream info(MODEL);
-  	info >> zweig;
-  	info >> kernpar;
-  	info >> nodemax;
-  	info >> kerntree;
-  	info >> kerncat;
-  	info.close();
-  }
-  
-  void set_cat2tree(std::vector<trial> &daten, int *cat2tree)
-  {
-  	std::ifstream info(MODEL); int schrott;
-  	for (int j = 0; j != 5; j++) info >> schrott;
-  	for (int j = 0; j != kerncat; j++) { info >> cat2tree[j]; cat2tree[j]--; }
-  	int ntot = static_cast<int>(daten.size());
-  	for (int i = 0; i != ntot; ++i) {
-  		daten[i].tree = cat2tree[daten[i].category];
-  	}
-  	info.close();
-  }
-  
-  void set_t2group(std::vector<trial> daten, int *t2group) {
-  	int ntot = static_cast<int>(daten.size());
-  	for (int i = 0; i != ntot; ++i) {
-  		trial one = daten[i];
-  		t2group[one.person] = one.group;
-  	}
-  }
   
   void make_nodes_by_ind(int *idaten, int kerntree, int *nodes_per_par, int &nz, int *nnodes, int &ntau) {
   #define NNODES(I,J) nnodes[I*kernpar+J]
@@ -186,6 +193,12 @@ namespace ertmpt {
   	//std::cout << "L_Test" << std::setw(12) << 19.2 << std::setw(12) << 3 << std::endl;
   	//printf ("L_Test %12F%12d \n", 15, 3);
   	// Rprintf ("L_TEST%12.2f%12d", 14.2, 3); Rprintf ("L_TEST%12.2f\n", 14.2);
+    
+    // setting some variables
+    ipred=0;
+    ireps=IREP;
+    RMAX_reached = 0;
+    BURNIN_flag = true;
   
   	std::vector<trial> daten;
   	int exit_status = 0;
@@ -193,7 +206,7 @@ namespace ertmpt {
   	//	NagError fail;	INIT_FAIL(fail);
   		/* Choose the base generator */
   		/* Random Seed */
-  
+
   	gsl_rng *rst1;
   	long int seed = std::time(0); seed = abs(seed * seed);
   	if (DEBUG) Rprintf("%d\n", (seed <= 0));
@@ -319,8 +332,8 @@ namespace ertmpt {
   		if (DEBUG) Rprintf("%d\n", (seed <= 0));
   		gsl_rng_set(rst16, seed);
   	}
-  
-  
+
+  	
   	gsl_rng *rst;   rst = gsl_rng_alloc(T_rng);
   	gsl_rng_memcpy(rst, rst1);
   	// std::cout << gsl_rng_size(rst) << std::endl;
@@ -333,24 +346,24 @@ namespace ertmpt {
   
   
   
-  
   	// Data
-  	int kerntree, ntot;
+  	int kerntree;
   	lies(daten);
-  
+  	datenzahl = static_cast<int>(daten.size());
+
   	//REPEAT:
-  	set_ns(daten, indi, kerntree, kerncat, igroup, ntot);
-  
+  	set_ns(daten, indi, kerntree, kerncat, igroup);
   	cat2tree = (int *)malloc(kerncat * sizeof(int));
   	set_cat2tree(daten, cat2tree);
   	t2group = (int *)malloc(indi * sizeof(int));
-  	set_t2group(daten, t2group);
+  	ng = (int*)calloc(igroup, sizeof(int));
+  	set_t2group(daten, t2group, ng);
   	int *idaten = 0; idaten = (int *)malloc(indi*kerncat * sizeof(int));
   	make_idaten(daten, idaten);
   	//	std::cout<< std::endl;
   	//	for (int t=0;t!=indi;t++) {for (int j=0;j!=kerncat;j++) std::cout << std::setw(4) << IDATEN(t,j); std::cout<< std::endl;}
-  
-  		// Model Design
+
+		// Model Design
   	// in lies gesetzt	zweig=2; kernpar = 2; nodemax=2;
   	//a = (int *)malloc(kerncat*zweig*kernpar * sizeof(int));
   	ar = (int *)malloc(kerncat*zweig*nodemax * sizeof(int));

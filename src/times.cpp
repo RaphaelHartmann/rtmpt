@@ -1,6 +1,21 @@
 // authors: Christoph Klauer and Raphael Hartmann
 #include "rts.h"
 
+double oneuni(gsl_rng *rst) {
+  return gsl_rng_uniform_pos(rst);
+}
+
+double logsum(double xa, double xb) {
+  double temp;
+  if (xa == GSL_NEGINF) return xb;
+  if (xb == GSL_NEGINF) return xa;
+  if (xa > xb) temp = xa + gsl_log1p(exp(xb - xa));
+  else if (xb > -DBL_MAX)
+    temp = xb + gsl_log1p(exp(xa - xb));
+  else temp = -DBL_MAX;
+  return temp;
+}
+
 namespace ertmpt {
   
   //#define NNODES(I,J) nnodes[I*kernpar+J]
@@ -29,10 +44,6 @@ namespace ertmpt {
   		if (DEBUG) Rprintf("oneexp");
   	}
   	return help[0];
-  }
-  
-  double oneuni(gsl_rng *rst) {
-  	return gsl_rng_uniform_pos(rst);
   }
   
   double rexp(double x) {
@@ -65,18 +76,6 @@ namespace ertmpt {
   void make_parameters_for_all(double *mu, double *lams, double *beta, double *x_for_all) {
   	for (int t=0;t!=indi;t++) for (int i=0;i!=kernpar;i++)
   		x_for_all[t*kernpar+i]=equation(t,i, mu,lams,beta);
-  }
-  
-  
-  double logsum(double xa, double xb) {
-  	double temp;
-  	if (xa == GSL_NEGINF) return xb;
-  	if (xb == GSL_NEGINF) return xa;
-  	if (xa > xb) temp = xa + gsl_log1p(exp(xb - xa));
-  	else if (xb > -DBL_MAX)
-  		temp = xb + gsl_log1p(exp(xa - xb));
-  	else temp = -DBL_MAX;
-  	return temp;
   }
   
   
