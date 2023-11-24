@@ -2,12 +2,12 @@
 % Please edit documentation in R/set_params.R
 \name{set_params}
 \alias{set_params}
-\title{Set constants for probability parameters and suppress process times in a \code{rtmpt_model} list}
+\title{Set constants for probability parameters and suppress process times in a \code{ertmpt_model} list}
 \usage{
 set_params(model, parameter, names, values = NA)
 }
 \arguments{
-\item{model}{A list of the class \code{rtmpt_model}.}
+\item{model}{A list of the class \code{ertmpt_model}.}
 
 \item{parameter}{Character of length one indicating the parameter to change. Allowed characters:
 \itemize{
@@ -35,7 +35,7 @@ the process-completion time for guessing "new" in the 2HT model. This of course 
 that a time-consuming process is not associated with certain process-outcome pairs (e.g., for technical parameters not corresponding to a psychological process).}
 }
 \value{
-A list of the class \code{rtmpt_model}.
+A list of the class \code{ertmpt_model}.
 }
 \description{
 By using \code{parameter = "probs"} you can specify which of the probability parameters should be set to a constant
@@ -62,7 +62,7 @@ dn+(1-dn)*(1-g)
 # do: detect old; dn: detect new; g: guess
 "
 
-model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 
 ## removing the process times for the failed detection ("tau_minus") 
 ## of the detection parameters ("dn", "do")

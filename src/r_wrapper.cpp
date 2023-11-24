@@ -57,7 +57,7 @@ namespace ertmpt {
 
 extern "C" {
 
-	SEXP rtmpt_fit(SEXP re, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP in4, SEXP in5, SEXP bo1, SEXP bo2, SEXP bo3) {
+	SEXP ertmpt_fit(SEXP re, SEXP re2, SEXP re3, SEXP ch, SEXP in, SEXP in2, SEXP in3, SEXP in4, SEXP in5, SEXP bo1, SEXP bo2, SEXP bo3) {
 
 	  using namespace ertmpt;
 	  

@@ -1,7 +1,7 @@
 
 #' Create a model list to fit an RT-MPT
 #' 
-#' Create a model list of the class \code{rtmpt_model} by providing either \code{eqn_file} or \code{mdl_file}.
+#' Create a model list of the class \code{ertmpt_model} by providing either \code{eqn_file} or \code{mdl_file}.
 #' If both are provided \code{mdl_file} will be used.
 #' 
 #' @param eqn_file Character string as shown in example 2 or path to the text file that specifies the 
@@ -11,7 +11,7 @@
 #'   (RT-)MPT model and gives on each line the equation of one category using \code{+} to separate branches 
 #'   and \code{*} to separate processes (Singmann and Kellen, 2013). E.g. \code{do+(1-do)*g} for the category "hit" in the detect-guess 
 #'   2HT model.
-#' @return A list of the class \code{rtmpt_model}.
+#' @return A list of the class \code{ertmpt_model}.
 #' @references
 #' Heck, D. W., Arnold, N. R., & Arnold, D. (2018). TreeBUGS: An R package for hierarchical 
 #'   multinomial-processing-tree modeling. \emph{Behavior Research Methods, 50(1)}, 264-284.
@@ -49,7 +49,7 @@
 #' suppress_process: dn-, do-
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' model
 #' 
 #' ## 2. using the eqn syntax
@@ -79,7 +79,7 @@
 #' # different motor execution times for old and new responses.
 #' "
 #' 
-#' model <- to_rtmpt_model(eqn_file = eqn_2HTM)
+#' model <- to_ertmpt_model(eqn_file = eqn_2HTM)
 #' model
 #' 
 #' @note Within a branch of a (RT-)MPT model it is not allowed to have the same process two or more times.
@@ -87,7 +87,7 @@
 #'   functions to change the model
 #' @author Raphael Hartmann
 #' @export
-to_rtmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {
+to_ertmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {
   
   if (is.null(eqn_file) && is.null(mdl_file)) stop("Neither an eqn- nor a mdl-file specified.")
   
@@ -144,7 +144,7 @@ to_rtmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {
     model$responses$CAT <- as.numeric(model$responses$CAT)
   }
   
-  class(model) <- "rtmpt_model"
+  class(model) <- "ertmpt_model"
   
   
   # test model for structure
@@ -156,6 +156,61 @@ to_rtmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {
   # return
   return(model)
   
+}
+
+
+#' @rdname to_ertmpt_model
+#' @examples
+#' 
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g     ; 0
+#' (1-do)*(1-g)    ; 1
+#'
+#' # lures
+#' (1-dn)*g        ; 0
+#' dn+(1-dn)*(1-g) ; 1
+#' 
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#' 
+#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model
+#' 
+#' @export
+to_rtmpt_model <- to_ertmpt_model
+
+
+
+#' @export
+print.ertmpt_model <- function(x, ...) {
+  cat("\nMODEL OVERVIEW\n\n")
+  
+  cat("\nMDL syntax for the MPT part:\n")
+  print(data.frame(MDL_lines=x$lines[1:(length(x$lines)-1)]))
+  cat("\n* NOTE 1: Each line in the MDL syntax represents one response category.\n")
+  cat("----------------------------\n")
+  
+  cat("\nProcess probability parameters (thetas):\n")
+  print(x$params$probs)
+  cat("\n* NOTE 1: NA means the parameter will be estimated.\n") 
+  cat("* NOTE 2: A value larger than 0 and smaller than 1 means it will be held constant.\n")
+  cat("* INFO:", length(which(!is.na(x$params$probs))), "of the process probabilities will be held constant.\n")
+  cat("-------------------------------\n")
+  
+  cat("\nProcess completion time parameters (taus):\n")
+  print(x$params$taus)
+  cat("\n* NOTE 1: \"minus\" refers to the negative outcome (1-P) and \"plus\" to the positive.\n")
+  cat("* NOTE 2: NA means the parameter will be estimated. 0 means it will be suppressed.\n")
+  cat("* INFO:", length(which(x$params$taus==0)), "of the process completion times will be suppressed.\n")
+  cat("-----------------------------------\n")
+  
+  cat("\nMapping of response categories and encoding plus motor execution times (deltas):\n")
+  print(x$responses)
+  cat("\n* NOTE 1: Unique representation of trees and categories.\n")
+  cat("* NOTE 2: Each mapping number corresponds to a distinct encoding plus motor execution time.\n")
+  cat("* INFO:", max(x$responses$MAP)+1,"distinct delta(s) assumed, namely with mapping [", paste(unique(x$responses$MAP), collapse = ", "),"].\n")
+  cat("-----------------------------------\n\n")
 }
 
 #' @export
@@ -188,5 +243,4 @@ print.rtmpt_model <- function(x, ...) {
   cat("* INFO:", max(x$responses$MAP)+1,"distinct delta(s) assumed, namely with mapping [", paste(unique(x$responses$MAP), collapse = ", "),"].\n")
   cat("-----------------------------------\n\n")
 }
-
 

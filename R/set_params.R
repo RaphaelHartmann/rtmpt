@@ -6,14 +6,14 @@
 #' 
 #' Setting process probabilities (thetas) to constants or change it back to be estimated. 
 #'
-#' @param model An object of the class \code{rtmpt_model}.
+#' @param model An object of the class \code{ertmpt_model}.
 #' @param names Character vector with process names.
 #' @param constants Numerical vector of length one or \code{length(names)}. You have the following options for the elements of the numeric vector:
 #'   \itemize{
 #'    \item \code{0 < constants < 1}: set the named probability to a constant value between zero and one
 #'    \item \code{NA}: estimate the named probability
 #'   }
-#' @return An object of the class \code{rtmpt_model}.
+#' @return An object of the class \code{ertmpt_model}.
 #' @examples
 #' ####################################################################################
 #' # Detect-Guess variant of the Two-High Threshold model.
@@ -33,7 +33,7 @@
 #' # do: detect old; dn: detect new; g: guess
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## setting g to a constant (0.5):
 #' new_model <- theta2const(model = model, names = c("g"), constants = c(0.5))
@@ -44,7 +44,7 @@
 #' @export
 theta2const <- function(model, names, constants = NA) {
   
-  if (!inherits(model, "rtmpt_model")) stop("model must be of class \"rtmpt_model\".")
+  if (!inherits(model, c("ertmpt_model", "rtmpt_model"))) stop("model must be of class \"ertmpt_model\".")
   if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
   
   params_list <- model$params
@@ -105,7 +105,7 @@ set_theta_const <- theta2const
 #' 
 #' Setting process completion times (taus) to zero or change it back to be estimated.
 #'
-#' @param model A list of the class \code{rtmpt_model}.
+#' @param model A list of the class \code{ertmpt_model}.
 #' @param names Character vector with process names.
 #' @param outcomes Character vector of length \code{length(names)} indicating for which process outcome the process completion time should 
 #'   be zero or changed back to be estimated. Allowed characters are:
@@ -118,7 +118,7 @@ set_theta_const <- theta2const
 #'    \item \code{0}: suppress the process time/rate, i.e., set the process completion time (tau) with the specified output to zero.
 #'    \item \code{NA}: estimate the process time (tau)
 #'   }
-#' @return A list of the class \code{rtmpt_model}.
+#' @return A list of the class \code{ertmpt_model}.
 #' @examples
 #' ####################################################################################
 #' # Detect-Guess variant of the Two-High Threshold model.
@@ -138,7 +138,7 @@ set_theta_const <- theta2const
 #' # do: detect old; dn: detect new; g: guess
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## removing the process times (tau) for the failed (="minus") detection ("do" and "dn") 
 #' new_model <- tau2zero(model = model, names = c("dn", "do"),
@@ -150,7 +150,7 @@ set_theta_const <- theta2const
 #' @export
 tau2zero <- function(model, names, outcomes, values = 0) {
   
-  if (!inherits(model, "rtmpt_model")) stop("model must be of class \"rtmpt_model\".")
+  if (!inherits(model, e("ertmpt_model", "rtmpt_model"))) stop("model must be of class \"ertmpt_model\".")
   if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
 
   params_list <- model$params
@@ -265,7 +265,7 @@ set_tau_zero <- tau2zero
 #' Setting multiple process probabilities (thetas) equal. One of the process probabilities will be estimated and
 #'   the other named process(es) will be set to equal the former. The equality can be removed by only using one name of a process. 
 #'
-#' @param model A list of the class \code{rtmpt_model}.
+#' @param model A list of the class \code{ertmpt_model}.
 #' @param names Character vector giving the names of the processes for which the process probabilities should be equal. If 
 #'   \code{length(names) = 1} then the corresponding process probability will be estimates (i.e., it will be set to NA)
 #' @param keep_consts Can be one of the following
@@ -277,7 +277,7 @@ set_tau_zero <- tau2zero
 #'    \item numeric value: index for \code{names}. If 1, the constant of the first process in \code{names} (in original order defined by the user) is 
 #'      used for all other probabilities of the processes in \code{names}. If 2, the constant of the second process is used. And so on.
 #'   }
-#' @return A list of the class \code{rtmpt_model}.
+#' @return A list of the class \code{ertmpt_model}.
 #' @note If you use \code{theta2theta()} and \code{tau2tau()} with the same process names you might just change the EQN or MDL file accordingly
 #'   by using the same process name for all processes which should have equal process times and probabilities.
 #' @examples
@@ -300,7 +300,7 @@ set_tau_zero <- tau2zero
 #' # do: detect old; dn: detect new; g: guess
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## make do = dn
 #' new_model <- theta2theta(model = model, names = c("do", "dn"))
@@ -311,7 +311,7 @@ set_tau_zero <- tau2zero
 #' @export
 theta2theta <- function(model, names, keep_consts = FALSE) {
   
-  if (!inherits(model, "rtmpt_model")) stop("model must be of class \"rtmpt_model\".")
+  if (!inherits(model, e("ertmpt_model", "rtmpt_model"))) stop("model must be of class \"ertmpt_model\".")
   if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
   
   params_list <- model$params
@@ -379,7 +379,7 @@ set_thetas_equal <- theta2theta
 #'   and one for the positive outcome) of the named processes will be estimated. The equality can be removed by just 
 #'   naming only one process name.
 #'
-#' @param model A list of the class \code{rtmpt_model}.
+#' @param model A list of the class \code{ertmpt_model}.
 #' @param names Character vector giving the names of the processes for which the process completion times should be equal. If 
 #'   \code{length(names) = 1} then the corresponding process completion times (for negative and positive outcomes) will be 
 #'   estimates (i.e., they will be set to NA)
@@ -392,7 +392,7 @@ set_thetas_equal <- theta2theta
 #'    \item numeric value: index for \code{names}. If 1, the zero(s) of the first process in \code{names} (in original order defined by the user) is 
 #'      used for the same outcome of all other processes in \code{names}. If 2, the zero(s) of the second process is used. And so on.
 #'   }
-#' @return A list of the class \code{rtmpt_model}.
+#' @return A list of the class \code{ertmpt_model}.
 #' @note If you use \code{theta2theta()} and \code{tau2tau()} with the same process names you might just change the EQN or MDL file accordingly
 #'   by using the same process name for all processes which should have equal process times and probabilities.
 #' @examples
@@ -415,7 +415,7 @@ set_thetas_equal <- theta2theta
 #' # do: detect old; dn: detect new; g: guess
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## make do = dn
 #' new_model <- tau2tau(model = model, names = c("do", "dn"))
@@ -426,7 +426,7 @@ set_thetas_equal <- theta2theta
 #' @export
 tau2tau <- function(model, names, keep_zeros = FALSE) {
   
-  if (!inherits(model, "rtmpt_model")) stop("model must be of class \"rtmpt_model\".")
+  if (!inherits(model, e("ertmpt_model", "rtmpt_model"))) stop("model must be of class \"ertmpt_model\".")
   if (!("lines" %in% names(model)) || !("params" %in% names(model)) || !("responses" %in% names(model))) stop("No valid model file.")
   
   params_list <- model$params
@@ -542,14 +542,14 @@ set_taus_equal <- tau2tau
 
 ############ SUPPRESS TAUS AND SET PROBS TO CONSTANTS ############
 
-#' Set constants for probability parameters and suppress process times in a \code{rtmpt_model} list
+#' Set constants for probability parameters and suppress process times in a \code{ertmpt_model} list
 #' 
 #' By using \code{parameter = "probs"} you can specify which of the probability parameters should be set to a constant
 #'   by using values between zero and one. If you use \code{NA} the probability will be estimated. By using 
 #'   \code{parameter = "tau_minus"} or \code{parameter = "tau_plus"} you can suppress process times/rates. Here \code{0} will
 #'   suppress the named process and \code{NA} allows the process time/rate to be estimated.
 #'
-#' @param model A list of the class \code{rtmpt_model}.
+#' @param model A list of the class \code{ertmpt_model}.
 #' @param parameter Character of length one indicating the parameter to change. Allowed characters:
 #'   \itemize{
 #'    \item "probs": probability parameters
@@ -572,7 +572,7 @@ set_taus_equal <- tau2tau
 #'   Example: \code{set_params(model = model, parameter = "tau_minus", names = c("do", "dn", "g"), values = c(NA, NA, 0))} will suppress
 #'   the process-completion time for guessing "new" in the 2HT model. This of course does not make sense here, but for some models it might be useful if you assume 
 #'   that a time-consuming process is not associated with certain process-outcome pairs (e.g., for technical parameters not corresponding to a psychological process).
-#' @return A list of the class \code{rtmpt_model}.
+#' @return A list of the class \code{ertmpt_model}.
 #' @examples
 #' ####################################################################################
 #' # Detect-Guess variant of the Two-High Threshold model.
@@ -592,7 +592,7 @@ set_taus_equal <- tau2tau
 #' # do: detect old; dn: detect new; g: guess
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' ## removing the process times for the failed detection ("tau_minus") 
 #' ## of the detection parameters ("dn", "do")

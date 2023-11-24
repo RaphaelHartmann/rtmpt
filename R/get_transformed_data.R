@@ -1,18 +1,18 @@
 
 #' Transform data to be used in RT-MPT model fitting
 #'
-#' Transform data, such that it can be used in \code{\link{fit_rtmpt}}. This implies changing each value/label in
+#' Transform data, such that it can be used in \code{\link{fit_ertmpt}}. This implies changing each value/label in
 #'   "subj", "group", "tree", and "cat" to numbers such that it starts from zero (e.g. data$tree = c(1,1,3,3,2,2,...)
 #'   will be changed to data$tree = c(0,0,2,2,1,1,...)) and the columns will be ordered in the right way.
 #'   "rt" must be provided in milliseconds. If it has decimal places it will be rounded to a whole number.
-#'   \code{\link{fit_rtmpt}} will automatically call this function if its input is not already an \code{rtmpt_data} list, 
+#'   \code{\link{fit_ertmpt}} will automatically call this function if its input is not already an \code{ertmpt_data} list, 
 #'   but it is advised to use it anyway because it provides information about the transformations of the data.
 #'
 #' @param raw_data \code{data.frame} or path to data containing columns "subj", "group", "tree", "cat", and "rt". 
 #'   If not provided in this order it will be reordered and unused variables will be moved to the end of the
 #'   new data frame.
-#' @param model A list of the class \code{rtmpt_model}.
-#' @return A list of the class \code{rtmpt_data} containing transformed data and information about 
+#' @param model A list of the class \code{ertmpt_model}.
+#' @return A list of the class \code{ertmpt_data} containing transformed data and information about 
 #'   the transformation that has been done.
 #' @examples 
 #' ####################################################################################
@@ -32,17 +32,17 @@
 #'   lure ;  c_r ; (1-dn)*(1-g)
 #' "
 #' 
-#' model <- to_rtmpt_model(eqn_file = eqn_2HTM)
+#' model <- to_ertmpt_model(eqn_file = eqn_2HTM)
 #' 
 #' data_file <- system.file("extdata/labeled_data.txt", package="rtmpt")
 #' data <- read.table(file = data_file, header = TRUE)
 #' 
-#' data_list <- to_rtmpt_data(raw_data = data, model = model)
+#' data_list <- to_ertmpt_data(raw_data = data, model = model)
 #' data_list 
 #' 
 #' @author Raphael Hartmann
 #' @export
-to_rtmpt_data <- function(raw_data, model) {
+to_ertmpt_data <- function(raw_data, model) {
   
   if (is.data.frame(raw_data)) {raw_data <- raw_data
   } else if (is.character(raw_data)) raw_data <- read.table(file = raw_data, header = TRUE)
@@ -180,9 +180,71 @@ to_rtmpt_data <- function(raw_data, model) {
   if (length(old_new) > 0) data_list$transformation <- old_new
   
   
-  class(data_list) <- "rtmpt_data"
+  class(data_list) <- "ertmpt_data"
   
   return(data_list)
+}
+
+
+#' @rdname to_ertmpt_data
+#' @examples
+#' 
+#' eqn_2HTM <- "
+#' # CORE MPT EQN
+#' # tree ; cat  ; mpt
+#' target ; hit  ; do
+#' target ; hit  ; (1-do)*g
+#' target ; miss ; (1-do)*(1-g)
+#'        
+#'   lure ;  f_a ; (1-dn)*g
+#'   lure ;  c_r ; dn
+#'   lure ;  c_r ; (1-dn)*(1-g)
+#' "
+#' 
+#' model <- to_rtmpt_model(eqn_file = eqn_2HTM)
+#' 
+#' data_file <- system.file("extdata/labeled_data.txt", package="rtmpt")
+#' data <- read.table(file = data_file, header = TRUE)
+#' 
+#' data_list <- to_rtmpt_data(raw_data = data, model = model)
+#' data_list 
+#' 
+#' @export
+to_rtmpt_data <- to_ertmpt_data
+
+
+
+
+#' @export
+print.ertmpt_data <- function(x, ...) {
+  cat("\nDATA TRANSFORMATION OVERVIEW\n\n")
+  
+  cat("\nReordered variables:\nsubj, group, tree, cat, rt\n")
+  cat("* NOTE1: Additional variables are attached next to these five.\n")
+  cat("* NOTE2: To see your data frame use <object name>$data.\n")
+  cat("--------------------\n")
+  
+  cat("\nTransformed variable(s):")
+  if("transformation" %in% names(x)) {
+    if("subj" %in% names(x$transformation)) {
+      cat("\n\"subj\"\n")
+      print(x$transformation$subj)
+    }
+    if("group" %in% names(x$transformation)) {
+      cat("\n\"group\"\n")
+      print(x$transformation$group)
+    }
+    if("tree" %in% names(x$transformation)) {
+      cat("\n\"tree\"\n")
+      print(x$transformation$tree)
+    }
+    if("cat" %in% names(x$transformation)) {
+      cat("\n\"cat\"\n")
+      print(x$transformation$cat)
+    }
+    cat("\n* NOTE: \"old\" refers to the used labels and \"new\" to the ones that will be used.\n")
+  } else cat("* NOTE: No transformations needed.\n")
+  cat("------------------------\n\n")
 }
 
 #' @export
@@ -216,4 +278,3 @@ print.rtmpt_data <- function(x, ...) {
   } else cat("* NOTE: No transformations needed.\n")
   cat("------------------------\n\n")
 }
-

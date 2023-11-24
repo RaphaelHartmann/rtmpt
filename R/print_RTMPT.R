@@ -301,20 +301,192 @@ printSummaryRTMPT <- function(x, ...) {
 
 
 #' @export
+print.summary.ertmpt_fit <- function(x,  ...){
+  printSummaryRTMPT(x)
+}
+
+#' @export
 print.summary.rtmpt_fit <- function(x,  ...){
   printSummaryRTMPT(x)
 }
 
 
 #' @export
+summary.ertmpt_fit <- function(object, round=3, ...){
+  summa <- object$summary
+  summa$call <- object$specs$call
+  summa$round <- round
+  class(summa) <- "summary.ertmpt_fit"
+  return(summa)
+}
+
+#' @export
 summary.rtmpt_fit <- function(object, round=3, ...){
   summa <- object$summary
   summa$call <- object$specs$call
   summa$round <- round
-  class(summa) <- "summary.rtmpt_fit"
+  class(summa) <- "summary.ertmpt_fit"
   return(summa)
 }
 
+#' @export
+print.ertmpt_fit <- function(x, ...) {
+  cat("\nFUNCTION CALL\n\n")
+  print(x$specs$call)
+  
+  cat("\n\nMEDIAN OF THE GROUP-LEVEL PARAMETERS\n\n")
+  rowNms <- names(x$specs$model$params$probs)
+  whole <- as.data.frame(matrix(data = rep(0, 3*length(rowNms)*x$specs$n.groups), nrow = length(rowNms)*x$specs$n.groups))
+  Group_labels <- 0:(x$specs$n.groups-1)
+  if (!is.null(x$specs$call[["old_label"]])) if (x$specs$call$old_label) Group_labels <- as.character(x$specs$transformation$group$old)
+  rownames(whole) <- paste0(rep(rowNms, x$specs$n.groups), "[", rep(Group_labels, each = length(rowNms)), "]")
+  colnames(whole) <- c("mu_probs", "mu_tau_minus", "mu_tau_plus")
+  index <- which(is.na(x$specs$model$params$probs))
+  if (x$specs$n.groups>1) for (i in 1:(x$specs$n.groups-1)) {index <- c(index, index+length(rowNms))}
+  whole[index,1] <- x$diags$mu_probs[,3]
+  if (length(which(!is.na(x$specs$model$params$probs)))>0) {
+    index <- which(!is.na(x$specs$model$params$probs))
+    index_orig <- index
+    if (x$specs$n.groups>1) for (i in 1:(x$specs$n.groups-1)) {index <- c(index, index+length(rowNms))}
+    if (any(x$specs$model$params$probs[1,index_orig] %in% rowNms)) {
+      tmp <- numeric(length = length(index_orig)*x$specs$n.groups)
+      if (all(x$specs$model$params$probs[1,index_orig] %in% rowNms)) {
+        
+        nms <- as.character(x$specs$model$params$probs[1,index_orig])
+        ind_nms <- sapply(X = nms, FUN = function(i) {which(names(x$specs$model$params$probs) %in% i)})
+        ind_mu_probs <- sapply(X = ind_nms, FUN = function(i) sum(is.na(x$specs$model$params$probs[1, 1:i])))
+        if (x$specs$n.groups == 1) {
+          tmp <- x$diags$mu_probs[ind_mu_probs,3]
+        } else {
+          ind_mu_probs_g <- ind_mu_probs; for ( i in 1:(x$specs$n.groups-1) ) {ind_mu_probs_g <- c(ind_mu_probs_g, ind_mu_probs_g+length(x$diags$mu_probs[,3])/x$specs$n.groups)}
+          tmp <- x$diags$mu_probs[ind_mu_probs_g,3]
+        }
+        
+      } else {
+        ind_cnst <- which(!x$specs$model$params$probs[1,index_orig] %in% rowNms)
+        ind_eql <- which(x$specs$model$params$probs[1,index_orig] %in% rowNms)
+        nms <- as.character(x$specs$model$params$probs[1,index_orig[ind_eql]])
+        ind_nms <- sapply(X = nms, FUN = function(i) {which(names(x$specs$model$params$probs) %in% i)})
+        ind_mu_probs <- sapply(X = ind_nms, FUN = function(i) sum(is.na(x$specs$model$params$probs[1, 1:i])))
+        if (x$specs$n.groups == 1) {
+          tmp[ind_cnst] <- x$specs$model$params$probs[1,index_orig[ind_cnst]]
+          tmp[ind_eql] <- x$diags$mu_probs[ind_mu_probs,3]
+        } else {
+          ind_cnst_g <- ind_cnst; for ( i in 1:(x$specs$n.groups-1) ) {ind_cnst_g <- c(ind_cnst_g, ind_cnst_g+length(index_orig))}
+          ind_eql_g <- ind_eql; for ( i in 1:(x$specs$n.groups-1) ) {ind_eql_g <- c(ind_eql_g, ind_eql_g+length(index_orig))}
+          tmp[ind_cnst_g] <- x$specs$model$params$probs[1,index_orig[ind_cnst]]
+          ind_mu_probs_g <- ind_mu_probs; for ( i in 1:(x$specs$n.groups-1) ) {ind_mu_probs_g <- c(ind_mu_probs_g, ind_mu_probs_g+length(x$diags$mu_probs[,3])/x$specs$n.groups)}
+          tmp[ind_eql_g] <- x$diags$mu_probs[ind_mu_probs_g,3]
+        }
+        
+      }
+      whole[index,1] <- tmp
+    } else whole[index,1] <- rep(as.numeric(x$specs$model$params$probs[1,index_orig]), x$specs$n.groups)
+  }
+  
+  index <- which(is.na(x$specs$model$params$taus[1,]))
+  if (x$specs$n.groups>1) for (i in 1:(x$specs$n.groups-1)) {index <- c(index, index+length(rowNms))}
+  whole[index,2] <- x$diags$mu_tau_minus[,3]
+  if (length(which(!is.na(x$specs$model$params$taus[1,])))>0) {
+    index <- which(!is.na(x$specs$model$params$taus[1,]))
+    index_orig <- index
+    if (x$specs$n.groups>1) for (i in 1:(x$specs$n.groups-1)) {index <- c(index, index+length(rowNms))}
+    if (any(x$specs$model$params$taus[1,index_orig] %in% rowNms)) {
+      tmp <- numeric(length = length(index_orig)*x$specs$n.groups)
+      if (all(x$specs$model$params$taus[1,index_orig] %in% rowNms)) {
+        
+        nms <- as.character(x$specs$model$params$taus[1,index_orig])
+        ind_nms <- sapply(X = nms, FUN = function(i) {which(rowNms %in% i)})
+        ind_mu_tau_minus <- sapply(X = ind_nms, FUN = function(i) sum(is.na(x$specs$model$params$taus[1, 1:i])))
+        if (x$specs$n.groups == 1) {
+          tmp <- x$diags$mu_tau_minus[ind_mu_tau_minus,3]
+        } else {
+          ind_mu_tau_minus_g <- ind_mu_tau_minus; for ( i in 1:(x$specs$n.groups-1) ) {ind_mu_tau_minus_g <- c(ind_mu_tau_minus_g, ind_mu_tau_minus_g+length(x$diags$mu_tau_minus[,3])/x$specs$n.groups)}
+          tmp <- x$diags$mu_tau_minus[ind_mu_tau_minus_g,3]
+        }
+        
+      } else {
+        ind_zero <- which(!x$specs$model$params$taus[1,index_orig] %in% rowNms)
+        ind_eql <- which(x$specs$model$params$taus[1,index_orig] %in% rowNms)
+        nms <- as.character(x$specs$model$params$taus[1,index_orig[ind_eql]])
+        ind_nms <- sapply(X = nms, FUN = function(i) {which(rowNms %in% i)})
+        ind_mu_tau_minus <- sapply(X = ind_nms, FUN = function(i) sum(is.na(x$specs$model$params$taus[1, 1:i])))
+        if (x$specs$n.groups == 1) {
+          tmp[ind_zero] <- x$specs$model$params$taus[1,index_orig[ind_zero]]
+          tmp[ind_eql] <- x$diags$mu_tau_minus[ind_mu_tau_minus,3]
+        } else {
+          ind_zero_g <- ind_zero; for ( i in 1:(x$specs$n.groups-1) ) {ind_zero_g <- c(ind_zero_g, ind_zero_g+length(index_orig))}
+          ind_eql_g <- ind_eql; for ( i in 1:(x$specs$n.groups-1) ) {ind_eql_g <- c(ind_eql_g, ind_eql_g+length(index_orig))}
+          tmp[ind_zero_g] <- x$specs$model$params$taus[1,index_orig[ind_zero]]
+          ind_mu_tau_minus_g <- ind_mu_tau_minus; for ( i in 1:(x$specs$n.groups-1) ) {ind_mu_tau_minus_g <- c(ind_mu_tau_minus_g, ind_mu_tau_minus_g+length(x$diags$mu_tau_minus[,3])/x$specs$n.groups)}
+          tmp[ind_eql_g] <- x$diags$mu_tau_minus[ind_mu_tau_minus_g,3]
+        }
+        
+      }
+      whole[index,2] <- tmp
+    } else whole[index,2] <- rep(as.numeric(x$specs$model$params$taus[1,index_orig]), x$specs$n.groups)
+  }
+  
+  index <- which(is.na(x$specs$model$params$taus[2,]))
+  if (x$specs$n.groups>1) for (i in 1:(x$specs$n.groups-1)) {index <- c(index, index+length(rowNms))}
+  whole[index,3] <- x$diags$mu_tau_plus[,3]
+  if (length(which(!is.na(x$specs$model$params$taus[2,])))>0) {
+    index <- which(!is.na(x$specs$model$params$taus[2,]))
+    index_orig <- index
+    if (x$specs$n.groups>1) for (i in 1:(x$specs$n.groups-1)) {index <- c(index, index+length(rowNms))}
+    if (any(x$specs$model$params$taus[2,index_orig] %in% rowNms)) {
+      tmp <- numeric(length = length(index_orig)*x$specs$n.groups)
+      if (all(x$specs$model$params$taus[2,index_orig] %in% rowNms)) {
+        
+        nms <- as.character(x$specs$model$params$taus[2,index_orig])
+        ind_nms <- sapply(X = nms, FUN = function(i) {which(rowNms %in% i)})
+        ind_mu_tau_plus <- sapply(X = ind_nms, FUN = function(i) sum(is.na(x$specs$model$params$taus[2, 1:i])))
+        if (x$specs$n.groups == 1) {
+          tmp <- x$diags$mu_tau_plus[ind_mu_tau_plus,3]
+        } else {
+          ind_mu_tau_plus_g <- ind_mu_tau_plus; for ( i in 1:(x$specs$n.groups-1) ) {ind_mu_tau_plus_g <- c(ind_mu_tau_plus_g, ind_mu_tau_plus_g+length(x$diags$mu_tau_plus[,3])/x$specs$n.groups)}
+          tmp <- x$diags$mu_tau_plus[ind_mu_tau_plus_g,3]
+        }
+        
+      } else {
+        ind_zero <- which(!x$specs$model$params$taus[2,index_orig] %in% rowNms)
+        ind_eql <- which(x$specs$model$params$taus[2,index_orig] %in% rowNms)
+        nms <- as.character(x$specs$model$params$taus[2,index_orig[ind_eql]])
+        ind_nms <- sapply(X = nms, FUN = function(i) {which(rowNms %in% i)})
+        ind_mu_tau_plus <- sapply(X = ind_nms, FUN = function(i) sum(is.na(x$specs$model$params$taus[2, 1:i])))
+        if (x$specs$n.groups == 1) {
+          tmp[ind_zero] <- x$specs$model$params$taus[2,index_orig[ind_zero]]
+          tmp[ind_eql] <- x$diags$mu_tau_plus[ind_mu_tau_plus,3]
+        } else {
+          ind_zero_g <- ind_zero; for ( i in 1:(x$specs$n.groups-1) ) {ind_zero_g <- c(ind_zero_g, ind_zero_g+length(index_orig))}
+          ind_eql_g <- ind_eql; for ( i in 1:(x$specs$n.groups-1) ) {ind_eql_g <- c(ind_eql_g, ind_eql_g+length(index_orig))}
+          tmp[ind_zero_g] <- x$specs$model$params$taus[2,index_orig[ind_zero]]
+          ind_mu_tau_plus_g <- ind_mu_tau_plus; for ( i in 1:(x$specs$n.groups-1) ) {ind_mu_tau_plus_g <- c(ind_mu_tau_plus_g, ind_mu_tau_plus_g+length(x$diags$mu_tau_plus[,3])/x$specs$n.groups)}
+          tmp[ind_eql_g] <- x$diags$mu_tau_plus[ind_mu_tau_plus_g,3]
+        }
+        
+      }
+      whole[index,3] <- tmp
+    } else whole[index,3] <- rep(as.numeric(x$specs$model$params$taus[2,index_orig]), x$specs$n.groups)
+  }
+  
+  cat("Process-related parameters:\n")
+  print(whole)
+  cat("\n* NOTE 1: Process completion times in ms.")
+  if (any(!is.na(x$specs$model$params$probs))) {
+    pass <- paste0("\n* NOTE 2: Constants are also displayed in the process parameter table", 
+                   if(any(!is.na(x$specs$model$params$taus))) {"\n\t  as well as zeros for suppressed process completion times"}, ".")
+    cat(pass)
+  } else if (any(!is.na(x$specs$model$params$taus))) {
+    pass <- paste0("\n* NOTE 2: Zeros for suppressed process completion times are also displayed\n\t  in the process parameter table.")
+  }
+  cat("\n---------------------------\n")
+  
+  cat("\nEncoding plus motor execution parameter(s):\n")
+  print(data.frame(mu_gamma=x$diags$mu_gamma[,3]))
+  cat("\n* NOTE 1: Encoding plus motor execution time(s) in ms.")
+  cat("\n-------------------------------------------\n\n")
+}
 
 #' @export
 print.rtmpt_fit <- function(x, ...) {
@@ -474,4 +646,3 @@ print.rtmpt_fit <- function(x, ...) {
   cat("\n* NOTE 1: Encoding plus motor execution time(s) in ms.")
   cat("\n-------------------------------------------\n\n")
 }
-

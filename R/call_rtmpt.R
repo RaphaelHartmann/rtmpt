@@ -1,5 +1,5 @@
 
-#' Posterior sample, diagnostics and some optional stuff for RT-MPT models
+#' Fit Exponential-RT-MPT Models
 #' 
 #' Given model and data, this function calls an altered version of the C++ program by Klauer and Kellen (2018) to sample from
 #'   the posterior distribution via a Metropolis-Gibbs sampler and storing it in an mcmc.list called \code{samples}. 
@@ -9,11 +9,11 @@
 #'   leave-one-out cross-validation (LOO; Vehtari et al., 2017) can be saved. Additionally the log-likelihood (\code{LogLik}) can also be stored. 
 #'   Some specifications of the function call are also saved in \code{specs}.
 #'
-#' @param model A list of the class \code{rtmpt_model}.
-#' @param data Optimally, a list of class \code{rtmpt_data}. Also possible is a \code{data.frame} or a 
+#' @param model A list of the class \code{ertmpt_model}.
+#' @param data Optimally, a list of class \code{ertmpt_data}. Also possible is a \code{data.frame} or a 
 #'   path to the text file. Both, \code{data.frame} and the text file must contain the column names "subj", 
 #'   "group", "tree", "cat", and "rt" preferably but not necessarily in this order. The values of the latter must 
-#'   be in milliseconds. It is always advised to use \code{\link{to_rtmpt_data}} first, which gives back an \code{rtmpt_data} list
+#'   be in milliseconds. It is always advised to use \code{\link{to_ertmpt_data}} first, which gives back an \code{ertmpt_data} list
 #'   with informations about the changes in the data, that were needed.
 #' @param n.chains Number of chains to use. Default is 4. Must be larger than 1 and smaller or equal to 16.
 #' @param n.iter Number of samples per chain. Default is 5000.
@@ -67,7 +67,7 @@
 #' @param save_log_lik If set to \code{TRUE} and \code{indices = TRUE} the log-likelihood matrix for each iteration and trial will
 #'   be saved in the output as a matrix. Its default is \code{FALSE}.
 #' @param old_label If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list. Default is \code{FALSE}.
-#' @return A list of the class \code{rtmpt_fit} containing 
+#' @return A list of the class \code{ertmpt_fit} containing 
 #'   \itemize{
 #'     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
 #'     \item \code{diags}: some diagnostics like deviance information criterion, posterior predictive checks for the frequencies and latencies, 
@@ -114,19 +114,19 @@
 #' # do: detect old; dn: detect new; g: guess
 #' "
 #' 
-#' model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+#' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' data_file <- system.file("extdata/data.txt", package="rtmpt")
 #' data <- read.table(file = data_file, header = TRUE)
-#' data_list <- to_rtmpt_data(raw_data = data, model = model)
+#' data_list <- to_ertmpt_data(raw_data = data, model = model)
 #' \donttest{
 #' # This might take some time
-#' rtmpt_out <- fit_rtmpt(model = model, data = data_list, Rhat_max = 1.1)
-#' rtmpt_out
+#' ertmpt_out <- fit_ertmpt(model = model, data = data_list, Rhat_max = 1.1)
+#' ertmpt_out
 #' }
 #' # Type ?SimData for another working example.
 #' @author Raphael Hartmann
-#' @useDynLib "rtmpt", .registration=TRUE
+#' @useDynLib "ertmpt", .registration=TRUE
 #' @export
 #' @importFrom coda as.mcmc as.mcmc.list "varnames<-" gelman.diag
 #' @importFrom data.table as.data.table fread
@@ -136,7 +136,7 @@
 #' @importFrom utils read.table write.table
 #' @importFrom stringr str_split str_detect str_c str_replace
 #' @importFrom methods is
-fit_rtmpt <- function(model, 
+fit_ertmpt <- function(model, 
                       data,
                       n.chains = 4, 
                       n.iter = 5000, 
@@ -182,19 +182,19 @@ fit_rtmpt <- function(model,
   # prepare data
   keep_data_path <- FALSE
   if (is.data.frame(data)) {
-    temp_data <- to_rtmpt_data(data, model)
+    temp_data <- to_ertmpt_data(data, model)
     data_frame <- temp_data$data
   	if("transformation" %in% names(temp_data)) {
   	  transformation <- temp_data$transformation
 	  } else transformation <- list()
   } else if (is.character(data)) {
-    temp_data <- to_rtmpt_data(read.table(file = data, header = TRUE), model)
+    temp_data <- to_ertmpt_data(read.table(file = data, header = TRUE), model)
     data_frame <- temp_data$data
   	if("transformation" %in% names(temp_data)) {
   	  transformation <- temp_data$transformation
   	} else transformation <- list()
     keep_data_path <- TRUE
-  } else if (inherits(data, "rtmpt_data")) {
+  } else if (inherits(data, c("ertmpt_data", "rtmpt_data"))) {
     data_frame <- data$data
   	if("transformation" %in% names(data)) {
   	  transformation <- data$transformation
@@ -209,27 +209,21 @@ fit_rtmpt <- function(model,
     data_frame <- df[,match(data_elmnts, names(data_frame))]
   }
   if (any(is.na(data_frame)) || min(data_frame) < 0) stop("All values in \"data\" need to be larger than or equal to zero and must not be NA.")
-  if (max(data_frame[,1]+1) != length(unique(data_frame[,1]))) stop("\"max(data$subj+1)\" must equal \"length(unique(data$subj))\". You might want to use to_rtmpt_data().")
-  if (max(data_frame[,2]+1) != length(unique(data_frame[,2]))) stop("\"max(data$group+1)\" must equal \"length(unique(data$group))\". You might want to use to_rtmpt_data().")
-  if (max(data_frame[,3]+1) != length(unique(data_frame[,3]))) stop("\"max(data$tree+1)\" must equal \"length(unique(data$tree))\". You might want to use to_rtmpt_data().")
-  if (max(data_frame[,4]+1) != length(unique(data_frame[,4]))) stop("\"max(data$cat+1)\" must equal \"length(unique(data$cat))\". You might want to use to_rtmpt_data().")
+  if (max(data_frame[,1]+1) != length(unique(data_frame[,1]))) stop("\"max(data$subj+1)\" must equal \"length(unique(data$subj))\". You might want to use to_ertmpt_data().")
+  if (max(data_frame[,2]+1) != length(unique(data_frame[,2]))) stop("\"max(data$group+1)\" must equal \"length(unique(data$group))\". You might want to use to_ertmpt_data().")
+  if (max(data_frame[,3]+1) != length(unique(data_frame[,3]))) stop("\"max(data$tree+1)\" must equal \"length(unique(data$tree))\". You might want to use to_ertmpt_data().")
+  if (max(data_frame[,4]+1) != length(unique(data_frame[,4]))) stop("\"max(data$cat+1)\" must equal \"length(unique(data$cat))\". You might want to use to_ertmpt_data().")
   
   temp_dir <- gsub("\\\\", "/", tempdir())
-  data_path <- gsub("\\\\", "/", tempfile(pattern = "rtmpt_data", tmpdir = tempdir(), fileext = ".txt"))
-  #data_path <- paste0(temp_dir, "/rtmpt_data.txt")
+  data_path <- gsub("\\\\", "/", tempfile(pattern = "ertmpt_data", tmpdir = tempdir(), fileext = ".txt"))
   write.table(x = data_frame, file = data_path, sep = " ", 
               row.names = FALSE, col.names = TRUE)
   diag_path <- gsub("\\\\", "/", tempfile(pattern = "diagnosis", tmpdir = tempdir(), fileext = ".out"))
-  #diag_path = paste0(temp_dir, "/diagnosis.out")
   chains_path <- gsub("\\\\", "/", tempfile(pattern = "chains_raw", tmpdir = tempdir(), fileext = ".out"))
-  #chains_path = paste0(temp_dir, "/chains_raw.out")
   loglik_path <- gsub("\\\\", "/", tempfile(pattern = "log_likelihood", tmpdir = tempdir(), fileext = ".out"))
-  #loglik_path = paste0(temp_dir, "/log_likelihood")
   mdl_txt <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".txt"))
-  #mdl_txt <- paste0(directory, "/model.txt")
   mdl_info <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".info"))
-  #mdl_info <- paste0(directory, "/model.info")
-  
+
   
   # produce infofile
   infofile <- try(get_infofile(model, mdl_txt = mdl_txt, mdl_info = mdl_info))
@@ -359,7 +353,7 @@ fit_rtmpt <- function(model,
   
   
   # call C++ function RTMPT
-  out <- .Call("rtmpt_fit", 
+  out <- .Call("ertmpt_fit", 
                as.numeric(REAL), 
                as.numeric(REAL2),
                as.numeric(REAL3),
@@ -390,49 +384,27 @@ fit_rtmpt <- function(model,
 
   
   # prepare output list
-  rtmpt <- list()
-  rtmpt$samples <- make_mcmc_list(file = out$pars_samples, infofile = infofile, 
+  ertmpt <- list()
+  ertmpt$samples <- make_mcmc_list(file = out$pars_samples, infofile = infofile, 
                                   Nchains = Nchains, Nsamples = Nsamples, 
                                   data_info = data_info, keep = old_label)
   out$pars_samples <- NULL; gc()
   
   
   # diagnostics
-  rtmpt$diags <- get_diags(diag_file = diag_path, data_info = data_info, keep = old_label)
+  ertmpt$diags <- get_diags(diag_file = diag_path, data_info = data_info, keep = old_label)
   if (file.exists(diag_path)) file.remove(diag_path)
-  rtmpt$diags$R_hat <- gelman.diag(rtmpt$samples, multivariate = FALSE)
-  # rtmpt$diags$R_hat_multivariate <- data.frame(SIGMA = NA, GAMMA = NA)
-  # cntr <- 0
-  # Nprocesses <- data_info$Ngroups * (data_info$Nprobs + data_info$Nminus + data_info$Nplus)
-  # NSIGMA <- Nprocesses / data_info$Ngroups 
-  # NSIGMA <- NSIGMA * (NSIGMA+1) / 2
-  # Nab_primes <- Nprocesses / data_info$Ngroups * data_info$Nsubj
-  # Ngamma <- data_info$Ngroups * data_info$Nresps
-  # NGAMMA <- Ngamma / data_info$Ngroups
-  # NGAMMA <- NGAMMA * (NGAMMA+1) / 2
-  # Ng_primes <- Ngamma / data_info$Ngroups * data_info$Nsubj
-  # rtmpt$diags$R_hat_multivariate$processes <- gelman.diag(rtmpt$samples[,(cntr+1):(cntr+Nprocesses)])$mpsrf
-  # cntr <- cntr+Nprocesses
-  # rtmpt$diags$R_hat_multivariate$SIGMA <- gelman.diag(rtmpt$samples[,(cntr+1):(cntr+NSIGMA)])$mpsrf
-  # cntr <- cntr+NSIGMA
-  # rtmpt$diags$R_hat_multivariate$alpha_beta_primes <- gelman.diag(rtmpt$samples[,(cntr+1):(cntr+Nab_primes)])$mpsrf
-  # cntr <- cntr+Nab_primes
-  # rtmpt$diags$R_hat_multivariate$gamma <- gelman.diag(rtmpt$samples[,(cntr+1):(cntr+Ngamma)])$mpsrf
-  # cntr <- cntr+Ngamma+1
-  # rtmpt$diags$R_hat_multivariate$GAMMA <- gelman.diag(rtmpt$samples[,(cntr+1):(cntr+NGAMMA)])$mpsrf
-  # cntr <- cntr+NGAMMA
-  # rtmpt$diags$R_hat_multivariate$gamma_primes <- gelman.diag(rtmpt$samples[,(cntr+1):(cntr+Ng_primes)])$mpsrf
-  
-  
+  ertmpt$diags$R_hat <- gelman.diag(ertmpt$samples, multivariate = FALSE)
+
   
   # specs
   infos <- readinfofile(infofile)
-  rtmpt$specs <- list(model = model, n.chains = Nchains, n.iter = Nsamples, n.burnin = Nwarmup, n.thin = thin, 
+  ertmpt$specs <- list(model = model, n.chains = Nchains, n.iter = Nsamples, n.burnin = Nwarmup, n.thin = thin, 
                       n.groups = data_info$Ngroups, n.subj = data_info$Nsubj, Irep = Irep, Rhat_max = Rhat_max, 
                       prior_params = prior_params, infolist = infos, call = match.call(), 
 					  n.groups = max(data_frame[,2]+1))
   if(exists("transformation")) {
-    rtmpt$specs$transformation <- transformation
+    ertmpt$specs$transformation <- transformation
   }
 					  
   
@@ -475,8 +447,8 @@ fit_rtmpt <- function(model,
   if (file.exists(loglik_path)) {
     if (indices) {
       temp <- get_indices(loglik_path, Nchains, Nsamples)
-      rtmpt$indices <- list(WAIC = temp$WAIC, LOO = temp$LOO)
-      if (save_log_lik) rtmpt$LogLik <- temp$LogLik
+      ertmpt$indices <- list(WAIC = temp$WAIC, LOO = temp$LOO)
+      if (save_log_lik) ertmpt$LogLik <- temp$LogLik
       rm(temp)
     }
   }
@@ -493,18 +465,15 @@ fit_rtmpt <- function(model,
   
   
   # summary
-  rtmpt$summary <- writeSummaryRTMPT(rtmpt, keep = old_label)
+  ertmpt$summary <- writeSummaryRTMPT(ertmpt, keep = old_label)
   
   
   # output
-  class(rtmpt) <- "rtmpt_fit"
+  class(ertmpt) <- "ertmpt_fit"
   gc()
-  return(rtmpt)
+  return(ertmpt)
   
 }
-
-
-
 
 
 

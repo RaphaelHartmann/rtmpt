@@ -10,7 +10,7 @@ tau2tau(model, names, keep_zeros = FALSE)
 set_taus_equal(model, names, keep_zeros = FALSE)
 }
 \arguments{
-\item{model}{A list of the class \code{rtmpt_model}.}
+\item{model}{A list of the class \code{ertmpt_model}.}
 
 \item{names}{Character vector giving the names of the processes for which the process completion times should be equal. If 
 \code{length(names) = 1} then the corresponding process completion times (for negative and positive outcomes) will be 
@@ -27,7 +27,7 @@ estimates (i.e., they will be set to NA)}
 }}
 }
 \value{
-A list of the class \code{rtmpt_model}.
+A list of the class \code{ertmpt_model}.
 }
 \description{
 Setting multiple process completion times (taus) equal. This means all process times of negative outcomes will be
@@ -59,7 +59,7 @@ dn+(1-dn)*(1-g)
 # do: detect old; dn: detect new; g: guess
 "
 
-model <- to_rtmpt_model(mdl_file = mdl_2HTM)
+model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 
 ## make do = dn
 new_model <- tau2tau(model = model, names = c("do", "dn"))
