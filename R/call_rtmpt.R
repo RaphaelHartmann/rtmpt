@@ -126,7 +126,7 @@
 #' }
 #' # Type ?SimData for another working example.
 #' @author Raphael Hartmann
-#' @useDynLib "ertmpt", .registration=TRUE
+#' @useDynLib "rtmpt", .registration=TRUE
 #' @export
 #' @importFrom coda as.mcmc as.mcmc.list "varnames<-" gelman.diag
 #' @importFrom data.table as.data.table fread
