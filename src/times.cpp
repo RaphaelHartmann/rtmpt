@@ -1,20 +1,6 @@
 // authors: Christoph Klauer and Raphael Hartmann
 #include "rts.h"
 
-double oneuni(gsl_rng *rst) {
-  return gsl_rng_uniform_pos(rst);
-}
-
-double logsum(double xa, double xb) {
-  double temp;
-  if (xa == GSL_NEGINF) return xb;
-  if (xb == GSL_NEGINF) return xa;
-  if (xa > xb) temp = xa + gsl_log1p(exp(xb - xa));
-  else if (xb > -DBL_MAX)
-    temp = xb + gsl_log1p(exp(xa - xb));
-  else temp = -DBL_MAX;
-  return temp;
-}
 
 namespace ertmpt {
   

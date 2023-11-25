@@ -1427,3 +1427,418 @@ namespace ertmpt {
   }
 
 }
+
+
+
+
+namespace drtmpt {
+  
+  // sample path
+  
+  //omega - residual variance Gibbs sampler phase <=2
+  void make_romega(gsl_vector* hampar, double* explambdas, double& omega, gsl_rng* rst) {
+    //	double priordf = 2.0;
+    //	double prioralpha = 0.0025;
+    //	double priorbeta = 0.5;
+    double s = 0.0;
+    for (int t = 0; t != indi; t++) s += (phase >= 3) ? 1 / gsl_pow_2(explambdas[t]) : 1 / gsl_pow_2(gsl_vector_get(hampar, isigoff + t));
+    
+    s = s * priordf;
+    double alpha = (indi * priordf) / 2.0 + prioralpha, beta = s / 2.0 + priorbeta;
+    omega = gsl_ran_gamma(rst, alpha, 1.0 / beta);
+  }
+  
+  //gibbs step individual deviations variance-covariance phase <=2
+  void invwis(int cases, int nvar, double* xx, double* ssig, double* sigi, gsl_matrix* Ltminus, int nprior, double* xi, gsl_rng* rst) {
+  // #define SSIG(I,J) ssig[I*nvar + J]
+  // #define XX(T,J) xx[T*nvar + J]
+  #define XB(T,J) xb[T*nvar+J]
+    double* xb; if (!(xb = (double*)malloc(nvar * (cases + nvar + nprior) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    gsl_matrix* cx = gsl_matrix_alloc(nvar, nvar); // initializes to zero
+    gsl_matrix_view XXX = gsl_matrix_view_array(xx, cases + nvar + nprior, nvar);
+    
+    
+    gsl_matrix_view rows = gsl_matrix_submatrix(&XXX.matrix, 0, 0, cases, nvar);
+    gsl_blas_dsyrk(CblasLower, CblasTrans, 1.0, &rows.matrix, 0.0, cx);
+    
+    
+    
+    gsl_vector_view diag = gsl_matrix_diagonal(cx);
+    gsl_vector_view XI = gsl_vector_view_array(xi, nvar);
+    gsl_blas_daxpy(2 * huang, &XI.vector, &diag.vector);
+    
+    gsl_linalg_cholesky_decomp1(cx);
+    gsl_linalg_tri_lower_invert(cx);
+    
+    int nloop = nvar * (cases + nvar + nprior);
+    for (int ih = 0; ih != nloop; ih++) xb[ih] = onenorm(rst);
+    gsl_matrix_view XB = gsl_matrix_view_array(xb, nvar, cases + nvar + nprior);
+    gsl_blas_dtrmm(CblasLeft, CblasLower, CblasTrans, CblasNonUnit, 1.0, cx, &XB.matrix);
+    gsl_blas_dsyrk(CblasLower, CblasNoTrans, 1.0, &XB.matrix, 0.0, cx);
+    
+    gsl_matrix_view Xsigi = gsl_matrix_view_array(sigi, nvar, nvar);
+    
+    
+    for (int j = 0; j != nvar; j++)
+      for (int i = j; i != nvar; i++) {
+        if (i != j) gsl_matrix_set(cx, j, i, gsl_matrix_get(cx, i, j));
+      }
+      gsl_matrix_memcpy(&Xsigi.matrix, cx);
+    gsl_linalg_cholesky_decomp1(cx);
+    
+    
+    if (phase < 3) {
+      gsl_matrix_memcpy(Ltminus, cx);
+    }
+    
+    gsl_linalg_cholesky_invert(cx);
+    gsl_matrix_view tssig = gsl_matrix_view_array(ssig, nvar, nvar);
+    gsl_matrix_memcpy(&tssig.matrix, cx);
+    
+    gsl_matrix_free(cx);
+    free(xb);
+    
+  }
+  
+  //rgam - covariance motor times gibbs sampler phase<=2
+  void make_rgam(gsl_vector* hampar, double* gam, double* gami, gsl_matrix* cr,  double* bi, gsl_rng* rst) {
+    
+    double* xr = 0;	if (!(xr = (double*)malloc((indi + respno + huang - 1) * (respno) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    gsl_vector_view t0 = gsl_vector_view_array(xr, (indi + respno + huang - 1) * respno);
+    gsl_vector_view xxr = gsl_vector_subvector(&t0.vector, 0, indi * respno);
+    gsl_vector_view t1 = gsl_vector_subvector(hampar, ilamoff, indi * respno);
+    gsl_vector_memcpy(&xxr.vector, &t1.vector);
+    
+    invwis(indi, respno, xr, gam, gami, cr, huang - 1, bi, rst);
+    double tausq = gsl_pow_2(taur);
+    for (int i = 0; i != respno; i++) bi[i] = gsl_ran_gamma(rst, (respno + huang) * 0.5, 1.0 / (huang * dGAMI(i, i) + 1.0 / tausq));
+    if (xr) free(xr);
+  }
+  
+  //sig - covariance person random effects in a, v, and w, phase <=2
+  void sample_sig(gsl_vector* hampar, double* sig, double* sigi, gsl_matrix* cx, double* ai, gsl_rng* rst) {
+    
+    
+    double* xy = 0;	if (!(xy = (double*)malloc((indi + icompg + huang - 1) * icompg * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    gsl_vector_view t0 = gsl_vector_view_array(xy, (indi + icompg + huang - 1) * icompg);
+    gsl_vector_view xxy = gsl_vector_subvector(&t0.vector,0, indi * icompg);
+    gsl_vector_view t1 = gsl_vector_subvector(hampar, igroup * icompg, indi * icompg);
+    gsl_vector_memcpy(&xxy.vector, &t1.vector);
+    
+    invwis(indi, icompg, xy, sig, sigi, cx, huang - 1, ai, rst);
+    double tausq = gsl_pow_2(taut);
+    for (int i = 0; i != icompg; i++) ai[i] = gsl_ran_gamma(rst, (icompg + huang) * 0.5, 1.0 / (huang * dSIGI(i, i) + 1.0 / tausq));
+    if (xy) free(xy);
+  }
+  
+  double double_trunct(double lower, double upper, double plow, double help, gsl_rng* rst) {
+    double result;
+    if ((help > 0.01) || ((upper-lower) > 4.0)) result = gsl_cdf_tdist_Pinv(plow + oneuni(rst) * help, degf);
+    else
+    {
+      double rho = 1.0, zz;
+      double d = 0.0;
+      if (lower * upper >= 0) {
+        if (lower > 0) d = gsl_log1p(gsl_pow_2(lower) / degf);
+        else
+          if (upper < 0) d = gsl_log1p(gsl_pow_2(upper) / degf);
+      }
+      
+      WEITER:   zz = oneuni(rst) * (upper - lower) + lower;
+      if (lower * upper < 0) rho = exp(-0.5 * (degf + 1.0) * (gsl_log1p(gsl_pow_2(zz) / degf)));
+      else
+        rho = exp(0.5 * (degf + 1.0) * (d - gsl_log1p(gsl_pow_2(zz) / degf)));
+      double u = oneuni(rst);
+      if (u > rho) goto WEITER;
+      result = zz;
+    }
+    
+    return result;
+  }
+  
+  void accept(int pfadlength, double* taua, double* tauc, double rest_a, double&  rest_c, double aa, double& ac) {
+    gsl_vector_view ta = gsl_vector_view_array(taua, pfadlength);
+    gsl_vector_view tc = gsl_vector_view_array(tauc, pfadlength);
+    gsl_vector_memcpy(&tc.vector, &ta.vector);
+    rest_c = rest_a;
+    ac = aa;
+    
+  }
+  
+  void make_taus_met_hast(double rt, int pfadlength, int t, double* as, double* vs, double* ws, int* maps, int* low_or_up, double trmu, double tsig, double* taus, double& rest_old, ars_archiv& ars_store, gsl_rng* rst)
+  {
+    double* taun = (double*)malloc(pfadlength * sizeof(double));
+    double lower = -trmu / tsig, upper = (rt - trmu) / tsig;
+    double plow = gsl_cdf_tdist_P(lower, degf);
+    double help = gsl_cdf_tdist_P(upper, degf) - plow;
+    int x = pfadlength - 1;
+    double ac = dwiener_d(taus[x] * low_or_up[x], as[x], vs[x], ws[x], accuracy);
+    
+    for (int i = 0; i != 100; i++) {
+      
+      //#pragma omp atomic
+      //		MONITOR(0, 4)++;
+      int icount = 0;
+      NEW2: double tau_out = rt;
+      icount++;
+      if (icount > 1000000) goto END;
+      double xt = double_trunct(lower, upper, plow, help, rst);
+      xt = trmu + tsig * xt;
+      tau_out -= xt;
+      if (tau_out <= 0) goto NEW2;
+      
+      for (int x = 0; x != pfadlength - 1; x++)
+      {
+        taun[x] = make_rwiener(t, maps[x], (low_or_up[x] + 1) / 2, ars_store, rt, as[x], vs[x], ws[x], rst);
+        tau_out -= taun[x];
+        if (tau_out <= 0) {
+          goto NEW2;
+        }
+      }
+      int x = pfadlength - 1;
+      taun[x] = tau_out;
+      double aa = dwiener_d(tau_out * low_or_up[x], as[x], vs[x], ws[x], accuracy);
+      
+      double a = aa - ac;
+      if ((aa > ac) || (log(oneuni(rst)) <= a)) {
+        accept(pfadlength, taun, taus, xt, rest_old, aa, ac);
+        //#pragma omp atomic
+        //			MONITOR(1, 4)++;
+      }
+    }
+    END:	free(taun);
+  }
+  
+  // sample taus on path
+  void make_taus_integrated(double rt, int pfadlength, int t, double* as, double* vs, double* ws, int* maps, int* low_or_up, double trmu, double tsig, double* taus, double& rest_old, ars_archiv& ars_store, gsl_rng* rst)
+  {
+    int icount=0;
+    int acc = 0;
+    
+    double* tauc = (double*)malloc(pfadlength * sizeof(double));
+    for (int x = 0; x != pfadlength; x++) tauc[x] = taus[x];
+    double restc = rest_old;
+    
+    double cut = 0.0;
+    if (rt < trmu) {
+      cut = gsl_log1p(gsl_pow_2((rt - trmu) / tsig) / degf); // std::cout << "1";
+    }
+    else if (trmu < 0) {
+      cut = gsl_log1p(gsl_pow_2((trmu) / tsig) / degf); //std::cout << "2";
+    }
+    
+    double neuwc = -0.5 * (degf + 1.0) * (gsl_log1p(gsl_pow_2((restc - trmu) / tsig) / degf) - cut);
+    
+    //#pragma omp atomic
+    //	MONITOR(0, 3)++;
+    
+    NEW2: rest_old = rt;
+    
+    for (int x = 0; x != pfadlength; x++)
+    {
+      taus[x] = make_rwiener(t, maps[x], (low_or_up[x] + 1) / 2, ars_store, rt, as[x], vs[x], ws[x], rst);
+      rest_old -= taus[x];
+      if (rest_old <= 0) {
+        goto NEW2;
+        
+      }
+    }
+    
+    double neuw_m = -0.5 * (degf + 1.0) * (gsl_log1p(gsl_pow_2((rest_old - trmu) / tsig) / degf) - cut);
+    double u = log(oneuni(rst));
+    if (u > neuw_m) {
+      double a = neuw_m - neuwc;
+      if ((neuw_m > neuwc) || (log(oneuni(rst)) <= a)) {
+        accept(pfadlength, taus, tauc, rest_old, restc, neuw_m, neuwc);
+        acc++;
+      }
+      icount++;
+      if (((phase >= 3) || (icount <= 1000000)) && (icount <= 10000000)) goto NEW2; // || (phase3)) goto NEW;
+      else {
+        //			std::cout << "zu dumm";
+        make_taus_met_hast(rt, pfadlength, t, as, vs, ws, maps, low_or_up, trmu, tsig, tauc, restc, ars_store, rst);
+        for (int x = 0; x != pfadlength; x++) taus[x] = tauc[x];
+        rest_old = restc;
+        //#pragma omp atomic
+        //			MONITOR(0, 2) += icount;
+        //#pragma omp atomic
+        //			MONITOR(1, 2) += acc;
+        //#pragma omp atomic
+        //			MONITOR(1, 3)++;
+      }
+    }
+    for (int x = 0; x != pfadlength; x++) taus[x] *= low_or_up[x];
+    free(tauc);
+  }
+  
+  
+  
+  // sample taus not on path
+  void make_taus_one_trial(trial one, int itrial, int ipath, double* tavw, int* tau_by_node, double* alltaus, ars_archiv& ars_store, gsl_rng* rst) {
+    int itree = one.tree; int c = one.category, t = one.person;
+    
+    int npt = nodes_per_tree[itree];
+    for (int n = 0; n != npt; n++) for (int pm = 0; pm != 2; pm++) {
+      int low_or_up = (pm == 0) ? -1 : 1;
+      if (dAR(c, ipath, n) != low_or_up)
+      {
+        int ia, iv, iw;
+        ia = dTREE_AND_NODE2PAR(itree, n, 0);
+        iv = dTREE_AND_NODE2PAR(itree, n, 1);
+        iw = dTREE_AND_NODE2PAR(itree, n, 2);
+        int m = dMAP(ia, iv, iw);
+        double a = dTAVW(t, 0, ia);
+        double v = dTAVW(t, 1, iv);
+        double w = dTAVW(t, 2, iw);
+        int tau_pos = dTAU_BY_NODE(itrial, n, pm);
+        alltaus[tau_pos] = low_or_up * make_rwiener(one.person, m, pm, ars_store, GSL_POSINF, a, v, w, rst);
+      }
+    }
+  }
+  
+  
+  //number of nodes not on path
+  void make_nips(const std::vector<trial> & daten, int* paths, int* nips) {
+    
+    for (int t = 0; t != indi; t++) for (int pm = 0; pm != 2; pm++) for (int m = 0; m != no_patterns; m++)	dNIPS(t, pm, m) = 0;
+    
+    for (int x = 0; x != datenzahl; x++) {
+      int itree = daten[x].tree, t = daten[x].person, c = daten[x].category;
+      int npt = nodes_per_tree[itree];
+      for (int n = 0; n != npt; n++) {
+        int im = dTREE_AND_NODE2MAP(itree, n);
+        for (int pm = 0; pm != 2; pm++) {
+          int low_or_up = (pm == 0) ? -1 : 1;
+          if (dAR(c, paths[x], n) != low_or_up) dNIPS(t, pm, im)++;
+        }
+      }
+    }
+  }
+  
+  //update number of nodes not on path after sampling new path
+  void update_nips(trial one, int path, int newpath, int* nips) {
+    int t = one.person, c = one.category, itree = one.tree;
+    int ndc = dNCDRIN(c);
+    for (int in = 0; in != ndc; in++) {
+      int n = dCDRIN(c, in, 0), pm = dCDRIN(c, in, 1);
+      int low_or_up = (pm == 0) ? -1 : 1;
+      if (dAR(c, path, n) != dAR(c, newpath, n)) {
+        int m = dTREE_AND_NODE2MAP(itree, n);
+        if (dAR(c, newpath, n) == low_or_up) dNIPS(t, pm, m)--;
+        // neuer Pfad drin, daher alter nicht
+        else if (dAR(c, path, n) == low_or_up) dNIPS(t, pm, m)++;
+        // alter Pfad drin, daher neuer nicht
+        
+      }
+    }
+  }
+  
+  
+  //path probabilities Carlin & Chibb 1995
+  double fypgtau_and_path(int pfadlength, double* as, double* vs, double* ws, double trmu, double tsig, double* taus, double delta) {
+    if (delta < 0) return  GSL_NEGINF;
+    else
+    {
+      double  prob = 0.0;
+      for (int in = 0; in != pfadlength; in++) {
+        int pm = (taus[in] > 0) ? 1 : 0;
+        prob += logprob_upperbound(pm, as[in], vs[in], ws[in]);
+      }
+      prob += log_tdist_pdf(trmu, tsig, degf, delta);
+      return prob;
+    }
+  }
+  
+  //data augmentation: sample path and taus
+  void make_path(trial one, int* nips, int itrial, int& path, gsl_vector* hampar, double* tavw, double* tlams, double* explambda, double* alltaus, double* rest, ars_archiv& ars_store, gsl_rng* rst) {
+    int c = one.category, k = branch[c], tree = one.tree, t = one.person, r = cat2resp[c], new_path = -1;
+    double rt = one.rt / 1000.0;
+    
+    double trmu = (phase >= 3)? tlams[t * respno + r]: gsl_vector_get(hampar, irmuoff + t2group[t] * respno + r) +
+      gsl_vector_get(hampar, ilamoff + t * respno + r),
+      tsig = (phase >= 3) ? explambda[t] : gsl_vector_get(hampar, isigoff + t);
+    int pfadma = pfadmax[c];
+    
+    
+    double* as = 0; if (!(as = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    double* vs = 0; if (!(vs = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    double* ws = 0; if (!(ws = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    int* low_or_up = 0; if (!(low_or_up = (int*)malloc(pfadma * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    int* maps = 0; if (!(maps = (int*)malloc(pfadma * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    double* taus = 0; if (!(taus = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    
+    double* pj = 0; if (!(pj = (double*)malloc(k * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    double* delta = 0; if (!(delta = (double*)malloc(k * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    
+    
+    int akt_pflength = dNDRIN(c, path);
+    
+    // taus f�r path belegen:
+    delta[path] = rt;
+    for (int in = 0; in != akt_pflength; in++) {
+      int n = dDRIN(c, path, in);
+      low_or_up[in] = dAR(c, path, n);
+      
+      int ia = dTREE_AND_NODE2PAR(tree, n, 0); as[in] = dTAVW(t, 0, ia);
+      int iv = dTREE_AND_NODE2PAR(tree, n, 1); vs[in] = dTAVW(t, 1, iv);
+      int iw = dTREE_AND_NODE2PAR(tree, n, 2); ws[in] = dTAVW(t, 2, iw);
+      maps[in] = dMAP(ia, iv, iw);
+      int pm = (1 + dAR(c, path, n)) / 2;
+      taus[in] = fabs(alltaus[dTAU_BY_NODE(itrial, n, pm)]);
+      delta[path] -= taus[in];
+      //			if (delta[path] < 0) std::cout << "aha";
+    }
+    make_taus_integrated(rt, akt_pflength, t, as, vs, ws, maps, low_or_up, trmu, tsig, taus, delta[path], ars_store, rst);
+    for (int in = 0; in != akt_pflength; in++) {
+      int n = dDRIN(c, path, in), pm = (1 + dAR(c, path, n)) / 2;
+      alltaus[dTAU_BY_NODE(itrial, n, pm)] = taus[in];
+    }
+    make_taus_one_trial(one, itrial, path, tavw, tau_by_node, alltaus, ars_store, rst);
+    
+    if (k > 1) {
+      
+      pj[path] = fypgtau_and_path(akt_pflength, as, vs, ws, trmu, tsig, taus, delta[path]);
+      
+      double pjsum = GSL_NEGINF;
+      // Pfadwahl multinomial probabilities
+      for (int j = 0; j != k; j++) if (j != path) {
+        delta[j] = rt;
+        int ncj = dNDRIN(c, j);
+        for (int in = 0; in != ncj; in++) {
+          int n = dDRIN(c, j, in);
+          int pm = (1 + dAR(c, j, n)) / 2;
+          int ip = dTREE_AND_NODE2PAR(tree, n, 0); as[in] = dTAVW(t, 0, ip);
+          ip = dTREE_AND_NODE2PAR(tree, n, 1); vs[in] = dTAVW(t, 1, ip);
+          ip = dTREE_AND_NODE2PAR(tree, n, 2); ws[in] = dTAVW(t, 2, ip);
+          int help = dTAU_BY_NODE(itrial, n, pm);
+          taus[in] = alltaus[help];
+          delta[j] -= fabs(taus[in]);
+        }
+        pj[j] = fypgtau_and_path(dNDRIN(c, j), as, vs, ws, trmu, tsig, taus, delta[j]);
+      }
+      for (int j = 0; j != k; j++) pjsum = logsum(pjsum, pj[j]);
+      double u = pjsum + log(oneuni(rst));
+      new_path = 0;
+      double temp = pj[new_path];
+      while (u > temp) {
+        new_path++;
+        temp = logsum(temp, pj[new_path]);
+      }
+  
+      if (path != new_path) update_nips(one, path, new_path, nips);
+    }
+    else new_path = 0;
+    path = new_path; rest[itrial] = delta[path];
+    
+    
+    if (as) free(as);
+    if (vs) free(vs);
+    if (ws) free(ws);
+    if (low_or_up) free(low_or_up);
+    if (maps) free(maps);
+    if (taus) free(taus);
+    if (pj) free(pj);
+    if (delta) free(delta);
+  }
+
+}

@@ -406,41 +406,6 @@ fit_ertmpt <- function(model,
   if(exists("transformation")) {
     ertmpt$specs$transformation <- transformation
   }
-					  
-  
-  # # bridge sampling
-  # if (bridge) {
-  #   start <- 1
-  #   end <- Nsamples
-  #   npar <- dim(out$pars_bridge)[2]
-  #   
-  #   data_list <- list(ConstProb = REAL2, dat_mod = CHAR[1:2],
-  #                     numbers = INTEGER[6:7], CatToResp = INTEGER2,
-  #                     tau_minus = BOOL1, tau_plus = BOOL2)
-  #   
-  #   # generate MCMC-list for coda
-  #   dt <- as.data.table(out$pars_bridge)
-  #   out$pars_bridge <- NULL
-  #   vec <- vector("list",Nchains)
-  #   for (i in 1:Nchains) {
-  #     vec[[i]] <- dt[(i-1)*end + start:end]
-  #     vec[[i]] <- as.mcmc(vec[[i]],start=start,end=end,thin=1)
-  #   }
-  #   bridge_samples <- as.mcmc.list(vec,start=start,end=end,thin=1)
-  #   
-  #   rm(vec, dt)
-  #   if (file.exists("./raus_bridge")) file.remove("./raus_bridge")
-  #   bounds <- lower_upper(data_info)
-  #   lb <- bounds$lower
-  #   ub <- bounds$upper
-  #   names(lb) <- names(ub) <- paste0("V", 1:length(lb))
-  #   rtmpt$logml <- try(bridge_sampler(samples = bridge_samples[,-npar],
-  #                                 log_posterior = unnorm_logpost, data = data_list, lb = lb, ub = ub,
-  #                                 repetitions = 1, param_types = rep("real", (npar-1)),
-  #                                 method = "normal", cores = 1, use_neff = TRUE, packages = NULL,
-  #                                 varlist = NULL, envir = .GlobalEnv, rcppFile = NULL,
-  #                                 maxiter = 1000, silent = FALSE, verbose = FALSE))
-  # }
 
   
   # WAIC & LOO
@@ -477,4 +442,446 @@ fit_ertmpt <- function(model,
 
 
 
+#' Fit Diffusion-RT-MPT Models
+#'
+#' Given model and data, this function a Hamiltonian MCMC sampler and stores the samples in an mcmc.list called \code{samples}.
+#'   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
+#'   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list
+#'   called \code{diags}. Optionally, the \code{indices} widely applicable information criterion (WAIC; Watanabe, 2010; Vehtari et al., 2017) and
+#'   leave-one-out cross-validation (LOO; Vehtari et al., 2017) can be saved. Additionally the log-likelihood (\code{LogLik}) can also be stored.
+#'   Some specifications of the function call are also saved in \code{specs}.
+#'
+#' @param model A list of the class \code{drtmpt_model}.
+#' @param data Optimally, a list of class \code{drtmpt_data}. Also possible is a \code{data.frame} or a
+#'   path to the text file. Both, \code{data.frame} and the text file must contain the column names "subj",
+#'   "group", "tree", "cat", and "rt" preferably but not necessarily in this order. The values of the latter must
+#'   be in milliseconds. It is always advised to use \code{\link{to_drtmpt_data}} first, which gives back a
+#'   \code{drtmpt_data} list with information about the changes in the data, that were needed.
+#' @param n.chains Number of chains to use. Default is 4. Must be larger than 1 and smaller or equal to 16.
+#' @param n.iter Number of samples per chain. Default is 1000.
+#' @param n.phase1 Number of samples for phase 1 (adaptation phase). Default is 1000.
+#' @param n.phase2 Number of samples for phase 2. Default is 2000.
+#' @param n.thin Thinning factor. Default is 1.
+#' @param Rhat_max Maximal Potential scale reduction factor: A lower threshold that needs to be reached before the actual sampling starts. Default is 1.05
+#' @param Irep Every \code{Irep} samples an interim state with the current maximal potential scale reduction
+#'   factor is shown. Default is 1000. The following statements must hold true for \code{Irep}:
+#'   \itemize{
+#'     \item \code{n.phase1} is a multiple of {Irep}
+#'     \item \code{n.phase2} is a multiple of {Irep}
+#'     \item \code{n.phase1} is smaller than or equal to \code{n.phase2},
+#'     \item \code{Irep} is a multiple of \code{n.thin} and
+#'     \item \code{n.iter} is a multiple of \code{Irep / n.thin}.
+#'   }
+#' @param prior_params Named list with prior parameters. All parameters have default values, that lead to uninformative priors. Vectors are not allowed.
+#'   Allowed parameters are:
+#'   \itemize{
+#'     \item \code{prec_epsilon}: prior precision for population means of process-related parameters.
+#'       Default is \code{1.0}.
+#'     \item \code{delta_df}: degrees of freedom of t-distribution for motor times. Default is \code{10}.
+#'     \item \code{delta_mu}: mean of t-distribution for motor times. Default is \code{0.5}.
+#'     \item \code{delta_scale}: scale of t-distribution for motor times. Default is \code{1.0}.
+#'     \item \code{SIGMA_Corr_eta}: shape parameter for LKJ distribution for process-related parameters. Default is \code{4.0}.
+#'     \item \code{SIGMA_SD_rho}: scale parameter of half-Cauchy distribution for process-related parameters. Default is \code{2.5}.
+#'     \item \code{GAMMA_Corr_eta}: shape parameter for LKJ distribution for motor-related parameters. Default is \code{4.0}.
+#'     \item \code{GAMMA_SD_rho}: scale parameter of half-Cauchy distribution for motor-related parameters. Default is \code{0.5}.
+#'     \item \code{Omega2_alpha}: shape parameter of gamma distribution for residual variance. Default is \code{0.0025}.
+#'     \item \code{Omega2_beta}: rate parameter of gamma distribution for residual variance. Default is \code{0.5}.
+#'   }
+#' @param flags
+#'   \itemize{
+#'     \item \code{indices} Model selection indices. If set to \code{TRUE} the log-likelihood for each iteration and trial will be
+#'       stored temporarily and with that the WAIC and LOO will be calculated via the \code{loo} package. If you want to have this
+#'       log-likelihood matrix stored in the output of this function, you can set \code{loglik} to \code{TRUE}. Default for
+#'       \code{indices} is \code{FALSE}.
+#'     \item \code{loglik} If set to \code{TRUE} and \code{indices = TRUE} the log-likelihood matrix for each iteration and trial will
+#'       be saved in the output as a matrix. Default is \code{FALSE}.
+#'     \item \code{random_init} If set to \code{TRUE} the initial values are randomly drawn. If \code{FLASE} maximum likelihood is used
+#'       for initial values.
+#'   }
+#' @param control
+#'   \itemize{
+#'     \item \code{maxthreads} for the ML estimation of the initial values and the calculation of the DIC values one can use more than
+#'       \code{n.chains} threads for parallelization. Default is 4 like \code{n.chians}. \code{maxthreads} must be larger or equal to
+#'       \code{n.chains}.
+#'     \item \code{maxtreedepth1_3} maxtree-depth of the no-U-turn algorithm in Phases 1 to 3
+#'     \item \code{maxtreedepth4} maxtree-depth of the no-U-turn algorithm in Phases 4
+#'   }
+#' @param old_label If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list.
+#'   Default is \code{FALSE}.
+#' @return A list of the class \code{drtmpt_fit} containing
+#'   \itemize{
+#'     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
+#'     \item \code{diags}: some diagnostics like deviance information criterion, posterior predictive checks for the frequencies and latencies,
+#'                         potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the group-level parameters,
+#'     \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
+#'     \item \code{indices} (optional): if enabled, WAIC and LOO,
+#'     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO.
+#'     \item \code{summary} includes posterior mean and median of the main parameters.
+#'   }
+#' @references
+#' Klauer, K. C. (2010). Hierarchical multinomial processing tree models: A latent-trait approach. \emph{Psychometrika, 75(1)}, 70-98.
+#'
+#' Spiegelhalter, D. J., Best, N. G., Carlin, B. P., & Van Der Linde, A. (2002). Bayesian measures of model complexity and fit.
+#'   \emph{Journal of the royal statistical society: Series b (statistical methodology), 64(4)}, 583-639.
+#'
+#' Vehtari, A., Gelman, A., & Gabry, J. (2017). Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC.
+#'   \emph{Statistics and Computing, 27(5)}, 1413-1432.
+#'
+#' Watanabe, S. (2010). Asymptotic equivalence of Bayes cross validation and widely applicable information criterion in singular learning theory.
+#'   \emph{Journal of Machine Learning Research, 11(Dec)}, 3571-3594.
+#'
+#' @examples
+#' ####################################################################################
+#' # Detect-Guess variant of the Two-High Threshold model.
+#' # The encoding and motor execution times are assumed to be equal for each response.
+#' ####################################################################################
+#'
+#' mdl_2HTM <- "
+#' # targets
+#' do+(1-do)*g
+#' (1-do)*(1-g)
+#'
+#' # lures
+#' (1-dn)*g
+#' dn+(1-dn)*(1-g)
+#'
+#' # do: detect old; dn: detect new; g: guess
+#' "
+#'
+#' model <- to_drtmpt_model(mdl_file = mdl_2HTM)
+#'
+#' data_file <- system.file("extdata/data.txt", package="drtmpt")
+#' data <- read.table(file = data_file, header = TRUE)
+#' data_list <- to_drtmpt_data(raw_data = data, model = model)
+#' \donttest{
+#' # This might take some time
+#' drtmpt_out <- fit_drtmpt(model = model, data = data_list, Rhat_max = 1.1)
+#' drtmpt_out
+#' }
+#' @author Raphael Hartmann
+#' @useDynLib "rtmpt", .registration=TRUE
+#' @export
+#' @importFrom coda as.mcmc as.mcmc.list "varnames<-" gelman.diag
+#' @importFrom data.table as.data.table fread
+#' @importFrom loo loo waic relative_eff
+#' @importFrom methods as callGeneric new
+#' @importFrom stats runif
+#' @importFrom utils read.table write.table
+#' @importFrom stringr str_split str_detect str_c str_replace
+#' @importFrom methods is
+fit_drtmpt <- function(model,
+                       data,
+                       n.chains = 4,
+                       n.iter = 1000,
+                       n.phase1 = 1000,
+                       n.phase2 = 2000,
+                       n.thin = 1,
+                       Rhat_max = 1.1,
+                       Irep = 1000,
+                       prior_params = list(prec_epsilon = 1.0,
+                                           delta_df = 10,
+                                           delta_mu = 0.5,
+                                           delta_scale = 1.0,
+                                           SIGMA_Corr_eta = 4.0,
+                                           SIGMA_SD_rho = 2.5,
+                                           GAMMA_Corr_eta = 4.0,
+                                           GAMMA_SD_rho = 0.5,
+                                           Omega2_alpha = 0.0025,
+                                           Omega2_beta = 0.5),
+                       flags = list(indices = FALSE,
+                                    loglik = FALSE,
+                                    random_init = FALSE),
+                       control = list(maxthreads = 4,
+                                      maxtreedepth1_3 = 5,
+                                      maxtreedepth4 = 9),
+                       old_label = FALSE) {
+  
+  
+  # CHECKS
+  model_elmnts <- c("lines", "params", "responses")
+  if (!is.list(model)) stop("\"model\" must be a list.")
+  if (!all(model_elmnts  %in% names(model))) stop("\"model\" must contain \"", model_elmnts[which(!(model_elmnts %in% names(model)))[1]], "\".")
+  
+  if (n.chains < 2 || n.chains > 16) stop("\"n.chains\" must be larger than 1 and lower or equal to 16.")
+  
+  if (Irep < 1) stop("\"Irep\" must be larger than or equal to one.")
+  if (n.thin < 1) stop("\"n.thin\" must be larger than or equal to one.")
+  
+  if (n.phase1 %% Irep) stop("\"n.phase1\" must be a multiple of \"Irep\".")
+  if (n.phase2 %% Irep) stop("\"n.phase2\" must be a multiple of \"Irep\".")
+  if (n.phase1 > n.phase2) stop("\"n.phase2\" must be larger or equal to \"n.phase1\".")
+  
+  if (Irep %% n.thin != 0) stop("\"Irep\" must be a multiple of \"n.thin\".")
+  if (n.iter %% (Irep/n.thin) != 0) stop("\"n.iter\" must be a multiple of \"Irep\" / \"n.thin\".")
+  if (n.iter < Irep/n.thin) stop("\"n.iter\" must be greater or equal to \"Irep\" / \"n.thin\" = ", Irep*n.thin, ".")
+  
+  if (Rhat_max < 1) stop("\"Rhat_max\" must be larger than or equal to one.")
+  
+  if (!is.null(prior_params) && !is.list(prior_params)) stop("\"prior_params\" must be a list.")
+  
+  if (!is.logical(flags$indices)) stop("\"flags$indices\" must either be TRUE or FALSE.")
+  if (!is.logical(flags$loglik)) stop("\"flags$loglik\" must either be TRUE or FALSE.")
+  if (!is.logical(flags$random_init)) stop("\"flags$random_init\" must either be TRUE or FALSE.")
+  
+  
+  
+  # PREPARE DATA
+  keep_data_path <- FALSE
+  if (is.data.frame(data)) {
+    temp_data <- to_drtmpt_data(data, model)
+    data_frame <- temp_data$data
+    if("transformation" %in% names(temp_data)) {
+      transformation <- temp_data$transformation
+    } else transformation <- list()
+  } else if (is.character(data)) {
+    temp_data <- to_drtmpt_data(read.table(file = data, header = TRUE), model)
+    data_frame <- temp_data$data
+    if("transformation" %in% names(temp_data)) {
+      transformation <- temp_data$transformation
+    } else transformation <- list()
+    keep_data_path <- TRUE
+  } else if (inherits(data, "drtmpt_data")) {
+    data_frame <- data$data
+    if("transformation" %in% names(data)) {
+      transformation <- data$transformation
+    } else transformation <- list()
+  }
+  rm(data); gc()
+  
+  data_elmnts <- c("subj", "group", "tree", "cat", "rt")
+  if (!all(data_elmnts %in% names(data_frame))) stop("\"data\" must contain \"", data_elmnts[which(!(data_elmnts %in% names(data_frame)))[1]], "\".")
+  if (!all(data_elmnts == names(data_frame))) {
+    df <- data_frame
+    data_frame <- df[,match(data_elmnts, names(data_frame))]
+  }
+  if (any(is.na(data_frame)) || min(data_frame) < 0) stop("All values in \"data\" need to be larger than or equal to zero and must not be NA.")
+  if (max(data_frame[,1]+1) != length(unique(data_frame[,1]))) stop("\"max(data$subj+1)\" must equal \"length(unique(data$subj))\". You might want to use to_rtmpt_data().")
+  if (max(data_frame[,2]+1) != length(unique(data_frame[,2]))) stop("\"max(data$group+1)\" must equal \"length(unique(data$group))\". You might want to use to_rtmpt_data().")
+  if (max(data_frame[,3]+1) != length(unique(data_frame[,3]))) stop("\"max(data$tree+1)\" must equal \"length(unique(data$tree))\". You might want to use to_rtmpt_data().")
+  if (max(data_frame[,4]+1) != length(unique(data_frame[,4]))) stop("\"max(data$cat+1)\" must equal \"length(unique(data$cat))\". You might want to use to_rtmpt_data().")
+  
+  
+  # PREPARE PATHS
+  # Inputs
+  model_path <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".info"))
+  mdl_path <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".txt"))
+  data_path <- gsub("\\\\", "/", tempfile(pattern = "data", tmpdir = tempdir(), fileext = ".txt"))
+  write.table(x = data_frame, file = data_path, sep = " ", row.names = FALSE, col.names = TRUE)
+  # Outputs
+  raus_path <- gsub("\\\\", "/", tempfile(pattern = "raus", tmpdir = tempdir(), fileext = ".out"))
+  ll_path <- gsub("\\\\", "/", tempfile(pattern = "loglik", tmpdir = tempdir(), fileext = ".out"))
+  cont_path <- gsub("\\\\", "/", tempfile(pattern = "continue", tmpdir = tempdir(), fileext = ".out"))
+  means_path <- gsub("\\\\", "/", tempfile(pattern = "means", tmpdir = tempdir(), fileext = ".out"))
+  tests_path <- gsub("\\\\", "/", tempfile(pattern = "tests", tmpdir = tempdir(), fileext = ".out"))
+  rand_path <- gsub("\\\\", "/", tempfile(pattern = "random", tmpdir = tempdir(), fileext = ".out"))
+  
+  
+  # PREPARE INFOFILE
+  infofile <- try(get_infofile(model, mdl_txt = mdl_path, mdl_info = model_path))
+  if(is(infofile, "try-error")) stop("problem with S4 routines in makin infofile.\n")
+  
+  
+  # Prior Parameter
+  prior_names <- c("prec_epsilon", "delta_df", "delta_mu", "delta_scale",
+                   "SIGMA_Corr_eta", "SIGMA_SD_rho", "GAMMA_Corr_eta", "GAMMA_SD_rho",
+                   "Omega2_alpha", "Omega2_beta")
+  if (is.null(prior_params)) prior_params <- list()
+  if (!("prec_epsilon" %in% names(prior_params))) prior_params$prec_epsilon <- 1.0
+  if (!("delta_df" %in% names(prior_params))) prior_params$delta_df <- 10
+  if (!("delta_mu" %in% names(prior_params))) prior_params$delta_mu <- 0.5
+  if (!("delta_scale" %in% names(prior_params))) prior_params$delta_scale <- 1.0
+  if (!("SIGMA_Corr_eta" %in% names(prior_params))) prior_params$SIGMA_Corr_eta <- 4.0
+  if (!("SIGMA_SD_rho" %in% names(prior_params))) prior_params$SIGMA_SD_rho <- 2.5
+  if (!("GAMMA_Corr_eta" %in% names(prior_params))) prior_params$GAMMA_Corr_eta <- 4.0
+  if (!("GAMMA_SD_rho" %in% names(prior_params))) prior_params$GAMMA_SD_rho <- 0.5
+  if (!("Omega2_alpha" %in% names(prior_params))) prior_params$Omega2_alpha <- 0.0025
+  if (!("Omega2_beta" %in% names(prior_params))) prior_params$Omega2_beta <- 0.5
+  if (!is.numeric(unlist(prior_params))) stop("prior_params must be a list of numerics and integer")
+  if (prior_params$delta_df %% 1 != 0) stop("delta_df must be an integer")
+  
+  
+  # PROCESS NAMES AND NUMBER
+  proc_names <- names(model$params$threshold)
+  nprocs <- length(proc_names)
+  
+  
+  # KERN2FREE
+  K2F <- integer(3*nprocs)
+  cntk2f <- integer(3)
+  consts <- rep(NaN, 3*nprocs)
+  comp <- rep(FALSE, 3*nprocs)
+  cntcomp <- integer(3)
+  for (i in 1:3) {
+    cntk2f[i] <- 0
+    for (j in 1:nprocs) {
+      tmp <- NULL
+      if (i == 1) {
+        tmp <- model$params$threshold[1, j]
+      } else if (i == 2) {
+        tmp <- model$params$driftrate[1, j]
+      } else if (i == 3) {
+        tmp <- model$params$startpoint[1, j]
+      }
+      
+      ind <- (i-1)*nprocs+j
+      if(is.na(tmp) | is.numeric(tmp)) {
+        K2F[ind] <- cntk2f[i]
+        cntk2f[i] <- cntk2f[i] + 1
+        if (is.na(tmp)) {
+          comp[(cntk2f[i]-1)*3 + i] <- TRUE
+        }
+        if (is.numeric(tmp)) {
+          consts[(cntk2f[i]-1)*3 + i] <- tmp
+        }
+      } else if(tmp %in% proc_names) {
+        K2F[ind] <- K2F[which(proc_names == as.character(tmp)) + (i>=2)*nprocs + (i==3)*nprocs]
+      }
+    }
+  }
+  
+  
+  # PATHS ARGUMENT
+  CHAR1 <- as.character(c(Data = data_path,
+                          Model = infofile,
+                          Raus = raus_path,
+                          LogLik = ll_path,
+                          Continue = cont_path,
+                          Means = means_path,
+                          Tests = tests_path,
+                          Random = rand_path,
+                          tmpdir = paste0(tempdir(), "/")))
+  
+  
+  # MCMC SETTINGS ARGUMENT
+  INTEGER1 <- as.integer(c(IREP = Irep,
+                           PHASE1 = n.phase1,
+                           PHASE2 = n.phase2,
+                           THIN = n.thin,
+                           NOTHREADS = n.chains,
+                           SAMPLE_SIZE = n.chains*n.iter,
+                           MAXTHREADS = control$maxthreads,
+                           kernpar = nprocs,
+                           respno = length(unique(model$responses$MAP)),
+                           cat2resp = model$responses$MAP))
+  REAL1 <- c(Rhat_max = Rhat_max)
+  
+  
+  # FLAGS ARGUMENT
+  BOOL1 <- as.integer(c(DIC_FL = flags$indices,
+                        LOG_LIK_FL = flags$loglik,
+                        ML_INIT_FL = !flags$random_init))
+  
+  
+  # PRIORS ARGUMENT
+  INTEGER2 <- as.integer(c(degf = prior_params$delta_df))
+  REAL2 <- c(PRIOR = prior_params$prec_epsilon,
+             etat = prior_params$SIGMA_Corr_eta,
+             taut = prior_params$SIGMA_SD_rho,
+             etar = prior_params$GAMMA_Corr_eta,
+             taur = prior_params$GAMMA_SD_rho,
+             mu_prior = prior_params$delta_mu,
+             rsd = prior_params$delta_scale,
+             prioralpha = prior_params$Omega2_alpha,
+             priorbeta = prior_params$Omega2_beta)
+  
+  
+  # HMC OPTIONS ARGUMENT
+  INTEGER3 <- as.integer(c(maxtreedepth1_3 = control$maxtreedepth1_3,
+                           maxtreedepth4 = control$maxtreedepth4))
+  
+  
+  # CONTINUATION ARGUMENT
+  INTEGER4 <- as.integer(c(goon = FALSE,
+                           ADDITION = 0))
+  
+  
+  # CONSTANTS AND EQUALIZATION
+  INTEGER5 <- as.integer(c(kern2free = K2F,
+                           comp = comp,
+                           ifree = cntk2f))
+  REAL3 <- c(consts = consts)
+  
+  
+  # C++ FUNCTION DRTMPT CALL
+  out <- .Call("drtmpt_fit", CHAR1, INTEGER1, REAL1, BOOL1,
+               INTEGER2, REAL2,
+               INTEGER3, INTEGER4,
+               REAL3, INTEGER5)
+  file.remove(data_path)
+  
+  
+  # DATA INFORMATION
+  data_info <- list(Nsubj = length(unique(data_frame[,1])),
+                    Ngroups = length(unique(data_frame[,2])),
+                    Nthreshold = sum(is.na(model$params$threshold[1,])),
+                    Ndriftrate = sum(is.na(model$params$driftrate[1,])),
+                    Nstartpoint = sum(is.na(model$params$startpoint[1,])),
+                    Nresps = length(unique(model$responses$MAP)),
+                    thresh_string = names(model$params$threshold[which(is.na(model$params$threshold[1,]))]),
+                    drift_string = names(model$params$driftrate[which(is.na(model$params$driftrate[1,]))]),
+                    start_string = names(model$params$startpoint[which(is.na(model$params$startpoint[1,]))]),
+                    transformation = transformation)
+  
+  
+  # PREPARE OUTPUT LIST
+  drtmpt <- list()
+  drtmpt$samples <- make_mcmc_list_d(file = raus_path, infofile = infofile,
+                                     Nchains = n.chains, Nsamples = n.iter,
+                                     data_info = data_info, keep = old_label)
+  file.remove(raus_path)
+  
+  
+  # DIAGNOSTICS
+  drtmpt$diags <- NULL
+  
+  
+  # SPECS
+  infos <- readinfofile(infofile)
+  drtmpt$specs <- list(model = model, n.chains = n.chains, n.iter = n.iter, n.phase1 = n.phase1, n.phase2 = n.phase2,
+                       n.thin = n.thin, n.groups = data_info$Ngroups, n.subj = data_info$Nsubj, Irep = Irep,
+                       Rhat_max = Rhat_max, prior_params = prior_params, infolist = infos, call = match.call())
+  if(exists("transformation")) {
+    drtmpt$specs$transformation <- transformation
+  }
+  
+  
+  # COMPUTE WAIC AND LOO-IC
+  if (flags$indices) {
+    if (file.exists(ll_path)) {
+      if (flags$indices) {
+        suppressWarnings( temp <- get_indices(log_lik = ll_path, Nchains = n.chains, Nsample = n.iter, df = data_frame) )
+        drtmpt$indices <- list(WAIC = temp$WAIC, LOO = temp$LOO)
+        if (flags$loglik) drtmpt$LogLik <- temp$LogLik
+        rm(temp)
+      }
+      file.remove(ll_path)
+    }
+  }
+  
+  
+  # CONTINUATION
+  if (FALSE) {
+    drtmpt$continue <- readLines(con = cont_path)
+  }
+  file.remove(cont_path)
+  
+  
+  # SUMMARY
+  drtmpt$summary <- NULL
+  
+  
+  # CLEAN-UP
+  file.remove(means_path)
+  file.remove(tests_path)
+  file.remove(rand_path)
+  file.remove(infofile)
+  file.remove(mdl_path)
+  
+  
+  # OUTPUT
+  class(drtmpt) <- "drtmpt_fit"
+  gc()
+  return(drtmpt)
+  
+}
 

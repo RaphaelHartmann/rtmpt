@@ -5,19 +5,6 @@ extern "C" {
 #include "recurse.h"
 }
 
-double onenorm(gsl_rng *rst) {
-  return gsl_ran_ugaussian(rst);
-}
-
-double truncnorm(double b, gsl_rng *rst) {
-  double temp;
-  if (b >= 0.0) {
-    do  temp = onenorm(rst);  while (temp < -b);
-    temp += b;
-  }
-  else temp = gsl_ran_ugaussian_tail(rst, -b) + b;
-  return temp;
-}
 
 namespace ertmpt {
   

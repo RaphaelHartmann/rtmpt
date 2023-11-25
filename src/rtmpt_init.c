@@ -9,9 +9,11 @@
 
 /* .Call calls */
 extern SEXP ertmpt_fit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP drtmpt_fit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"ertmpt_fit", (DL_FUNC) &ertmpt_fit, 12},
+    {"drtmpt_fit", (DL_FUNC) &drtmpt_fit, 10},
     {NULL, NULL, 0}
 };
 
