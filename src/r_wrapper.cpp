@@ -7,16 +7,14 @@
 
 
 const char *MODEL;
-const char *DATA;
-int nKERN;
-int nRESP;
-int *CatToResp = 0;
+
 
 namespace ertmpt {
 
 	int log_lik_flag;
 	int for_bridge_flag;
 
+	const char *DATA;
 	const char *RAUS;
 	const char *diagn_tests;
 	const char *LOGLIK;
@@ -26,6 +24,10 @@ namespace ertmpt {
 	int THIN;
 	int SAMPLE_SIZE;
 	int IREP;
+
+	int nKERN;
+	int nRESP;
+	int *CatToResp = 0;
 
 	double *ConstProb = 0;
 	int *CompMinus = 0;
@@ -56,6 +58,7 @@ namespace ertmpt {
 
 namespace drtmpt {
 
+  const char *DATA;
   const char *RAUS;
   const char *LOGLIK;
   const char *CONTINUE;
@@ -276,13 +279,7 @@ extern "C" {
     NOTHREADS = INTEGER(in1)[4];
     SAMPLE_SIZE = INTEGER(in1)[5];//2 * NOTHREADS * IREP;
     MAXTHREADS = INTEGER(in1)[6];
-    nKERN = INTEGER(in1)[7];
-    nRESP = INTEGER(in1)[8];
-    
-    CatToResp = (int *)calloc(nKERN, sizeof(int));
-    for (int i = 0; i < nKERN; i++) {
-      CatToResp[i] = INTEGER(in1)[9+i];
-    }
+    int nKERN = INTEGER(in1)[7];
     
     RMAX = REAL(re1)[0];
     
@@ -342,7 +339,6 @@ extern "C" {
     if (kern2free) free(kern2free);
     if (consts) free(consts);
     if (comp) free(comp);
-    if (CatToResp) free(CatToResp);
     
     
     UNPROTECT(tmp_cnt);

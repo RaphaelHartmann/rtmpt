@@ -5,9 +5,9 @@
 \alias{set_taus_equal}
 \title{Set process completion times equal}
 \usage{
-tau2tau(model, names, keep_zeros = FALSE)
+tau2tau(model, names, outcome, keep_zeros = FALSE)
 
-set_taus_equal(model, names, keep_zeros = FALSE)
+set_taus_equal(model, names, outcome, keep_zeros = FALSE)
 }
 \arguments{
 \item{model}{A list of the class \code{ertmpt_model}.}
@@ -15,6 +15,15 @@ set_taus_equal(model, names, keep_zeros = FALSE)
 \item{names}{Character vector giving the names of the processes for which the process completion times should be equal. If 
 \code{length(names) = 1} then the corresponding process completion times (for negative and positive outcomes) will be 
 estimates (i.e., they will be set to NA)}
+
+\item{outcome}{Character (no vector) indicating for which process outcome the process completion times should 
+be set equal. Allowed characters are:
+\itemize{
+ \item \code{"minus"}: the negative outcome of the processes.
+ \item \code{"plus"}: the positive outcome of the processes.
+ \item \code{"both"}: the negative and positive outcome of the processes. This will set all process completion times for
+   the "minus" outcome equal and all process completion times for the "plus" outcome equal.
+}}
 
 \item{keep_zeros}{Can be one of the following
 \itemize{
@@ -62,12 +71,12 @@ dn+(1-dn)*(1-g)
 model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 
 ## make do = dn
-new_model <- tau2tau(model = model, names = c("do", "dn"))
+new_model <- tau2tau(model = model, names = c("do", "dn"), outcome = "both")
 new_model
 
 
 ## make do = dn
-new_model <- set_taus_equal(model = model, names = c("do", "dn"))
+new_model <- set_taus_equal(model = model, names = c("do", "dn"), outcome = "both")
 new_model
 }
 \seealso{

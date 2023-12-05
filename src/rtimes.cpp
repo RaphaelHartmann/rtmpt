@@ -231,10 +231,6 @@ namespace ertmpt {
 
 
 
-
-
-
-
 	void make_rmu(std::vector<trial> daten, double* factor, double *rest, double *restpar, double *slams, gsl_rng *rst) {
 
 		int no_trials = static_cast<int>(daten.size()); double sig_prior = pr_var_mu_gamma;//1.0 / 0.1;

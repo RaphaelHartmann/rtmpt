@@ -7,6 +7,10 @@ pkgs.mkShell {
     rstudioEnv
     gsl
     git
+    rPackages.rmarkdown
+    rPackages.ggdist
+    rPackages.hypergeo
+    pandoc
     # ... any other dependencies
   ];
 

@@ -146,7 +146,7 @@ namespace drtmpt {
       int schrott;
       std::ifstream info(MODEL); for (int j = 0; j != 5 + kerncat; j++) info >> schrott;
       for (int j = 0; j != kerncat; j++) info >> branch[j];
-      for (int j = 0; j != kerncat; j++) Rprintf("%3d", branch[j]);
+      if (DEBUG) for (int j = 0; j != kerncat; j++) Rprintf("%3d", branch[j]);
       
       
       for (int it = 0; it != kerntree; it++) for (int in = 0; in != nodemax; in++) {

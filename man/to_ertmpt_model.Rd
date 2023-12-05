@@ -50,11 +50,8 @@ dn+(1-dn)*(1-g) ; 1
 # do: detect old; dn: detect new; g: guess
 
 # OPTIONAL MPT CONSTRAINTS
-#   set probabilities to constants:
-const_prob: g=0.5
-
-#   suppress process times:
-suppress_process: dn-, do-
+# for constant thetas and suppressed taus
+# please use theta2cons() and tau2
 "
 
 model <- to_ertmpt_model(mdl_file = mdl_2HTM)
@@ -73,11 +70,8 @@ eqn_2HTM <- "
      1 ;   3 ; (1-dn)*(1-g)
 
 # OPTIONAL MPT CONSTRAINTS
-#   set probabilities to constants:
-const_prob: g=0.5
-
-#   suppress process times:
-suppress_process: dn-, do-
+# for constant thetas and suppressed taus
+# please use theta2cons() and tau2
 
 #     tree ; cat ;  MAP
 resp:    0 ;   0 ;    0

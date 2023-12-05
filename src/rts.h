@@ -39,14 +39,6 @@
 
 //model file path
 extern const char *MODEL;
-// data file path
-extern const char *DATA;
-//number of groups
-extern int igroup;
-//maps categories on responses
-extern int *cat2resp;
-//number of responses
-extern int respno;
 //number of categories
 extern int kerncat;
 //total number of trials
@@ -64,15 +56,20 @@ extern int indi;
 //index of group by person
 extern int *t2group;
 
-extern int nKERN;
-extern int nRESP;
-extern int *CatToResp;
-
 //trial information inputted
 struct trial {
   int person, tree, category, item, group, rt;
 };
 
+extern const char *MODEL;
+extern int kernpar;
+extern int zweig;
+extern int nodemax;
+extern int kerncat;
+extern int datenzahl;
+extern int* ng;
+extern int indi;
+extern int *t2group;
 
 #define T_rng gsl_rng_ranlxd1
 //for lnnorm.cpp
@@ -82,90 +79,6 @@ struct trial {
 #define M_PISQ 9.86960440108935861883449099987615113531
 #define  accuracy -27.63102
 #define sqr2pi 2.506628274631000502415765e0
-
-#define DEBUG false
-
-
-// EXPONENTIAL macros
-
-#define AR(I,J,K) ar[(I)*zweig*nodemax + J*nodemax + K]
-#define TREE_AND_NODE2PAR(I,J) tree_and_node2par[(I)*nodemax+(J)]
-#define DRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
-#define NDRIN(J,K) ndrin[J*zweig+K]
-
-
-// DIFFUSION macros
-
-//how many categories in each subtree
-#define dNKS(T,IT) nks[T*kerntree+IT]
-//branch probabilities
-#define dPIJ(I,J) pij[I*zweig+J]
-//from tree it and category j within subtree to category number
-#define dTREE2CAT(IT,J) tree2cat[IT*kerncat+J]
-//population means of diffusion parameters (on real line)
-#define dMAVW(IG, Type, IP) mavw[IG * 3 * ifreemax + Type * ifreemax + IP]
-//index in hampar
-#define dmapMAVW(IG, Type, IP) mapmavw[IG * 3 * ifreemax + Type * ifreemax + IP]
-//individual deviations of diffusion parameters (on real line)
-#define dAVW(T, Type, IP) avw[T * 3 * ifreemax + Type * ifreemax + IP]
-//index in hampar
-#define dmapAVW(T, Type, IP) mapavw[T * 3 * ifreemax + Type * ifreemax + IP]
-//transformed individual diffusion parameters after logistic transformation of model parameters
-#define dTAVW(T, Type, IP) tavw[T * 3 * ifreemax + Type * ifreemax + IP]
-//components for computing r statistics
-#define dXWBR(T,I) xwbr[(T-1)*n_all_parameters+I]
-#define dPARMON(I,J) parmon[(I-1)*n_all_parameters+J]
-//is node R in path J ending in category I (=1 outcome +; = -1 outcome -) or not = 0?
-#define dAR(I,J,R) ar[I*zweig*nodemax + J*nodemax + R]
-//how many interior nodes in path K ending in category J
-#define dNDRIN(J,K) ndrin[J*zweig+K]
-//index of node no. X in path K ending in category J
-#define dDRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
-//how many interior edges (n,o) on paths to category C
-#define dNCDRIN(C) ncdrin[C]
-//index of node (PM=0) and output (PM=1) on INth edge on paths to C)
-#define dCDRIN(C,IN,PM) cdrin[C*2*(nodemax*2) +IN*2 + PM]
-//diffusion-model parameters attachted to nodes
-#define dTREE_AND_NODE2PAR(T,N,Type) tree_and_node2par[(T)*nodemax*3+(N)*3+Type]
-//index of combination of diffusion-model parameter attached to node
-#define dTREE_AND_NODE2MAP(T, N) tree_and_node2map[(T)*nodemax + (N)]
-//how many nodes with parameter-combination J for person I
-#define dNNODES(I,J) nnodes[I*no_patterns+J]
-//index of process-completion time of trial X, node N, outcome PM
-#define dTAU_BY_NODE(X,N,PM) tau_by_node[X*2*nodemax+N*2 + PM]
-//frequency data for person T by category I
-#define dIDATEN(T,I) idaten[T*kerncat + I]
-//derivatives of log-likelihood according to population-mean diffusion-model parameters
-#define dDHWIEN(IG,Type,IP) dhwien[(IG) * 3 * ifreemax + (Type) * ifreemax + IP]
-//derivatives for personwise deviations
-#define dDWIEN(T,Type,IP) dwien[(T) * 3 * ifreemax + (Type) * ifreemax + IP]
-//how many diffusion-model combinations M occur in trials for person T outside this person's current paths
-#define dNIPS(T,PM,M) nips[T*2*no_patterns  + PM*no_patterns + M]
-//inverse of personwise variance/covariance matrix diffusion-model parameters
-#define dSIGI(I,J) sigi[I*icompg + J]
-//inverse of personwise variance/covarince matrix motor-time times
-#define dGAMI(I,J) gami[I*respno + J]
-//personwise variance/covariance matrix diffusion-model parameters
-#define dSIG(I,J) sig[I*icompg + J]
-//personwise variance/covariance matrix motor times
-#define dGAM(I,J) gam[I*respno + J]
-//index of parameter (type,ipar) on scale from 1 to ifreeg; encodes parameters set equal
-#define dKERN2FREE(Type,Ipar) kern2free[Type*kernpar + Ipar]
-//index of parameter (type,ipar) on scale from 1 to icompg (=-1 for constant parameters)
-#define dFREE2COMP(Type,Ipar) free2comp[Type*kernpar + Ipar]
-//constant parameter values
-#define dCONSTS(Type,IP) consts[IP*3 + Type]
-//is parameter constant (=false) or not (=true)
-#define dCOMP(Type,IP) comp[IP*3 + Type]
-//map parameter combination on index
-#define dMAP(IA,IV,IW) map[IA*ifree[1]*ifree[2] + IV*ifree[2] + IW]
-//index of parameter combination N's ifree numbers by type
-#define dCOMB(N,TYPE) comb[N*3 + TYPE]
-//store posterior samples
-#define dSAMPLE(I,IP) sample[(I)*(n_all_parameters)+IP]
-//posterior sample variance-covariance interim results per thread
-#define dSUPERSIG(ITHREAD,I,J) supersig[ITHREAD * n_all_parameters * n_all_parameters  + I * n_all_parameters + J]
-
 
 
 namespace ertmpt {
@@ -190,6 +103,8 @@ namespace ertmpt {
   const bool generate_or_diagnose = false;
   const bool save_diagnose=true;
   #endif
+  
+  #define DEBUG false
   
   //#define PRIOR 1.00
   
@@ -220,6 +135,7 @@ namespace ertmpt {
   extern int log_lik_flag;
   extern int for_bridge_flag;
   
+  extern const char *DATA;
   extern const char *RAUS;
   extern const char *diagn_tests;
   extern const char *LOGLIK;
@@ -230,6 +146,11 @@ namespace ertmpt {
   extern int NOTHREADS;
   extern int SAMPLE_SIZE;
   extern double RMAX;
+  
+  extern int nKERN;
+  extern int nRESP;
+  
+  extern int *CatToResp;
   
   extern double *ConstProb;
   extern int *CompMinus;
@@ -256,7 +177,10 @@ namespace ertmpt {
   extern int RMAX_reached;
   extern bool BURNIN_flag;
   
+  extern int igroup;
   extern int ireps;
+  extern int *cat2resp;
+  extern int respno;
   extern int alphaoff;
   extern int sigalphaoff;
   extern int restparsno;
@@ -313,6 +237,8 @@ namespace ertmpt {
   int make_path_for_one_trial(int branchno, double *pij, double p, gsl_rng *rst);
   
   double oneexp(double lambda, gsl_rng *rst);
+  
+  void lies(std::vector<trial> &daten);
   
   void model_design(int kerntree,int *ar, int *branch, int *nodes_per_par, int *nodes_per_tree, int *tree_and_node2par);
   
@@ -387,6 +313,8 @@ namespace drtmpt {
   #endif
    */
   
+  // data file path
+  extern const char *DATA;
   // output file path
   extern const char *RAUS;
   //input file path for last sample for restarting sampling
@@ -409,6 +337,7 @@ namespace drtmpt {
   extern int INITIALIZE;
   //CPUs to be used if INITIALIZE = 1
   extern int INIT_CPUs;
+  
   
   
   //prior precision for population means of process-related parameters
@@ -465,7 +394,95 @@ namespace drtmpt {
   
   extern int RMAX_reached;
   
-
+  //how many categories in each subtree
+  #define dNKS(T,IT) nks[T*kerntree+IT]
+  //branch probabilities
+  #define dPIJ(I,J) pij[I*zweig+J]
+  //from tree it and category j within subtree to category number
+  #define dTREE2CAT(IT,J) tree2cat[IT*kerncat+J]
+  
+  //population means of diffusion parameters (on real line)
+  #define dMAVW(IG, Type, IP) mavw[IG * 3 * ifreemax + Type * ifreemax + IP]
+  //index in hampar
+  #define dmapMAVW(IG, Type, IP) mapmavw[IG * 3 * ifreemax + Type * ifreemax + IP]
+  
+  //individual deviations of diffusion parameters (on real line)
+  #define dAVW(T, Type, IP) avw[T * 3 * ifreemax + Type * ifreemax + IP]
+  //index in hampar
+  #define dmapAVW(T, Type, IP) mapavw[T * 3 * ifreemax + Type * ifreemax + IP]
+  //transformed individual diffusion parameters after logistic transformation of model parameters
+  #define dTAVW(T, Type, IP) tavw[T * 3 * ifreemax + Type * ifreemax + IP]
+  
+  //components for computing r statistics
+  #define dXWBR(T,I) xwbr[(T-1)*n_all_parameters+I]
+  #define dPARMON(I,J) parmon[(I-1)*n_all_parameters+J]
+  
+  //is node R in path J ending in category I (=1 outcome +; = -1 outcome -) or not = 0?
+  #define dAR(I,J,R) ar[I*zweig*nodemax + J*nodemax + R]
+  //how many interior nodes in path K ending in category J
+  #define dNDRIN(J,K) ndrin[J*zweig+K]
+  //index of node no. X in path K ending in category J
+  #define dDRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
+  //how many interior edges (n,o) on paths to category C
+  #define dNCDRIN(C) ncdrin[C]
+  //index of node (PM=0) and output (PM=1) on INth edge on paths to C)
+  #define dCDRIN(C,IN,PM) cdrin[C*2*(nodemax*2) +IN*2 + PM]
+  
+  //diffusion-model parameters attachted to nodes
+  #define dTREE_AND_NODE2PAR(T,N,Type) tree_and_node2par[(T)*nodemax*3+(N)*3+Type]
+  //index of combination of diffusion-model parameter attached to node
+  #define dTREE_AND_NODE2MAP(T, N) tree_and_node2map[(T)*nodemax + (N)]
+  
+  //how many nodes with parameter-combination J for person I
+  #define dNNODES(I,J) nnodes[I*no_patterns+J]
+  
+  //index of process-completion time of trial X, node N, outcome PM
+  #define dTAU_BY_NODE(X,N,PM) tau_by_node[X*2*nodemax+N*2 + PM]
+  
+  //frequency data for person T by category I
+  #define dIDATEN(T,I) idaten[T*kerncat + I]
+  
+  //derivatives of log-likelihood according to population-mean diffusion-model parameters
+  #define dDHWIEN(IG,Type,IP) dhwien[(IG) * 3 * ifreemax + (Type) * ifreemax + IP]
+  //derivatives for personwise deviations
+  #define dDWIEN(T,Type,IP) dwien[(T) * 3 * ifreemax + (Type) * ifreemax + IP]
+  
+  //how many diffusion-model combinations M occur in trials for person T outside this person's current paths
+  #define dNIPS(T,PM,M) nips[T*2*no_patterns  + PM*no_patterns + M]
+  
+  //inverse of personwise variance/covariance matrix diffusion-model parameters
+  #define dSIGI(I,J) sigi[I*icompg + J]
+  //inverse of personwise variance/covarince matrix motor-time times
+  #define dGAMI(I,J) gami[I*respno + J]
+  //personwise variance/covariance matrix diffusion-model parameters
+  #define dSIG(I,J) sig[I*icompg + J]
+  //personwise variance/covariance matrix motor times
+  #define dGAM(I,J) gam[I*respno + J]
+  
+  //index of parameter (type,ipar) on scale from 1 to ifreeg; encodes parameters set equal
+  #define dKERN2FREE(Type,Ipar) kern2free[Type*kernpar + Ipar]
+  //index of parameter (type,ipar) on scale from 1 to icompg (=-1 for constant parameters)
+  #define dFREE2COMP(Type,Ipar) free2comp[Type*kernpar + Ipar]
+  
+  //constant parameter values
+  #define dCONSTS(Type,IP) consts[IP*3 + Type]
+  //is parameter constant (=false) or not (=true)
+  #define dCOMP(Type,IP) comp[IP*3 + Type]
+  
+  //some performance statistics
+  //#define MONITOR(I,IP) monitor[I*2*10 + IP]
+  
+  //map parameter combination on index
+  #define dMAP(IA,IV,IW) map[IA*ifree[1]*ifree[2] + IV*ifree[2] + IW]
+  //index of parameter combination N's ifree numbers by type
+  #define dCOMB(N,TYPE) comb[N*3 + TYPE]
+  
+  //store posterior samples
+  #define dSAMPLE(I,IP) sample[(I)*(n_all_parameters)+IP]
+  
+  //posterior sample variance-covariance interim results per thread
+  #define dSUPERSIG(ITHREAD,I,J) supersig[ITHREAD * n_all_parameters * n_all_parameters  + I * n_all_parameters + J]
+  
   //points stored for adaptive rejection sampler
   struct point {
     double x;
@@ -587,8 +604,14 @@ namespace drtmpt {
   extern int *nppr;
   //see above under define TAU_BY_NODE
   extern int* tau_by_node;
+  //number of groups
+  extern int igroup;
   //minimum size of Gibbs-Hamiltonian cycles before interim report
   extern int ireps;
+  //maps categories on responses
+  extern int *cat2resp;
+  //number of responses
+  extern int respno;
   //see above under define KERN2FREE
   extern int* kern2free;
   //see above under define FREE2COMP
@@ -630,6 +653,8 @@ namespace drtmpt {
   double dadwiener_d(double q, double a, double vn, double wn, double d);
   //derivative of log-diffusion density by start point
   double dwdwiener_d(double q, double a, double vn, double wn, double d);
+  //read data from file
+  void lies(std::vector<trial> &daten);
   //set up model_design from file
   void model_design(int kerntree, int *ar, int *branch, int *nodes_per_tree, int *tree_and_node2par);
   //store results of last hamiltonian-gibbs cycle between batches
@@ -773,7 +798,6 @@ double oneuni(gsl_rng *rst);
 double onenorm(gsl_rng *rst);
 //truncnorm computes normal variate with sd = 1, mean = b, and value >= 0
 double truncnorm(double b, gsl_rng *rst);
-//read data from file
-void lies(std::vector<trial> &daten);
+
 
 #endif

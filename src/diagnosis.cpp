@@ -858,7 +858,7 @@ namespace drtmpt {
     double* temp = 0; if (!(temp = (double*)malloc(sample_size * sizeof(double)))) { Rprintf("Allocation failure\n"); }
     //std::streamsize prec = std::cout.precision(); std::cout << std::setprecision(4);
     if (save_diagnose) tests_out << std::setprecision(4);
-    Rprintf("Thresholds per group\n");
+    Rprintf("mean thresholds per group [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Thresholds per group" << std::endl;
     int if0 = ifree[0], if1 = ifree[1], if2 = ifree[2];
     for (int ig = 0; ig != igroup; ig++) {
@@ -875,7 +875,7 @@ namespace drtmpt {
         jz++;
       }
     }
-    Rprintf("Drift rates per group\n");
+    Rprintf("mean drift rates per group [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Drift rates per group" << std::endl;
     for (int ig = 0; ig != igroup; ig++) {
       int jz = 0;
@@ -891,7 +891,7 @@ namespace drtmpt {
         jz++;
       }
     }
-    Rprintf("Start point per group\n");
+    Rprintf("mean rel. starting points per group [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Start point per group" << std::endl;
     for (int ig = 0; ig != igroup; ig++) {
       int jz = 0;
@@ -908,7 +908,7 @@ namespace drtmpt {
       }
     }
     
-    Rprintf("SIG\n");
+    Rprintf("SIGMA [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "SIG" << std::endl;
     int iz = isigoff + indi - 1;
     for (int ix = 0; ix != icompg; ix++)
@@ -924,7 +924,7 @@ namespace drtmpt {
         if (save_diagnose) { tests_out << std::setw(3) << ix + 1 << std::setw(3) << jz + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
       }
       
-      Rprintf("Mean motor/encoding times per group\n");
+      Rprintf("Mean motor/encoding times per group [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Mean motor/encoding times per group" << std::endl;
     iz = irmuoff;
     
@@ -938,7 +938,7 @@ namespace drtmpt {
       if (save_diagnose) { for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
     }
     
-    Rprintf("Sig motor/encoding times\n");
+    Rprintf("GAMMA [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Sig motor/encoding times" << std::endl;
     iz =  (icompg * (icompg + 1)) / 2 + isigoff + indi- 1;
     for (int ip = 0; ip != respno; ip++)
@@ -954,7 +954,7 @@ namespace drtmpt {
         if (save_diagnose) { tests_out << std::setw(3) << ip + 1 << std::setw(3) << jp + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
       }
       
-      Rprintf("Residual variance\n");
+      Rprintf("Omega^2 [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Residual variance" << std::endl;
     iz = n_all_parameters - 1;
     for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
@@ -980,10 +980,10 @@ namespace drtmpt {
     for (int i = 0; i != datenzahl; i++) {s += gsl_pow_2(daten[i].rt / 1000.0 - u[daten[i].person]);} s = s / (datenzahl - 1);
     double grand = 0.0; for (int t = 0; t != indi; t++) grand += (u[t] * nj[t]) / datenzahl;
     double salph = 0.0; for (int t = 0; t != indi; t++) salph += gsl_pow_2(u[t] - grand); salph = salph / (indi - 1);
-    Rprintf("Daten: Mean, Residual Variance, Due to Individual differences\n");
+    Rprintf("RT: mean, variance, residual variance, due to Individual differences\n");
     Rprintf("%12g%12g%12g\n", grand, s, salph);
     if (save_diagnose) {
-      tests_out << "Daten: Mean, Residual Variance, Due to Individual differences " << std::endl;
+      tests_out << "RT: mean, variance, residual variance, Due to Individual differences " << std::endl;
       tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
     }
     
@@ -1467,7 +1467,7 @@ namespace drtmpt {
       }
     }
     
-    test(t1, t2, "Aggregate frequencies");
+    test(t1, t2, "Posterior predictive checks: frequencies");
     
     double qv[5];
     std::ofstream meansout(MEANSOUT);
@@ -1492,7 +1492,7 @@ namespace drtmpt {
       
       // Das Ganze f�r die Zeiten
       
-      test(tt1, tt2, "Aggregate times");
+      test(tt1, tt2, "Posterior predictive checks: latencies");
     
     int nq = 1;
     

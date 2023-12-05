@@ -137,17 +137,17 @@
 #' @importFrom stringr str_split str_detect str_c str_replace
 #' @importFrom methods is
 fit_ertmpt <- function(model, 
-                      data,
-                      n.chains = 4, 
-                      n.iter = 5000, 
-                      n.burnin = 200, 
-                      n.thin = 1,
-                      Rhat_max = 1.05, 
-                      Irep = 1000, 
-                      prior_params = NULL,
-                      indices = FALSE, 
-                      save_log_lik = FALSE,
-                      old_label = FALSE) {
+                       data,
+                       n.chains = 4, 
+                       n.iter = 5000, 
+                       n.burnin = 200, 
+                       n.thin = 1,
+                       Rhat_max = 1.05, 
+                       Irep = 1000, 
+                       prior_params = NULL,
+                       indices = FALSE, 
+                       save_log_lik = FALSE,
+                       old_label = FALSE) {
   
   # internal argument name changes
   Nchains <- n.chains
@@ -411,7 +411,7 @@ fit_ertmpt <- function(model,
   # WAIC & LOO
   if (file.exists(loglik_path)) {
     if (indices) {
-      temp <- get_indices(loglik_path, Nchains, Nsamples)
+      suppressWarnings( temp <- get_indices_x(loglik_path, Nchains, Nsamples, data_frame) )
       ertmpt$indices <- list(WAIC = temp$WAIC, LOO = temp$LOO)
       if (save_log_lik) ertmpt$LogLik <- temp$LogLik
       rm(temp)
@@ -430,7 +430,7 @@ fit_ertmpt <- function(model,
   
   
   # summary
-  ertmpt$summary <- writeSummaryRTMPT(ertmpt, keep = old_label)
+  ertmpt$summary <- writeSummaryERTMPT(ertmpt, keep = old_label)
   
   
   # output
@@ -439,6 +439,9 @@ fit_ertmpt <- function(model,
   return(ertmpt)
   
 }
+
+
+
 
 
 
@@ -487,8 +490,10 @@ fit_ertmpt <- function(model,
 #'     \item \code{Omega2_alpha}: shape parameter of gamma distribution for residual variance. Default is \code{0.0025}.
 #'     \item \code{Omega2_beta}: rate parameter of gamma distribution for residual variance. Default is \code{0.5}.
 #'   }
-#' @param flags
+#' @param flags Either NULL or a list of
 #'   \itemize{
+#'     \item \code{old_label} If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list.
+#'       Default is \code{FALSE}.
 #'     \item \code{indices} Model selection indices. If set to \code{TRUE} the log-likelihood for each iteration and trial will be
 #'       stored temporarily and with that the WAIC and LOO will be calculated via the \code{loo} package. If you want to have this
 #'       log-likelihood matrix stored in the output of this function, you can set \code{loglik} to \code{TRUE}. Default for
@@ -498,7 +503,7 @@ fit_ertmpt <- function(model,
 #'     \item \code{random_init} If set to \code{TRUE} the initial values are randomly drawn. If \code{FLASE} maximum likelihood is used
 #'       for initial values.
 #'   }
-#' @param control
+#' @param control Either NULL or a list of
 #'   \itemize{
 #'     \item \code{maxthreads} for the ML estimation of the initial values and the calculation of the DIC values one can use more than
 #'       \code{n.chains} threads for parallelization. Default is 4 like \code{n.chians}. \code{maxthreads} must be larger or equal to
@@ -506,8 +511,6 @@ fit_ertmpt <- function(model,
 #'     \item \code{maxtreedepth1_3} maxtree-depth of the no-U-turn algorithm in Phases 1 to 3
 #'     \item \code{maxtreedepth4} maxtree-depth of the no-U-turn algorithm in Phases 4
 #'   }
-#' @param old_label If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list.
-#'   Default is \code{FALSE}.
 #' @return A list of the class \code{drtmpt_fit} containing
 #'   \itemize{
 #'     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
@@ -550,7 +553,7 @@ fit_ertmpt <- function(model,
 #'
 #' model <- to_drtmpt_model(mdl_file = mdl_2HTM)
 #'
-#' data_file <- system.file("extdata/data.txt", package="drtmpt")
+#' data_file <- system.file("extdata/data.txt", package="rtmpt")
 #' data <- read.table(file = data_file, header = TRUE)
 #' data_list <- to_drtmpt_data(raw_data = data, model = model)
 #' \donttest{
@@ -578,23 +581,9 @@ fit_drtmpt <- function(model,
                        n.thin = 1,
                        Rhat_max = 1.1,
                        Irep = 1000,
-                       prior_params = list(prec_epsilon = 1.0,
-                                           delta_df = 10,
-                                           delta_mu = 0.5,
-                                           delta_scale = 1.0,
-                                           SIGMA_Corr_eta = 4.0,
-                                           SIGMA_SD_rho = 2.5,
-                                           GAMMA_Corr_eta = 4.0,
-                                           GAMMA_SD_rho = 0.5,
-                                           Omega2_alpha = 0.0025,
-                                           Omega2_beta = 0.5),
-                       flags = list(indices = FALSE,
-                                    loglik = FALSE,
-                                    random_init = FALSE),
-                       control = list(maxthreads = 4,
-                                      maxtreedepth1_3 = 5,
-                                      maxtreedepth4 = 9),
-                       old_label = FALSE) {
+                       prior_params = NULL,
+                       flags = NULL,
+                       control = NULL) {
   
   
   # CHECKS
@@ -617,12 +606,41 @@ fit_drtmpt <- function(model,
   
   if (Rhat_max < 1) stop("\"Rhat_max\" must be larger than or equal to one.")
   
-  if (!is.null(prior_params) && !is.list(prior_params)) stop("\"prior_params\" must be a list.")
+  if (!is.null(prior_params) && !is.list(prior_params)) stop("\"prior_params\" must be a list or NULL.")
+  if (!is.null(flags) && !is.list(flags)) stop("\"flags\" must be a list or NULL.")
+  if (!is.null(control) && !is.list(control)) stop("\"control\" must be a list or NULL.")
   
-  if (!is.logical(flags$indices)) stop("\"flags$indices\" must either be TRUE or FALSE.")
-  if (!is.logical(flags$loglik)) stop("\"flags$loglik\" must either be TRUE or FALSE.")
-  if (!is.logical(flags$random_init)) stop("\"flags$random_init\" must either be TRUE or FALSE.")
+  if (!is.null(flags)) {
+    if ("old_label" %in% names(flags)) if (!is.logical(flags$old_label)) stop("\"flags$old_label\" must either be TRUE or FALSE.")
+    if ("indices" %in% names(flags)) if (!is.logical(flags$indices)) stop("\"flags$indices\" must either be TRUE or FALSE.")
+    if ("loglik" %in% names(flags)) if (!is.logical(flags$loglik)) stop("\"flags$loglik\" must either be TRUE or FALSE.")
+    if ("random_init" %in% names(flags)) if (!is.logical(flags$random_init)) stop("\"flags$random_init\" must either be TRUE or FALSE.")
+  }
   
+  if (!is.null(control)) {
+    if ("maxthreads" %in% control) if (!is.numeric(control$maxthreads)) stop("\"control$maxthreads\" must be numeric.")
+    if ("maxtreedepth1_3" %in% control) if (!is.numeric(control$maxtreedepth1_3)) stop("\"control$maxtreedepth1_3\" must be numeric.")
+    if ("maxtreedepth4" %in% control) if (!is.numeric(control$maxtreedepth4)) stop("\"control$maxtreedepth4\" must be numeric.")
+  }
+  
+  
+  # SET FLAGS
+  if (!is.list(flags)) flags <- list()
+  if (!"old_label" %in% names(flags)) {
+    old_label <- FALSE
+  } else {
+    old_label <- flags$old_label
+  }
+  if (!"indices" %in% names(flags)) flags$indices <- FALSE
+  if (!"loglik" %in% names(flags)) flags$loglik <- FALSE
+  if (!"random_init" %in% names(flags)) flags$random_init <- FALSE
+  
+  
+  # SET CONTROLS
+  if (!is.list(control)) control <- list()
+  if (!"maxthreads" %in% names(flags)) control$maxthreads <- 4
+  if (!"maxtreedepth1_3" %in% names(flags)) control$maxtreedepth1_3 <- 5
+  if (!"maxtreedepth4" %in% names(flags)) control$maxtreedepth4 <- 9
   
   
   # PREPARE DATA
@@ -696,7 +714,7 @@ fit_drtmpt <- function(model,
   if (!("GAMMA_SD_rho" %in% names(prior_params))) prior_params$GAMMA_SD_rho <- 0.5
   if (!("Omega2_alpha" %in% names(prior_params))) prior_params$Omega2_alpha <- 0.0025
   if (!("Omega2_beta" %in% names(prior_params))) prior_params$Omega2_beta <- 0.5
-  if (!is.numeric(unlist(prior_params))) stop("prior_params must be a list of numerics and integer")
+  if (!is.numeric(unlist(prior_params))) stop("prior_params must be a list of numerics and integers")
   if (prior_params$delta_df %% 1 != 0) stop("delta_df must be an integer")
   
   
@@ -832,7 +850,8 @@ fit_drtmpt <- function(model,
   
   
   # DIAGNOSTICS
-  drtmpt$diags <- NULL
+  drtmpt$diags <- get_diags_d(diag_file = tests_path, data_info = data_info, keep = old_label, DIC = flags$indices)
+  drtmpt$diags$R_hat <- gelman.diag(drtmpt$samples, multivariate = FALSE)
   
   
   # SPECS
@@ -849,7 +868,8 @@ fit_drtmpt <- function(model,
   if (flags$indices) {
     if (file.exists(ll_path)) {
       if (flags$indices) {
-        suppressWarnings( temp <- get_indices(log_lik = ll_path, Nchains = n.chains, Nsample = n.iter, df = data_frame) )
+        temp <- NULL
+        suppressWarnings( temp <- get_indices_x(log_lik = ll_path, Nchains = n.chains, Nsample = n.iter, df = data_frame) )
         drtmpt$indices <- list(WAIC = temp$WAIC, LOO = temp$LOO)
         if (flags$loglik) drtmpt$LogLik <- temp$LogLik
         rm(temp)
@@ -867,7 +887,7 @@ fit_drtmpt <- function(model,
   
   
   # SUMMARY
-  drtmpt$summary <- NULL
+  drtmpt$summary <- writeSummaryDRTMPT(x = drtmpt, keep = old_label)
   
   
   # CLEAN-UP

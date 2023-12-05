@@ -2,12 +2,12 @@
 % Please edit documentation in R/set_resps.R
 \name{set_resps}
 \alias{set_resps}
-\title{Set responses in an \code{ertmpt_model}}
+\title{Set responses in an \code{ertmpt_model} or a \code{drtmpt_model}}
 \usage{
 set_resps(model, tree, categories, values = 0)
 }
 \arguments{
-\item{model}{A list of the class \code{ertmpt_model}.}
+\item{model}{A list of the class \code{ertmpt_model} or \code{drtmpt_model}.}
 
 \item{tree}{Character or numerical value of the tree for which the responses 
 should be changed.}
@@ -18,7 +18,7 @@ the specified \code{tree} for which the responses should be changed.}
 \item{values}{Numerical vector of length \code{length(categories)} providing the responses. Default is 0.}
 }
 \value{
-A list of the class \code{ertmpt_model}.
+A list of the class \code{ertmpt_model} or \code{drtmpt_model}.
 }
 \description{
 Change the responses for a tree and the categories within that tree.
@@ -48,10 +48,15 @@ model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 ## times for "old" and "new" responses.
 for(i in c(0,1)) model <- set_resps(model = model, tree = i, 
                                     categories = i*2+1, values = 1)
+
+
+#' model <- to_drtmpt_model(mdl_file = mdl_2HTM)
+
+## changing the model to have two different encoding and response execution 
+## times for "old" and "new" responses.
+for(i in c(0,1)) model <- set_resps(model = model, tree = i, 
+                                    categories = i*2+1, values = 1)
                                  
-}
-\seealso{
-\code{\link{set_params}}
 }
 \author{
 Raphael Hartmann

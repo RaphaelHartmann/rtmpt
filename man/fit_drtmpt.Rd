@@ -14,12 +14,9 @@ fit_drtmpt(
   n.thin = 1,
   Rhat_max = 1.1,
   Irep = 1000,
-  prior_params = list(prec_epsilon = 1, delta_df = 10, delta_mu = 0.5, delta_scale = 1,
-    SIGMA_Corr_eta = 4, SIGMA_SD_rho = 2.5, GAMMA_Corr_eta = 4, GAMMA_SD_rho = 0.5,
-    Omega2_alpha = 0.0025, Omega2_beta = 0.5),
-  flags = list(indices = FALSE, loglik = FALSE, random_init = FALSE),
-  control = list(maxthreads = 4, maxtreedepth1_3 = 5, maxtreedepth4 = 9),
-  old_label = FALSE
+  prior_params = NULL,
+  flags = NULL,
+  control = NULL
 )
 }
 \arguments{
@@ -69,7 +66,10 @@ Allowed parameters are:
   \item \code{Omega2_beta}: rate parameter of gamma distribution for residual variance. Default is \code{0.5}.
 }}
 
-\item{flags}{\itemize{
+\item{flags}{Either NULL or a list of
+\itemize{
+  \item \code{old_label} If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list.
+    Default is \code{FALSE}.
   \item \code{indices} Model selection indices. If set to \code{TRUE} the log-likelihood for each iteration and trial will be
     stored temporarily and with that the WAIC and LOO will be calculated via the \code{loo} package. If you want to have this
     log-likelihood matrix stored in the output of this function, you can set \code{loglik} to \code{TRUE}. Default for
@@ -80,16 +80,14 @@ Allowed parameters are:
     for initial values.
 }}
 
-\item{control}{\itemize{
+\item{control}{Either NULL or a list of
+\itemize{
   \item \code{maxthreads} for the ML estimation of the initial values and the calculation of the DIC values one can use more than
     \code{n.chains} threads for parallelization. Default is 4 like \code{n.chians}. \code{maxthreads} must be larger or equal to
     \code{n.chains}.
   \item \code{maxtreedepth1_3} maxtree-depth of the no-U-turn algorithm in Phases 1 to 3
   \item \code{maxtreedepth4} maxtree-depth of the no-U-turn algorithm in Phases 4
 }}
-
-\item{old_label}{If set to \code{TRUE} the old labels of "subj" and "group" of the data will be used in the elements of the output list.
-Default is \code{FALSE}.}
 }
 \value{
 A list of the class \code{drtmpt_fit} containing
@@ -131,7 +129,7 @@ dn+(1-dn)*(1-g)
 
 model <- to_drtmpt_model(mdl_file = mdl_2HTM)
 
-data_file <- system.file("extdata/data.txt", package="drtmpt")
+data_file <- system.file("extdata/data.txt", package="rtmpt")
 data <- read.table(file = data_file, header = TRUE)
 data_list <- to_drtmpt_data(raw_data = data, model = model)
 \donttest{
