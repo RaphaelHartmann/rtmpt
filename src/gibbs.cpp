@@ -82,18 +82,17 @@ namespace drtmpt {
       gsl_vector_view tx = gsl_vector_view_array(parmon, 2 * n_all_parameters);
       gsl_vector_set_zero(&tx.vector);
     }
-
+    
     //compute ireps cycles
     for (int i = 0; i != ireps; i++) {
       gibbs_full_cycle(change, ars_store, daten, nips, hampar, tavw, tlams, ai, sig, loglambdas, bi, alltaus, rest, gam, omega, paths, liknorm, activeeps, epsm, Hobjective, offset + i + 1, save, rst);
-
+      
       //save parameters in temp in the phase 3 and 4 parameterization
       gsl_vector_view t1 = gsl_vector_view_array(temp, n_all_parameters);
+      
       if (phase >= 3) {
         gsl_vector_memcpy(&t1.vector, hampar);
-      }
-      // do we need this in phase == 1 ?
-      else {
+      } else {// do we need this in phase == 1 ?
         gsl_vector_view t2 = gsl_vector_subvector(&t1.vector, 0, nhamil - indi);
         gsl_vector_view t3 = gsl_vector_subvector(hampar, 0, nhamil - indi);
         gsl_vector_memcpy(&t2.vector, &t3.vector);
@@ -101,13 +100,13 @@ namespace drtmpt {
         make_hampar_from_sig(0, sig, &t1.vector);
         make_hampar_from_sig(1, gam, &t1.vector);
         gsl_vector_set(&t1.vector, n_all_parameters - 1, log(omega));
-
+        
 
         gsl_vector_view t4 = gsl_vector_subvector(&t1.vector, nhamil - indi, indi);
         gsl_vector_view t5 = gsl_vector_view_array(loglambdas, indi);
         gsl_vector_memcpy(&t4.vector, &t5.vector);
       }
-
+      
       // n_all_parameters = icompg*igroup + indi*icompg + (icompg*(icompg+1))/2 + respno*igroup + (respno+1)*indi + (respno*(respno+1))/2 +1
       //                    ma,mv,mw  a,v,w            sig                   rmu     lambdas+sig_t          gam            omega
 
@@ -162,7 +161,7 @@ namespace drtmpt {
         gsl_vector_memcpy(&ts2.vector, hamp_temp);
         gsl_vector_free(hamp_temp);
       }
-
+      
       //update r statistics
       int m = i + offset + 1;
       double r = 1.0 / m;
@@ -172,7 +171,7 @@ namespace drtmpt {
       gsl_vector_view vparm1 = gsl_vector_subvector(&vparm.vector, 0, n_all_parameters);
       gsl_vector_view vparm2 = gsl_vector_subvector(&vparm.vector, n_all_parameters, n_all_parameters);
       gsl_vector* dev1 = gsl_vector_alloc(n_all_parameters);
-
+      
 
       gsl_vector_memcpy(dev1, &t1.vector);
       gsl_blas_daxpy(-1.0, &vparm1.vector, dev1);
@@ -182,7 +181,7 @@ namespace drtmpt {
       gsl_blas_daxpy(1.0 - r, help, &vparm2.vector);
       gsl_blas_daxpy(r, dev1, &vparm1.vector);
       gsl_vector_free(help);
-
+      
       //update posterior variance/covariance matrix in phase 2 and 3
       if ((phase >= 2) && (phase < 4)) {
 
@@ -275,7 +274,7 @@ namespace drtmpt {
     // main loop GIBBS
     double* xwbr = 0; if (!(xwbr = (double*)calloc(3 * n_all_parameters, sizeof(double)))) { Rprintf("Allocation failure\n"); }
     bool save = false;
-    double* complete_sample = 0;
+    // double* complete_sample = 0;
     int sample_size2;
     preptrees(trees);
 
@@ -332,7 +331,7 @@ namespace drtmpt {
     int offset = irun * ireps;
     //set up NOTHREADS chains and run chains
     std::vector<std::thread> threads(NOTHREADS-1);
-
+    
     /* starting threads while ... */
     for (int ithread = 0; ithread < NOTHREADS-1; ithread++) {
       threads[ithread] = std::thread([&, ithread]() {
@@ -374,7 +373,7 @@ namespace drtmpt {
         case 3: gsl_rng_memcpy(rst3, rst); break;
         case 4: gsl_rng_memcpy(rst4, rst); break;
         }
-
+        
         int ido = 2;
         //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
         //r statitstics
@@ -395,7 +394,7 @@ namespace drtmpt {
         gsl_rng_free(rst);
         gsl_vector_free(hampar); free(tavw); free(tlams);  free(paths); free(nips); free(loglambdas);   free(ai); free(bi); free(parmon);
         free(alltaus); free(rest);
-
+        
       });
     }
 
@@ -464,7 +463,7 @@ namespace drtmpt {
     for (int ithread = 0; ithread < NOTHREADS-1; ithread++) {
       threads[ithread].join();
     }
-
+    
     // #pragma omp parallel for ordered shared(phase, offset, ireps, supsig, sigisqrt, supersig, epshelp, rst1,rst2,rst3,rst4,save,sample,ntau,n_value_store,daten ,valuestore,parmonstore,xwbr,imax,rmax,monitor)
     // 	for (int ithread = 0; ithread < NOTHREADS; ithread++) {
     // 		double* tavw = 0;  double* tlams = 0; double* loglambdas = 0; gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
@@ -528,20 +527,20 @@ namespace drtmpt {
     gsl_vector_view t4 = gsl_vector_subvector(&t3.vector, 0, 2 * n_all_parameters);
     gsl_vector_view t5 = gsl_vector_view_array(parmon, 2 * n_all_parameters);
     gsl_vector_memcpy(&t5.vector, &t4.vector);
-
+    
     R_CheckUserInterrupt();
     //show interim results
     on_screen3(n_all_parameters, xwbr, parmon, consts, rmax, imax, irun);
     free(parmon);
     R_CheckUserInterrupt();
-
+    
     //from phase 1 to phase 2
     if (((phase == 1) && (offset + ireps >= PHASE1)) && (rmax <= 50.0)) {
       supersig = (double*)calloc(NOTHREADS * n_all_parameters * n_all_parameters, sizeof(double));
       phase = 2;
       goto RESTART;
     }
-
+    
     //from phase 2 to phase 3
     if (((phase == 2) && (offset + ireps >= interval)) && (rmax <= 50.0)) {
       make_supersigs(offset + ireps, parmonstore, supsig, sigisqrt);
@@ -552,7 +551,7 @@ namespace drtmpt {
       //		char x; std::cin >> x;
       goto RESTART;
     }
-
+    
     //in phase 3,  recalibrate
     if (((phase == 3) && ((offset + ireps) % interval) == 0)) {//&& (!save)) {
       make_supersigs(offset + ireps, parmonstore, supsig, sigisqrt);
@@ -659,7 +658,7 @@ namespace drtmpt {
     if (parmonstore) free(parmonstore);
     if (xwbr) free(xwbr);
     if (sample) free(sample);
-    if (complete_sample) free(complete_sample);
+    //if (complete_sample) free(complete_sample);
     if (supersig) free(supersig);
     R_CheckUserInterrupt();
   }

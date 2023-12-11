@@ -1,14 +1,14 @@
 
-#' @importFrom data.table ":=" ".SD" fread
+#' @importFrom data.table ":=" ".SD" copy fread
 get_indices_x <- function(log_lik, Nchains, Nsample, df) {
   
   indices_list <- lapply(unique(df$subj), function(x) which(df$subj == x))
   ll_dt <- NULL
   if (is.character(log_lik)) {
     ll_dt <- fread(file = log_lik, skip = 0, header = FALSE)
-    ll_mat <- as.matrix(ll_dt)
-    ll_dt[, (paste0("s", unique(df$subj))) := lapply(indices_list, FUN = function(i) {rowMeans(ll_dt[, .SD[, i, with = FALSE]])})]
-    # ll_mat2 <- as.matrix(ll_dt[, .SD, .SDcols = paste0("s", unique(df$subj))])
+    ll_mat <- as.matrix(copy(ll_dt))
+    # ll_dt[, (paste0("s", unique(df$subj))) := lapply(indices_list, FUN = function(i) {rowMeans(ll_dt[, .SD[, i, with = FALSE]])})]
+    # ll_mat2 <- as.matrix(copy(ll_dt[, .SD, .SDcols = paste0("s", unique(df$subj))]))
     my_waic <- suppressWarnings(waic(ll_mat))
     my_loo <- loo(x = ll_mat, save_psis = TRUE, cores = Nchains,
                   r_eff = relative_eff(exp(ll_mat), chain_id = rep(1:Nchains, each = Nsample), cores = Nchains))

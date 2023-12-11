@@ -7,7 +7,6 @@ pkgs.mkShell {
     rstudioEnv
     gsl
     git
-    rPackages.devtools
     rPackages.rmarkdown
     rPackages.ggdist
     rPackages.hypergeo

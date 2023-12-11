@@ -645,6 +645,7 @@ fit_drtmpt <- function(model,
   
   # PREPARE DATA
   keep_data_path <- FALSE
+  data_frame <- NULL
   if (is.data.frame(data)) {
     temp_data <- to_drtmpt_data(data, model)
     data_frame <- temp_data$data
@@ -843,7 +844,7 @@ fit_drtmpt <- function(model,
   
   # PREPARE OUTPUT LIST
   drtmpt <- list()
-  drtmpt$samples <- make_mcmc_list_d(file = raus_path, infofile = infofile,
+  drtmpt$samples <- make_mcmc_list_d(file = out$pars_samples, infofile = infofile,
                                      Nchains = n.chains, Nsamples = n.iter,
                                      data_info = data_info, keep = old_label)
   file.remove(raus_path)

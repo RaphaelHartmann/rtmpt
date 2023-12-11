@@ -1,4 +1,5 @@
 
+
 #' @importFrom data.table as.data.table copy
 StddevCorr2Cov <- function(mat, dim2, corr, sds) {
   
@@ -66,7 +67,10 @@ Cov2StddevCorr <- function(mat, dim2, covs, vars) {
   
 }
 
-int_dt <- function(x, mu, sd, defr) {x * dt((x-mu)/sd, df = defr) / sd}
+#' @importFrom stats dt
+int_dt <- function(x, mu, sd, defr) {
+  x * dt((x-mu)/sd, df = defr) / sd
+}
 #' @importFrom stats integrate
 integrate_wrapper <- function(mu, sd, defr) {
   integrate(int_dt, 0, Inf, mu=mu, sd=sd, defr=defr)$value
@@ -92,7 +96,7 @@ expect_t = function(location, scale, df){
   
   if (length(cnams_loc) == 1) {
     ret <- dt_loc[, get(cnams_loc)]
-  } else ret <- as.matrix(copy(dt_loc[, ..cnams_loc]))
+  } else ret <- as.matrix(copy(dt_loc[, mget(cnams_loc)]))
   
   return(ret)
 }
@@ -167,9 +171,9 @@ writeSummaryERTMPT <- function(x, keep, ...) {
     delta[[n]] <- delta[[n]] / Nsubj * 1000
     samp[[n]][, ind_probs] <- pnorm(samp[[n]][, ind_probs])
     samp[[n]][, ind_taus] <- 1000/(samp[[n]][, ind_taus])
-    samp[[n]][, ind_SIGMA] <- StddevCorr2Cov(samp[[n]][, ind_SIGMA], Nparams)
+    samp[[n]][, ind_SIGMA] <- StddevCorr2Cov(samp[[n]][, ind_SIGMA], Nparams, corrs, sds)
     samp[[n]][, ind_resps] <- 1000*(samp[[n]][, ind_resps])
-    samp[[n]][, ind_GAMMA] <- StddevCorr2Cov(samp[[n]][, ind_GAMMA], Nresps)
+    samp[[n]][, ind_GAMMA] <- StddevCorr2Cov(samp[[n]][, ind_GAMMA], Nresps, corrsR, sdsR)
   }
   
   # summary stats
@@ -358,19 +362,19 @@ writeSummaryERTMPT <- function(x, keep, ...) {
 
 
 
-get_mcmc_process <- function(list_param, ip, ipar, nam, sampm) {
+get_mcmc_process <- function(list_param, ip, ipar, nam, sampm, mcmc_names, n.iter) {
   if (is.na(list_param[[ipar]][1, ip])) {
     ind_prob <- which(mcmc_names == paste0(nam, names(list_param[[ipar]][ip])))
     return(sampm[, ind_prob])
   } else {
-    if (is.numeric(list_param[[ipar]][1, ip])) return(rep(list_param[[ipar]][1, ip], x$specs$n.iter))
+    if (is.numeric(list_param[[ipar]][1, ip])) return(rep(list_param[[ipar]][1, ip], n.iter))
     if (is.character(list_param[[ipar]][1, ip])) {
       ind <- which(names(list_param[[ipar]])==list_param[[ipar]][1, ip])
       if (is.na(list_param[[ipar]][1, ind])) {
         ind_prob <- which(mcmc_names == paste0(nam, names(list_param[[ipar]][ind])))
         return(sampm[, ind_prob])
       } else {
-        return(rep(list_param[[ipar]][1, ind], x$specs$n.iter))
+        return(rep(list_param[[ipar]][1, ind], n.iter))
       }
     }
   }
@@ -496,12 +500,12 @@ writeSummaryDRTMPT <- function(x, keep, ...) {
   varsR <- which(mmmR[,1]==mmmR[,2])
   
   ## sigma squared
-  ind_sigma <- which(grepl(pattern = "log(sigma", x = mcmc_names)) # bb:(bb+Nsubj-1)
+  ind_sigma <- which(grepl(pattern = "sigma", x = mcmc_names)) # bb:(bb+Nsubj-1)
   
   # transform samp
   ## prepare transformation of a v w
   logit_args <- prep_transform(a = c(.01, -100, .001), b = c(100, 100, .999), loc_o = c(.8, 0, .5), scale = c(.2, 1, .1))
-  list_param <- drtmpt$specs$model$params
+  list_param <- x$specs$model$params
   Nprobs_all <- length(list_param$threshold)
   tmp_thresh <- tmp_drift <- tmp_start <- samp[, 1:(Nprobs_all*Ngroups)]
   NisNA <- numeric(Nprobs_all)
@@ -530,9 +534,9 @@ writeSummaryDRTMPT <- function(x, keep, ...) {
     jp <- 0
     for (ip in 1:Nprobs_all) {
       if (NisNA[ip] > 0) {
-        tmp_thresh[[n]][, ip] <- get_mcmc_process(list_param, ip, 1, "mu_a_", as.matrix(samp[[n]][, 1:Nparams]))
-        tmp_drift[[n]][, ip] <- get_mcmc_process(list_param, ip, 2, "mu_nu_", as.matrix(samp[[n]][, 1:Nparams]))
-        tmp_start[[n]][, ip] <- get_mcmc_process(list_param, ip, 3, "mu_omega_", as.matrix(samp[[n]][, 1:Nparams]))
+        tmp_thresh[[n]][, ip] <- get_mcmc_process(list_param, ip, 1, "mu_a_", as.matrix(samp[[n]][, 1:Nparams]), mcmc_names, x$specs$n.iter)
+        tmp_drift[[n]][, ip] <- get_mcmc_process(list_param, ip, 2, "mu_nu_", as.matrix(samp[[n]][, 1:Nparams]), mcmc_names, x$specs$n.iter)
+        tmp_start[[n]][, ip] <- get_mcmc_process(list_param, ip, 3, "mu_omega_", as.matrix(samp[[n]][, 1:Nparams]), mcmc_names, x$specs$n.iter)
         jp <- jp + 1
         theta[[n]][, jp] <- prob_lower(as.numeric(tmp_thresh[[n]][, ip]), 
                                        -as.numeric(tmp_drift[[n]][, ip]), 
@@ -737,7 +741,7 @@ writeSummaryDRTMPT <- function(x, keep, ...) {
   } else {
     CORR_SD_R <- matrix(0, ncol = Nresps, nrow = Nresps)
     CORR_SD_R[lower.tri(CORR_SD_R, diag = TRUE)] <- elementsR
-    CORR_SD_R <- CORR_SD_R + t(CORR_SD_R) - diag(elementsR[sdsR])
+    CORR_SD_R <- CORR_SD_R + t(CORR_SD_R) - diag(elementsR[varsR])
   }
   summary_list$CorrSD = list(process=CORR_SD_P, motor=CORR_SD_R)
   
@@ -771,7 +775,37 @@ printSummaryERTMPT <- function(x, ...) {
   cat("\n\n# Residual variance:\n")
   print(round(x$resid_var , x$round))
   cat("\n\n# Transformed main parameters (probabilities, process times in ms, and motor times in ms):\n")
-  print(round(x$main_pars, x$round))
+  print(round(x$transformed_pars, x$round))
+  cat("\n\n# Group-level parameters on original scale:\n")
+  print(round(x$orig_pars, x$round))
+  cat("\n\n# CORRELATIONS\n")
+  cat("## Process-related:\n")
+  print(round(x$Corrs$process, x$round))
+  if (!is.null(x$Corrs$motor)) {
+    cat("## Motor-related:\n")
+    print(round(x$Corrs$motor, x$round))
+  }
+  cat("\n\n# STANDARD DEVIATIONS\n")
+  cat("## Process-related:\n")
+  print(round(x$SDs$process, x$round))
+  cat("## Motor-related:\n")
+  print(round(x$SDs$motor, x$round))
+  cat("\n# NOTE: The same is available for variances and covariances\n")
+  cat("\n\n# CORRELATION MATRICES WITH STANDARD DEVIATIONS ON DIAGONAL\n")
+  cat("## Process-related:\n")
+  print(round(x$CorrSD$process, x$round))
+  cat("## Motor-related:\n")
+  print(round(x$CorrSD$motor, x$round))
+  cat("\n# NOTE: Covariance matrices are also available\n")
+}
+
+printSummaryDRTMPT <- function(x, ...) {
+  cat("\nCall: \n")
+  print(x$call)
+  cat("\n\n# Residual variance:\n")
+  print(round(x$resid_var , x$round))
+  cat("\n\n# Transformed main parameters (probabilities, process times in ms, and motor times in ms):\n")
+  print(round(x$transformed_pars, x$round))
   cat("\n\n# Group-level parameters on original scale:\n")
   print(round(x$orig_pars, x$round))
   cat("\n\n# CORRELATIONS\n")

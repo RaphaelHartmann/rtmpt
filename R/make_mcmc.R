@@ -154,7 +154,7 @@ labelnames_d <- function(data_info) {
   }, simplify = TRUE)))
   
   ## scale params
-  label <- c(label, paste0("log(sigma", subj_labels), ")")
+  label <- c(label, paste0("log(sigma", subj_labels, ")"))
   
   ## SIGMA
   s1 <- rep(unlist(sapply(1:3, function(i) rep(Prime[i], c(Pt, Pd, Ps)[i]))), Ptot)
@@ -376,7 +376,7 @@ labelnames_keep_d <- function(data_info) {
   }, simplify = TRUE)))
   
   ## scale params
-  label <- c(label, paste0("log(sigma", subj_labels), ")")
+  label <- c(label, paste0("log(sigma", subj_labels, ")"))
   
   ## SIGMA
   s1 <- rep(unlist(sapply(1:3, function(i) rep(Prime[i], c(Pt, Pd, Ps)[i]))), Ptot)
@@ -480,9 +480,22 @@ make_mcmc_list_d <- function(file, infofile, Nchains, Nsamples, data_info, keep)
   
   
   # read text file with chains
-  temp <- as.vector(read.table(file = file, header = FALSE, nrows = 1))
-  dt <- fread(file = file, skip = 1, header = FALSE, col.names = dt_colnames)
-  gc()
+  temp <- c()
+  if (is.character(file)) {
+    temp <- as.vector(read.table(file = file, header = FALSE, nrows = 1))
+    dt <- fread(file=file, skip=1, header = FALSE, col.names = dt_colnames)
+  } else if (is.data.frame(file) || is.matrix(file)) {
+    temp <- dim(file)
+    dt <- as.data.table(file)
+    setnames(dt, dt_colnames)
+  }
+  rm(file); gc()
+  
+  
+  # read text file with chains
+  # temp <- as.vector(read.table(file = file, header = FALSE, nrows = 1))
+  # dt <- fread(file = file, skip = 1, header = FALSE, col.names = dt_colnames, blank.lines.skip = TRUE)
+  # gc()
   
   
   # specify parameters used in MCMC

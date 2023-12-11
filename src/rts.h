@@ -39,6 +39,8 @@
 
 //model file path
 extern const char *MODEL;
+// data file path
+extern const char *DATA;
 //number of categories
 extern int kerncat;
 //total number of trials
@@ -55,21 +57,29 @@ extern int* ng;
 extern int indi;
 //index of group by person
 extern int *t2group;
+//number of groups
+extern int igroup;
+//total number of model parameters
+extern int n_all_parameters;
+//maps categories on responses
+extern int *cat2resp;
+//number of responses
+extern int respno;
+//loglikelihood vector
+extern double *loglik_vec;
+//number of process parameters
+extern int nKERN;
+//number of responses
+extern int nRESP;
+//maps categories on responses (from R)
+extern int *CatToResp;
+
 
 //trial information inputted
 struct trial {
   int person, tree, category, item, group, rt;
 };
 
-extern const char *MODEL;
-extern int kernpar;
-extern int zweig;
-extern int nodemax;
-extern int kerncat;
-extern int datenzahl;
-extern int* ng;
-extern int indi;
-extern int *t2group;
 
 #define T_rng gsl_rng_ranlxd1
 //for lnnorm.cpp
@@ -135,7 +145,6 @@ namespace ertmpt {
   extern int log_lik_flag;
   extern int for_bridge_flag;
   
-  extern const char *DATA;
   extern const char *RAUS;
   extern const char *diagn_tests;
   extern const char *LOGLIK;
@@ -146,11 +155,6 @@ namespace ertmpt {
   extern int NOTHREADS;
   extern int SAMPLE_SIZE;
   extern double RMAX;
-  
-  extern int nKERN;
-  extern int nRESP;
-  
-  extern int *CatToResp;
   
   extern double *ConstProb;
   extern int *CompMinus;
@@ -170,17 +174,13 @@ namespace ertmpt {
   extern int ilamfree, ifree,ipred;
   
   extern int *ndrin,*drin;
-  extern int n_all_parameters;
   extern int *nppr;
   extern int n_bridge_parameters;
   
   extern int RMAX_reached;
   extern bool BURNIN_flag;
   
-  extern int igroup;
   extern int ireps;
-  extern int *cat2resp;
-  extern int respno;
   extern int alphaoff;
   extern int sigalphaoff;
   extern int restparsno;
@@ -237,8 +237,6 @@ namespace ertmpt {
   int make_path_for_one_trial(int branchno, double *pij, double p, gsl_rng *rst);
   
   double oneexp(double lambda, gsl_rng *rst);
-  
-  void lies(std::vector<trial> &daten);
   
   void model_design(int kerntree,int *ar, int *branch, int *nodes_per_par, int *nodes_per_tree, int *tree_and_node2par);
   
@@ -313,8 +311,9 @@ namespace drtmpt {
   #endif
    */
   
-  // data file path
-  extern const char *DATA;
+  // sample
+  extern double *complete_sample;
+  
   // output file path
   extern const char *RAUS;
   //input file path for last sample for restarting sampling
@@ -598,20 +597,12 @@ namespace drtmpt {
   extern int* nnodes;
   //see above under define; pfadmax[c] = maximum number of interior nodes on a path ending in category c
   extern int *ndrin,*drin, *cdrin, *ncdrin, *pfadmax;
-  //total number of model parameters
-  extern int n_all_parameters;
   //number of trials with response r by person
   extern int *nppr;
   //see above under define TAU_BY_NODE
   extern int* tau_by_node;
-  //number of groups
-  extern int igroup;
   //minimum size of Gibbs-Hamiltonian cycles before interim report
   extern int ireps;
-  //maps categories on responses
-  extern int *cat2resp;
-  //number of responses
-  extern int respno;
   //see above under define KERN2FREE
   extern int* kern2free;
   //see above under define FREE2COMP
@@ -653,8 +644,6 @@ namespace drtmpt {
   double dadwiener_d(double q, double a, double vn, double wn, double d);
   //derivative of log-diffusion density by start point
   double dwdwiener_d(double q, double a, double vn, double wn, double d);
-  //read data from file
-  void lies(std::vector<trial> &daten);
   //set up model_design from file
   void model_design(int kerntree, int *ar, int *branch, int *nodes_per_tree, int *tree_and_node2par);
   //store results of last hamiltonian-gibbs cycle between batches
@@ -785,7 +774,8 @@ namespace drtmpt {
 
 }
 
-
+//read data from file
+void lies(std::vector<trial> &daten);
 //add exp(xa) and exp(xb) on log scale
 double logsum(double xa, double xb);
 //sets constants

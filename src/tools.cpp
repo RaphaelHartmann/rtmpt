@@ -277,14 +277,13 @@ namespace drtmpt {
     if (phase == 4) Rprintf("Iterations: %12d [sampling: %g%%]\n", (irun + 1)*ireps, pct_temp);
     else            Rprintf("Iterations: %12d\n", (irun + 1) * ireps);
     //std::cout << std::setw(15) << "Iterationen " << std::setw(15) << (irun + 1) * ireps << std::endl;
-    if (rmax > RMAX)
       
-      Rprintf("_____");
-    if (kernpar > igroup*respno) {
+    Rprintf("__");
+    if (kernpar > respno) {
       for (int i = 0; i < kernpar; i++) Rprintf("_______________");
     } else {
-      for (int i = 0; i < (igroup*respno); i++) Rprintf("_______________");
-      Rprintf("_______________");
+      for (int i = 0; i < respno; i++) Rprintf("_______________");
+      // Rprintf("_______________");
     }
     Rprintf("\n");
     

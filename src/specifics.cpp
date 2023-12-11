@@ -77,11 +77,11 @@ namespace ertmpt {
 
 	void model_design(int kerntree, int *ar, int *branch, int *nodes_per_par, int *nodes_per_tree, int *tree_and_node2par) {
 
-	// #define AR(I,J,K) ar[(I)*zweig*nodemax + J*nodemax + K]
+	#define AR(I,J,K) ar[(I)*zweig*nodemax + J*nodemax + K]
 	#define NODES_PER_PAR(I,J) nodes_per_par[I*kernpar + J]
-	// #define TREE_AND_NODE2PAR(I,J) tree_and_node2par[(I)*nodemax+(J)]
-	// #define DRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
-	// #define NDRIN(J,K) ndrin[J*zweig+K]
+	#define TREE_AND_NODE2PAR(I,J) tree_and_node2par[(I)*nodemax+(J)]
+	#define DRIN(J,K,X) drin[J*zweig*nodemax+K*nodemax + X]
+	#define NDRIN(J,K) ndrin[J*zweig+K]
 		// zweig,kernpar,nodemax sind definiert;
 
 		bool auto_or_eqns = false;

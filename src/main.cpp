@@ -8,7 +8,6 @@ int kerncat;
 int kernpar;
 int zweig;
 int nodemax;
-int datenzahl;
 int *ng;
 int indi;
 int *t2group=0;
@@ -354,7 +353,8 @@ namespace ertmpt {
   	int kerntree;
   	lies(daten);
   	datenzahl = static_cast<int>(daten.size());
-
+  	
+  	
   	//REPEAT:
   	set_ns(daten, indi, kerntree, kerncat, igroup);
   	cat2tree = (int *)malloc(kerncat * sizeof(int));
@@ -585,7 +585,6 @@ namespace drtmpt {
   int icomp[3], icompg;
   int* nnodes = 0;
   int* ndrin = 0, * drin = 0, * cdrin = 0, * ncdrin = 0, * pfadmax = 0;
-  int n_all_parameters;
   int *nppr = 0;
   int *tau_by_node=0;
   int* n_per_subj = 0;
@@ -637,7 +636,7 @@ namespace drtmpt {
         int iv = dTREE_AND_NODE2PAR(itree, n, 1);
         int iw = dTREE_AND_NODE2PAR(itree, n, 2);
         int m = dMAP(ia, iv, iw);
-        NNODES(t, m)++;
+        dNNODES(t, m)++;
         ntau += 2;
       }
     }
@@ -681,21 +680,21 @@ namespace drtmpt {
 
   //compute positions of tau in double* alltaus by tree, node, and parameter type (threshold, drift, start point)
   void make_positions(const std::vector<trial> & daten, int* tau_by_node) {
-  #define LOFFSET(T,I) loffset[T*no_patterns+I]
+  #define dLOFFSET(T,I) loffset[T*no_patterns+I]
     int* loffset = 0;
     if (!(loffset = (int*)malloc(indi * no_patterns * sizeof(int)))) { Rprintf("Allocation failure\n");  }
     int* ltemp = 0; if (!(ltemp = (int*)malloc(indi * no_patterns * sizeof(int)))) { Rprintf("Allocation failure\n");  }
 
 
-  #define LTEMP(T,I) ltemp[T*no_patterns+I]
+  #define dLTEMP(T,I) ltemp[T*no_patterns+I]
 
 
     for (int i = 0; i != indi * no_patterns; i++) loffset[i] = ltemp[i] = 0;
     int jj = 0;
     for (int im = 0; im != no_patterns; im++)
       for (int t = 0; t != indi; t++) {
-        LOFFSET(t, im) = jj;
-        jj += 2* NNODES(t, im);
+        dLOFFSET(t, im) = jj;
+        jj += 2* dNNODES(t, im);
       }
 
       for (int i = 0; i != 2 * nodemax * datenzahl; i++) tau_by_node[i] = -1;
@@ -707,12 +706,12 @@ namespace drtmpt {
         int iv = dTREE_AND_NODE2PAR(itree, r, 1);
         int iw = dTREE_AND_NODE2PAR(itree, r, 2);
         int im = dMAP(ia, iv, iw);
-        dTAU_BY_NODE(i, r, 0) = LTEMP(t, im) + LOFFSET(t, im); LTEMP(t, im)++;
-        dTAU_BY_NODE(i, r, 1) = LTEMP(t, im) + LOFFSET(t, im); LTEMP(t, im)++;
+        dTAU_BY_NODE(i, r, 0) = dLTEMP(t, im) + dLOFFSET(t, im); dLTEMP(t, im)++;
+        dTAU_BY_NODE(i, r, 1) = dLTEMP(t, im) + dLOFFSET(t, im); dLTEMP(t, im)++;
       }
     }
     for (int t = 0; t != indi; t++) for (int i = 0; i != no_patterns; i++) {
-      //		if (LTEMP(t, i) != 2 * NNODES(t, i)) std::cout << "L_PROBLEM" << setw(12) << t << setw(12) << i << setw(12) << LTEMP(t,i) << setw(12) << NNODES(t,i) << std::endl;
+      //		if (dLTEMP(t, i) != 2 * NNODES(t, i)) std::cout << "L_PROBLEM" << setw(12) << t << setw(12) << i << setw(12) << dLTEMP(t,i) << setw(12) << NNODES(t,i) << std::endl;
     }
     if (ltemp) free(ltemp);
     if (loffset) free(loffset);
@@ -724,7 +723,7 @@ namespace drtmpt {
     for (int i = 0; i != indi * kerncat; i++) idaten[i] = 0;
     for (int i = 0; i != datenzahl; i++) {
       one = daten[i];
-      IDATEN(one.person, one.category)++;
+      dIDATEN(one.person, one.category)++;
     }
   }
 
@@ -750,8 +749,8 @@ namespace drtmpt {
     for (int j = 0; j != kerncat; j++)
       for (int r = 0; r != nodes_per_tree[cat2tree[j]]; r++) {
         bool flag[2] = { false,false };
-        for (int k = 0; k != branch[j]; k++) if (AR(j, k, r) != 0) {
-          int pm = (1 + AR(j, k, r)) / 2;
+        for (int k = 0; k != branch[j]; k++) if (dAR(j, k, r) != 0) {
+          int pm = (1 + dAR(j, k, r)) / 2;
           if (!(flag[pm])) {
             dCDRIN(j, dNCDRIN(j), 0) = r;
             dCDRIN(j, dNCDRIN(j), 1) = pm;
@@ -767,8 +766,8 @@ namespace drtmpt {
 
     for (int j = 0; j != kerncat; j++)
       for (int k = 0; k != branch[j]; k++)
-        for (int r = 0; r != nodes_per_tree[cat2tree[j]]; r++) if (AR(j, k, r) != 0) {
-          dDRIN(j, k, NDRIN(j, k)) = r;
+        for (int r = 0; r != nodes_per_tree[cat2tree[j]]; r++) if (dAR(j, k, r) != 0) {
+          dDRIN(j, k, dNDRIN(j, k)) = r;
           dNDRIN(j, k)++;
         }
         for (int j = 0; j!= kerncat; j++) {
@@ -814,14 +813,14 @@ namespace drtmpt {
     for (int t = 0; t != indi; t++) for (int j = 0; j != kerncat; j++) {
       int itree = cat2tree[j];
       for (int k = 0; k != branch[j]; k++) {
-        for (int in = 0; in != NDRIN(j, k); in++) {
-          int n = DRIN(j, k, in);
+        for (int in = 0; in != dNDRIN(j, k); in++) {
+          int n = dDRIN(j, k, in);
           int ia, iv, iw;
           ia = dTREE_AND_NODE2PAR(itree, n, 0);
           iv = dTREE_AND_NODE2PAR(itree, n, 1);
           iw = dTREE_AND_NODE2PAR(itree, n, 2);
           int m = dMAP(ia, iv, iw);
-          int pm = (AR(j, k, n) == 1) ? 1 : 0;
+          int pm = (dAR(j, k, n) == 1) ? 1 : 0;
           rtmins[t * no_patterns * 2 + m * 2 + pm] = fmin(rtmins[t * no_patterns * 2 + m * 2 + pm], tmincat[t * kerncat + j]/10.0);
         }
       }
@@ -915,10 +914,8 @@ namespace drtmpt {
     ilamoff = irmuoff + igroup * respno;
     isigoff = ilamoff + indi * respno;
     nhamil = (igroup + indi) * (icompg + respno) + indi;
-
     n_all_parameters = icompg * igroup + indi * icompg + (icompg * (icompg + 1)) / 2 + respno * igroup + (respno + 1) * indi + (respno * (respno + 1)) / 2 + 1;
     //                    ma,mv,mw                 a,v,w            sig                           rmu     lambdas+sig_t           gam                     omega
-
     supsig = gsl_matrix_alloc(n_all_parameters, n_all_parameters);
     sigisqrt = gsl_matrix_alloc(n_all_parameters, n_all_parameters);
     if (generate_or_diagnose) gibbs_times_new(daten, rst1, rst2, rst3, rst4);

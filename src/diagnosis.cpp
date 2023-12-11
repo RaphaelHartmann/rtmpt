@@ -1030,7 +1030,10 @@ namespace drtmpt {
   void dic(std::vector <trial> daten, double* sample) {
     
     std::ofstream log_lik(LOGLIK);
-    if (log_lik_flag) log_lik << std::setprecision(12);
+    if (log_lik_flag) {
+      log_lik << std::setprecision(12);
+      // loglik_vec = (double *)malloc(SAMPLE_SIZE * datenzahl * sizeof(double));
+    }
     
     double dbar = 0.0, pd = 0.0, pv = 0.0;
     
@@ -1148,36 +1151,43 @@ namespace drtmpt {
       if (log_lik_flag)
         for (int t = 0; t < indi; t++)
           for (int j = 0; j < kerncat; j++) {
-            for (int k = 0; k != static_cast<int>(icstore[t * kerncat + j].size()); k++) log_lik << std::setw(20) << icstore[t * kerncat + j][k];
-          }
-          
-          if (same) persample = persample_old; else persample_old = persample;
-          if (!same) {
-            for (int i = 0; i != ifreemax * 3 * indi; i++) tavw_old[i] = tavw[i];
-            for (int i = 0; i != (respno + 1) * indi; i++) lambdas_old[i] = lambdas[i];
-          }
-          //Rprintf("%20g%10d\n", persample, same);
-          if (log_lik_flag) log_lik << std::endl;
-          dbar += persample;
-          pv += gsl_pow_2(persample);
-          //Rprintf("is %d\n", is);
-          
-          //#pragma optimize("", off)
-          if (PROG_BAR_FLAG) {
-            int pos = static_cast<int>(ML_bar * progress);
-            Rprintf("\r[");
-            for (int i = 0; i < ML_bar; i++) {
-              if (i < pos) {
-                Rprintf("=");
-              } else if (i == pos) {
-                Rprintf(">");
-              } else Rprintf(" ");
+            int tmp_K = static_cast<int>(icstore[t * kerncat + j].size());
+            // Rprintf("tmp_K = %d\n", tmp_K);
+            for (int k = 0; k != tmp_K; k++) {
+              log_lik << std::setw(20) << icstore[t * kerncat + j][k];
+              // Rprintf("zeile = %d", indi*kerncat*tmp_K);
+              // loglik_vec[is*indi*kerncat*tmp_K] = icstore[t * kerncat + j][k];
+              // Rprintf("loglik_vec[t*kerncat + j] = %g\n", loglik_vec[indi*kerncat*tmp_K*is+ kerncat*tmp_K*t + tmp_K*j + k]);
             }
-            Rprintf("] %d%%", static_cast<int>(progress * 100.0));
           }
-          //#pragma optimize("", on)
           
-          R_CheckUserInterrupt();
+      if (same) persample = persample_old; else persample_old = persample;
+      if (!same) {
+        for (int i = 0; i != ifreemax * 3 * indi; i++) tavw_old[i] = tavw[i];
+        for (int i = 0; i != (respno + 1) * indi; i++) lambdas_old[i] = lambdas[i];
+      }
+      //Rprintf("%20g%10d\n", persample, same);
+      log_lik << std::endl;
+      dbar += persample;
+      pv += gsl_pow_2(persample);
+      //Rprintf("is %d\n", is);
+      
+      //#pragma optimize("", off)
+      if (PROG_BAR_FLAG) {
+        int pos = static_cast<int>(ML_bar * progress);
+        Rprintf("\r[");
+        for (int i = 0; i < ML_bar; i++) {
+          if (i < pos) {
+            Rprintf("=");
+          } else if (i == pos) {
+            Rprintf(">");
+          } else Rprintf(" ");
+        }
+        Rprintf("] %d%%", static_cast<int>(progress * 100.0));
+      }
+      //#pragma optimize("", on)
+      
+      R_CheckUserInterrupt();
           
     }
     Rprintf("\n");
