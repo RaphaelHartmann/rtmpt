@@ -43,8 +43,8 @@ be in milliseconds. It is always advised to use \code{\link{to_drtmpt_data}} fir
 \item{Irep}{Every \code{Irep} samples an interim state with the current maximal potential scale reduction
 factor is shown. Default is 1000. The following statements must hold true for \code{Irep}:
 \itemize{
-  \item \code{n.phase1} is a multiple of {Irep}
-  \item \code{n.phase2} is a multiple of {Irep}
+  \item \code{n.phase1} is a multiple of \code{Irep}
+  \item \code{n.phase2} is a multiple of \code{Irep}
   \item \code{n.phase1} is smaller than or equal to \code{n.phase2},
   \item \code{Irep} is a multiple of \code{n.thin} and
   \item \code{n.iter} is a multiple of \code{Irep / n.thin}.
