@@ -8,8 +8,6 @@
 # rtmpt
 *R* package for fitting Response-Time extended Multinomial Processing Tree (RT-MPT) models by Klauer and Kellen (2018)
 
-The manual for the package: [rtmpt_manual](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/rtmpt-manual.pdf)
-
 ## Description
 
 The model class RT-MPT incorporate response frequencies and response latencies. This enables the estimation of 
@@ -19,17 +17,19 @@ The model class RT-MPT incorporate response frequencies and response latencies. 
 
 In total we have for each process one probability parameter and two process completion times (for each outcome of the process one).
 
-`rtmpt` uses a Metropolis-within-Gibbs sampler and builds on the *C++* code by Klauer and Kellen (2018) with some modification. The main modification is the change from a proprietary *C* library to the free and open source *C* library GSL (GNU Scientific Library; Galassi et al., 2018).
+`rtmpt` has two sub-model classes: the exponential RT-MPT uses a Metropolis-within-Gibbs sampler and builds on the *C++* code by Klauer and Kellen (2018) with some modifications. The diffusion RT-MPT uses a Hamiltonian-Within-Gibbs sampler and builds on the *C++* code by Klauer, Hartmann, and Meyer-Grant (submitted manuscript).
 
-In the old *C++* program it was possible to
+In the exponential RT-MPT (short ertmpt) model class it is possible to
 * set process probabilities to constants
-* set the time of both outcomes of a process to zero (i.e. suppress the time for both outcomes of a process).
+* set two or more probabilities equal
+* set the process completion time of one process outcome to zero
+* set the process completion time of multiple processes with the same outcome (+ or -) equal
 
-In addition to the features of the old *C++* program in `rtmpt` it is also possible to 
-* set the time for only one outcome of a process to zero (i.e. still estimate the process completion time for the other outcome of the same process).
-* set some prior parameters.
+In the diffusion RT-MPT (short drtmpt) model class it is possible to
+* set one or more of the diffusion parameters (threshold, drift rate, and relative starting point) for a process to constants
+* set one or more of the diffusion parameters (threshold, drift rate, and relative starting point) for multiple processes equal
 
-For more information about the functionalities check the help files or the vignette of the package with the commands in the *Example* section below.
+For more information about the functionalities check the help files or the vignette of the package.
 
 ## Installation
 
@@ -40,19 +40,6 @@ An installation via [CRAN](https://cran.r-project.org/) is now possible. Write i
 ```
 
 ### Alternative instructions
-
-#### Windows <!-- <img src="http://de.fordesigner.com/imguploads/Image/cjbc/zcool/png20080526/1211779560.png" width="30" hspace="20" style="border:0px"> -->
-
-The installation from source requires the installation of [GSL](https://www.gnu.org/software/gsl/) (>=2.3) and is rather complicated.
-
-An easier way is to install the `rtmpt`package via binaries:
-1. Download the Windows binaries for your corresponding R version from this list or from the [releases](https://github.com/RaphaelHartmann/rtmpt/releases) (For example, if your *R* vesion is 3.5.3 choose `R(3.5.X)`)
-* [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/Windows_binaries/R_3.5.X/rtmpt_0.1-17.zip) - *R* old release
-* [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/Windows_binaries/R_3.6.X/rtmpt_0.1-17.zip) - *R* release
-* [![Binary](https://img.shields.io/badge/binaries-R(3.7.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/Windows_binaries/R_3.7.X/rtmpt_0.1-17.zip) - *R* devel
-2. Installation via Package Archive File (.zip) in
-    * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
-    * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
 
 #### Linux <!-- <img src="https://maxcdn.icons8.com/Share/icon/Operating_Systems/linux1600.png" width="30" hspace="20" style="border:0px"> -->
 
@@ -86,16 +73,6 @@ Installing `rtmpt` is possible either
 
 #### MacOS <!-- <img src="https://maxcdn.icons8.com/Color/PNG/512/Operating_Systems/mac_os_copyrighted-512.png" width="30" hspace="20" style="border:0px"> -->
 
-##### via binaries
-The installation via the binaries is much easier than from source:
-1. Download the MacOS binaries for your corresponding R version from this list or from the [releases](https://github.com/RaphaelHartmann/rtmpt/releases) (For example, if your *R* vesion is 3.5.3 choose `R(3.5.X)`)
-* [![Binary](https://img.shields.io/badge/binaries-R(3.5.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/MacOS_binaries/R_3.5.X/rtmpt_0.1-17.tgz) - *R* old release
-* [![Binary](https://img.shields.io/badge/binaries-R(3.6.X)-blue.svg)](https://github.com/RaphaelHartmann/rtmpt-files/tree/master/current/rtmpt_0.1-17/MacOS_binaries/R_3.6.X/rtmpt_0.1-17.tgz) - *R* release
-2. Installation via Package Archive File (.zip) in
-    * Rstudio: Select *Tools -> Install Packages... ->* select *Install from: Package Archive File (.zip)* and *browse* the .zip file *->* click *Install*
-    * R: Select *Packages -> Install package(s) from local files...* and browse the .zip file *->* click *Open*
-
-##### from source
 Before installing the *R* package `rtmpt` from source you need to do the following:
 1. If not already installed, install [Homebrew](https://brew.sh/)
 2. Install [GSL](https://www.gnu.org/software/gsl/) via Homebrew using terminal and command `brew install gsl`
@@ -132,18 +109,6 @@ This is possible either
     R CMD INSTALL rtmpt_<XYZ>.tar.gz
     ```
     where XYZ stands for the version number.
-
-## Example
-For an example download the [example](https://github.com/RaphaelHartmann/rtmpt-files/blob/master/an_example.zip) and run the R script. Note that this will take some time. You can also check out the help files for the `rtmpt` package in R via the commands
-```
-?to_rtmpt_model
-?to_rtmpt_data
-?set_params
-?set_resps
-?fit_rtmpt
-?SimData
-```
-or the vignette via `vignette("rtmpt_intro")`.
 
 ## Citation
 If you want to cite this package write
