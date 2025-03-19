@@ -12,3 +12,4 @@ src/*.dll
 # folders for binary packages
 src-x64/*
 src-i386/*
+
