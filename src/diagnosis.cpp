@@ -170,9 +170,9 @@ namespace ertmpt {
   		tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
   	}
   
-  	free(temp);
-  	free(u);
-  	free(nj);
+  	if (temp) free(temp);
+  	if (u) free(u);
+  	if (nj) free(nj);
   }
   
   void make_pij_for_one_trial_new(trial one, double *x_for_all, double *pij, double &pj) {
@@ -251,7 +251,7 @@ namespace ertmpt {
   			if (loglams) free(loglams);
   		}
   
-  		free(lams);
+  		if (lams) free(lams);
   		//	 if ((pfadlength>5) || (pfadlength==0)) cout<< "pfadlength" << std::endl;
   	}
   }
@@ -347,12 +347,12 @@ namespace ertmpt {
   		tests_out << std::setw(15) << pd + dbar << std::setw(15) << pv + dbar << std::setw(15) << pd << std::endl << std::setw(15) << pv << std::endl;
   	}
   	// log_lik.close();
-  	free(pij);
-  	free(xbar);
-  	free(x_for_all);
-  	free(rhos);
-  	free(lambdas);
-  	free(restpars);
+  	if (pij) free(pij);
+  	if (xbar) free(xbar);
+  	if (x_for_all) free(x_for_all);
+  	if (rhos) free(rhos);
+  	if (lambdas) free(lambdas);
+  	if (restpars) free(restpars);
   }
   
   
@@ -590,32 +590,32 @@ namespace ertmpt {
   		}
   	// if (correct) free(correct);
   
-  	free(t1);
-  	free(t2);
-  	free(obs);
-  	free(expe);
-  	free(rep);
-  	free(sobs);
-  	free(sexp);
-  	free(srep);
-  	free(tobs);
-  	free(texp);
-  	free(trep);
-  	free(stobs);
-  	free(stexp);
-  	free(strep);
-  	free(pij);
-  	free(onepij);
-  	free(x);
-  	free(lambdas);
-  	free(tdaten);
-  	free(nobs);
-  	free(nrep);
-  	free(d);
-  	free(drep);
-  	free(x1);
-  	free(x2);
-  	free(ng);
+  	if (t1) free(t1);
+  	if (t2) free(t2);
+  	if (obs) free(obs);
+  	if (expe) free(expe);
+  	if (rep) free(rep);
+  	if (sobs) free(sobs);
+  	if (sexp) free(sexp);
+  	if (srep) free(srep);
+  	if (tobs) free(tobs);
+  	if (texp) free(texp);
+  	if (trep) free(trep);
+  	if (stobs) free(stobs);
+  	if (stexp) free(stexp);
+  	if (strep) free(strep);
+  	if (pij) free(pij);
+  	if (onepij) free(onepij);
+  	if (x) free(x);
+  	if (lambdas) free(lambdas);
+  	if (tdaten) free(tdaten);
+  	if (nobs) free(nobs);
+  	if (nrep) free(nrep);
+  	if (d) free(d);
+  	if (drep) free(drep);
+  	if (x1) free(x1);
+  	if (x2) free(x2);
+  	if (ng) free(ng);
   }
   
 
@@ -648,8 +648,8 @@ namespace ertmpt {
   	Rprintf("Corr"); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   	if (save_diagnose) { tests_out << "Corr "; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   
-  	free(sigma);
-  	free(temp);
+  	if (sigma) free(sigma);
+  	if (temp) free(temp);
   }
   
   void groupwise(double *sample) {
@@ -691,8 +691,8 @@ namespace ertmpt {
   	}
   	iz = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree;
 
-  	free(t1);
-  	free(t2);
+  	if (t1) free(t1);
+  	if (t2) free(t2);
   
   }
   
@@ -725,14 +725,14 @@ namespace ertmpt {
   
   	if (save_diagnose) tests_out.close();
   
-  	free(nks);
+  	if (nks) free(nks);
   	// free(index1);
   	// free(index2);
-  	free(jks);
-  	free(beta);
+  	if (jks) free(jks);
+  	if (beta) free(beta);
   
-  	free(tree2cat);
-  	free(sample);
+  	if (tree2cat) free(tree2cat);
+  	if (sample) free(sample);
   }
 
 }
@@ -834,7 +834,7 @@ namespace drtmpt {
           }
         }
         
-        belege_lambdas_mus(sample, is, lambdas);
+      belege_lambdas_mus(sample, is, lambdas);
       int resin = (respno + 1) * indi;
       for (int ir = 0; ir != resin; ir++) mlambdas[ir] += (lambdas[ir] - mlambdas[ir]) * r;
     }
@@ -851,10 +851,10 @@ namespace drtmpt {
       }
     }
     person.close();
-    free(tavw);
-    free(lambdas);
-    free(mtavw);
-    free(mlambdas);
+    if (tavw) free(tavw);
+    if (lambdas) free(lambdas);
+    if (mtavw) free(mtavw);
+    if (mlambdas) free(mlambdas);
   }
   
   
@@ -994,9 +994,9 @@ namespace drtmpt {
       tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
     }
     
-    free(temp);
-    free(u);
-    free(nj);
+    if (temp) free(temp);
+    if (u) free(u);
+    if (nj) free(nj);
     R_CheckUserInterrupt();
   }
   
@@ -1023,7 +1023,7 @@ namespace drtmpt {
       std::vector<double> pbranch; pbranch.clear();
       convolution2(rts, pfadlength, low_or_up, a, v, w, mu, sig, pbranch);
       p.push_back(pbranch);
-      free(a); free(v); free(w); free(low_or_up);
+      if (a) free(a); if (v) free(v); if (w) free(w); if (low_or_up) free(low_or_up);
     }
     ps.clear();
     for (int x = 0; x != static_cast<int>(rts.size()); x++) {
@@ -1066,7 +1066,7 @@ namespace drtmpt {
     double progress = 0.0;
     int ML_bar = 50;
     if (PROG_BAR_FLAG) {
-      Rprintf("\nCalculating DIC:\n");
+      Rprintf("\nCalculating DIC.\nThis requires numerical integration and takes some time.\n");
       Rprintf("[");
       for (int i = 0; i < ML_bar; i++) Rprintf(" ");
       Rprintf("] 0%%");
@@ -1156,7 +1156,7 @@ namespace drtmpt {
         
         
         for (int tj = 0; tj != indi * kerncat; tj++)  persample += icpersample[tj];
-        free(icpersample);
+        if (icpersample) free(icpersample);
       }
       if (log_lik_flag) {
         for (int t = 0; t < indi; t++) {
@@ -1165,6 +1165,7 @@ namespace drtmpt {
             // Rprintf("tmp_K = %d\n", tmp_K);
             for (int k = 0; k != tmp_K; k++) {
               // log_lik << std::setw(20) << icstore[t * kerncat + j][k];
+              
               loglik_vec[myind] = icstore[t * kerncat + j][k];
               myind++;
               // Rprintf("%10d\n" , index[t*kerncat + j][k] );
@@ -1216,10 +1217,10 @@ namespace drtmpt {
       tests_out << std::setw(15) << pv + dbar << std::setw(15) << pv << std::endl;
     }
     // log_lik.close();
-    free(lambdas);
-    free(tavw);
-    free(tavw_old);
-    free(lambdas_old);
+    if (lambdas) free(lambdas);
+    if (tavw) free(tavw);
+    if (tavw_old) free(tavw_old);
+    if (lambdas_old) free(lambdas_old);
     R_CheckUserInterrupt();
   }
   
@@ -1536,38 +1537,38 @@ namespace drtmpt {
       }
       meansout.close();
     
-    free(tavw);
+    if (tavw) free(tavw);
     
-    free(t1);
-    free(t2);
-    free(tt1);
-    free(tt2);
+    if (t1) free(t1);
+    if (t2) free(t2);
+    if (tt1) free(tt1);
+    if (tt2) free(tt2);
     
-    free(expe);
-    free(rep);
-    free(sobs);
-    free(sexp);
-    free(srep);
+    if (expe) free(expe);
+    if (rep) free(rep);
+    if (sobs) free(sobs);
+    if (sexp) free(sexp);
+    if (srep) free(srep);
     
-    free(texp);
-    free(trep);
-    free(stobs);
-    free(stexp);
-    free(strep);
-    free(pij);
-    free(onepij);
-    free(x);
+    if (texp) free(texp);
+    if (trep) free(trep);
+    if (stobs) free(stobs);
+    if (stexp) free(stexp);
+    if (strep) free(strep);
+    if (pij) free(pij);
+    if (onepij) free(onepij);
+    if (x) free(x);
     
-    free(tdaten);
-    free(nobs);
-    free(ntree);
-    free(nrep);
-    free(d);
-    free(drep);
-    free(x1);
-    free(x2);
-    free(xt1);
-    free(xt2);
+    if (tdaten) free(tdaten);
+    if (nobs) free(nobs);
+    if (ntree) free(ntree);
+    if (nrep) free(nrep);
+    if (d) free(d);
+    if (drep) free(drep);
+    if (x1) free(x1);
+    if (x2) free(x2);
+    if (xt1) free(xt1);
+    if (xt2) free(xt2);
   }
   
   
@@ -1630,11 +1631,11 @@ namespace drtmpt {
     
     if (save_diagnose) tests_out.close();
     
-    free(nks);
-    free(jks);
-    free(tree2cat);
-    free(sample);
-    free(monitor);
+    if (nks) free(nks);
+    if (jks) free(jks);
+    if (tree2cat) free(tree2cat);
+    if (sample) free(sample);
+    if (monitor) free(monitor);
     
   }
 

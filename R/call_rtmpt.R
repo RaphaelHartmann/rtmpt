@@ -1,9 +1,9 @@
 
-#' Fit Exponential-RT-MPT Models
+#' Fit Exponential RT-MPT Models
 #' 
 #' Given model and data, this function calls an altered version of the C++ program by Klauer and Kellen (2018) to sample from
 #'   the posterior distribution via a Metropolis-Gibbs sampler and storing it in an mcmc.list called \code{samples}. 
-#'   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
+#'   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002 and Gelman et al., 2004),
 #'   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list 
 #'   called \code{diags}. Optionally, the \code{indices} widely applicable information criterion (WAIC; Watanabe, 2010; Vehtari et al., 2017) and 
 #'   leave-one-out cross-validation (LOO; Vehtari et al., 2017) can be saved. Additionally the log-likelihood (\code{LogLik}) can also be stored. 
@@ -70,14 +70,17 @@
 #' @return A list of the class \code{ertmpt_fit} containing 
 #'   \itemize{
 #'     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
-#'     \item \code{diags}: some diagnostics like deviance information criterion, posterior predictive checks for the frequencies and latencies, 
-#'                         potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the group-level parameters,
+#'     \item \code{diags}: some diagnostics like deviance information criterion (DIC1 by Spiegelhalter et al., 2002 and DIC2 by Gelman et al., 2004), 
+#'     posterior predictive checks for the frequencies and latencies, potential scale reduction factors, and also the 99\% and 95\% HDIs and medians 
+#'     for the group-level parameters,
 #'     \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
 #'     \item \code{indices} (optional): if enabled, WAIC and LOO,
 #'     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO. 
 #'     \item \code{summary} includes posterior mean and median of the main parameters.
 #'   }
 #' @references
+#' Gelman, Andrew; Carlin, John B.; Stern, Hal S.; Rubin, Donald B. (2004). Bayesian Data Analysis: Second Edition. Texts in Statistical Science. CRC Press.
+#' 
 #' Hartmann, R., Johannsen, L., & Klauer, K. C. (2020). rtmpt: An R package for fitting response-time extended multinomial processing tree models. 
 #'   \emph{Behavior Research Methods, 52}(3), 1313–1338. 
 #' 
@@ -461,10 +464,10 @@ fit_ertmpt <- function(model,
 
 
 
-#' Fit Diffusion-RT-MPT Models
+#' Fit Diffusion RT-MPT Models
 #'
-#' Given model and data, this function a Hamiltonian MCMC sampler and stores the samples in an mcmc.list called \code{samples}.
-#'   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
+#' Given model and data, this function uses a Hamiltonian MCMC sampler and stores the samples in an mcmc.list called \code{samples}.
+#'   Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC, Gelman et al., 2004),
 #'   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list
 #'   called \code{diags}. Optionally, the \code{indices} widely applicable information criterion (WAIC; Watanabe, 2010; Vehtari et al., 2017) and
 #'   leave-one-out cross-validation (LOO; Vehtari et al., 2017) can be saved. Additionally the log-likelihood (\code{LogLik}) can also be stored.
@@ -530,18 +533,22 @@ fit_ertmpt <- function(model,
 #' @return A list of the class \code{drtmpt_fit} containing
 #'   \itemize{
 #'     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
-#'     \item \code{diags}: some diagnostics like deviance information criterion, posterior predictive checks for the frequencies and latencies,
-#'                         potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the group-level parameters,
-#'     \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
+#'     \item \code{diags}: some diagnostics like deviance information criterion (DIC2 by Gelman et al., 2004), posterior predictive checks for 
+#'                         the frequencies and latencies, potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the 
+#'                         group-level parameters, \item \code{specs}: some model specifications like the model, arguments of the model call, 
+#'                         and information about the data transformation,
 #'     \item \code{indices} (optional): if enabled, WAIC and LOO,
 #'     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO.
 #'     \item \code{summary} includes posterior mean and median of the main parameters.
 #'   }
 #' @references
+#' Gelman, Andrew; Carlin, John B.; Stern, Hal S.; Rubin, Donald B. (2004). \emph{Bayesian Data Analysis: Second Edition.} 
+#'   Texts in Statistical Science. CRC Press.
+#' 
 #' Klauer, K. C. (2010). Hierarchical multinomial processing tree models: A latent-trait approach. \emph{Psychometrika, 75(1)}, 70-98.
-#'
-#' Spiegelhalter, D. J., Best, N. G., Carlin, B. P., & Van Der Linde, A. (2002). Bayesian measures of model complexity and fit.
-#'   \emph{Journal of the royal statistical society: Series b (statistical methodology), 64(4)}, 583-639.
+#' 
+#' Klauer, K. C., Hartmann, R., & Meyer-Grant, C. G. (2024). RT-MPTs: Process models for response-time distributions with diffusion-model kernels. 
+#'   \emph{Journal of Mathematical Psychology, 120}, 102857.
 #'
 #' Vehtari, A., Gelman, A., & Gabry, J. (2017). Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC.
 #'   \emph{Statistics and Computing, 27(5)}, 1413-1432.
@@ -638,7 +645,7 @@ fit_drtmpt <- function(model,
   # SET FLAGS
   if (!is.list(flags)) flags <- list()
   if (!"old_label" %in% names(flags)) {
-    old_label <- FALSE
+    flags$old_label <- old_label <- FALSE
   } else {
     old_label <- flags$old_label
   }
@@ -649,9 +656,9 @@ fit_drtmpt <- function(model,
   
   # SET CONTROLS
   if (!is.list(control)) control <- list()
-  if (!"maxthreads" %in% names(flags)) control$maxthreads <- 4
-  if (!"maxtreedepth1_3" %in% names(flags)) control$maxtreedepth1_3 <- 5
-  if (!"maxtreedepth4" %in% names(flags)) control$maxtreedepth4 <- 9
+  if (!"maxthreads" %in% names(control)) control$maxthreads <- 4
+  if (!"maxtreedepth1_3" %in% names(control)) control$maxtreedepth1_3 <- 5
+  if (!"maxtreedepth4" %in% names(control)) control$maxtreedepth4 <- 9
   
   
   # PREPARE DATA
@@ -704,6 +711,7 @@ fit_drtmpt <- function(model,
   means_path <- gsub("\\\\", "/", tempfile(pattern = "means", tmpdir = tempdir(), fileext = ".out"))
   tests_path <- gsub("\\\\", "/", tempfile(pattern = "tests", tmpdir = tempdir(), fileext = ".out"))
   rand_path <- gsub("\\\\", "/", tempfile(pattern = "random", tmpdir = tempdir(), fileext = ".out"))
+  rand2_path <- gsub("\\\\", "/", tempfile(pattern = "random", tmpdir = tempdir(), fileext = ".out"))
   
   
   # PREPARE INFOFILE
@@ -779,6 +787,7 @@ fit_drtmpt <- function(model,
                           Means = means_path,
                           Tests = tests_path,
                           Random = rand_path,
+                          Random2 = rand2_path,
                           tmpdir = paste0(tempdir(), "/")))
   
   
@@ -838,7 +847,7 @@ fit_drtmpt <- function(model,
                INTEGER2, REAL2,
                INTEGER3, INTEGER4,
                REAL3, INTEGER5)
-  file.remove(data_path)
+  if (file.exists(data_path)) file.remove(data_path)
   
   
   # DATA INFORMATION
@@ -859,7 +868,6 @@ fit_drtmpt <- function(model,
   drtmpt$samples <- make_mcmc_list_d(file = out$pars_samples, infofile = infofile,
                                      Nchains = n.chains, Nsamples = n.iter,
                                      data_info = data_info, keep = old_label)
-  file.remove(raus_path)
   
   
   # DIAGNOSTICS
@@ -871,7 +879,8 @@ fit_drtmpt <- function(model,
   infos <- readinfofile(infofile)
   drtmpt$specs <- list(model = model, n.chains = n.chains, n.iter = n.iter, n.phase1 = n.phase1, n.phase2 = n.phase2,
                        n.thin = n.thin, n.groups = data_info$Ngroups, n.subj = data_info$Nsubj, Irep = Irep,
-                       Rhat_max = Rhat_max, prior_params = prior_params, infolist = infos, call = match.call())
+                       Rhat_max = Rhat_max, prior_params = prior_params, infolist = infos, flags = flags, 
+                       control = control, call = match.call())
   if(exists("transformation")) {
     drtmpt$specs$transformation <- transformation
   }
@@ -907,15 +916,18 @@ fit_drtmpt <- function(model,
     }
     if (flags$loglik) {
       drtmpt$loglik <- out$loglik
+      if(file.exists(ll_path)) file.remove(ll_path)
     }
   }
   
   
   # CONTINUATION
-  if (FALSE) {
-    drtmpt$continue <- readLines(con = cont_path)
-  }
-  file.remove(cont_path)
+  drtmpt$specs$continue <- readLines(con = cont_path)
+  drtmpt$specs$raus <- readLines(con = raus_path)
+  drtmpt$specs$rand <- readBin(con = rand_path, what = "raw", n = 1000000)
+  if (file.exists(cont_path)) file.remove(cont_path)
+  if (file.exists(raus_path)) file.remove(raus_path)
+  if (file.exists(rand_path)) file.remove(rand_path)
   
   
   # SUMMARY
@@ -923,11 +935,11 @@ fit_drtmpt <- function(model,
   
   
   # CLEAN-UP
-  file.remove(means_path)
-  file.remove(tests_path)
-  file.remove(rand_path)
-  file.remove(infofile)
-  file.remove(mdl_path)
+  if (file.exists(means_path)) file.remove(means_path)
+  if (file.exists(tests_path)) file.remove(tests_path)
+  if (file.exists(infofile)) file.remove(infofile)
+  if (file.exists(mdl_path)) file.remove(mdl_path)
+  if (file.exists(model_path)) file.remove(model_path)
   
   
   # OUTPUT

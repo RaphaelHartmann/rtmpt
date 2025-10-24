@@ -505,7 +505,7 @@ namespace ertmpt {
 
 
   	if (cat2tree) free(cat2tree);
-  	free(t2group);
+  	if (t2group) free(t2group);
   	//if (a) free(a);
   	if (ar) free(ar);
   	//if (b) free(b);
@@ -571,7 +571,7 @@ namespace drtmpt {
 
   Node* trees[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-  double* supersig = 0;
+  std::vector<double> supersig;
   int nhamil;
   int phase;
 
@@ -888,8 +888,6 @@ namespace drtmpt {
     // if (!(comp = (bool*)malloc(3 * kernpar * sizeof(bool)))) { Rprintf("Allocation failure\n"); }
     // if (!(consts = (double*)malloc(3 * kernpar * sizeof(double)))) { Rprintf("Allocation failure\n"); };
     
-    // Log-Likelihood vector
-    loglik_vec = (double *)malloc(SAMPLE_SIZE * datenzahl * sizeof(double));
     
     
     model_design(kerntree, ar, branch, nodes_per_tree, tree_and_node2par);
@@ -922,6 +920,10 @@ namespace drtmpt {
     supsig = gsl_matrix_alloc(n_all_parameters, n_all_parameters);
     sigisqrt = gsl_matrix_alloc(n_all_parameters, n_all_parameters);
     if (generate_or_diagnose) gibbs_times_new(daten, rst1, rst2, rst3, rst4);
+    
+    // Log-Likelihood vector
+    loglik_vec = (double *)malloc(sample_size * datenzahl * sizeof(double));
+    
     diagnosis(daten, idaten, kerntree, rst);
 
     if (cat2tree) free(cat2tree);
@@ -944,8 +946,8 @@ namespace drtmpt {
     if (nppr) free(nppr);
     if (map) free(map);
     if (comb) free(comb);
-    free(t2group);
-    free(ng);
+    if (t2group) free(t2group);
+    if (ng) free(ng);
 
     //if (kern2free) free(kern2free);
     if (free2comp) free(free2comp);
@@ -958,8 +960,8 @@ namespace drtmpt {
 
     gsl_matrix_free(supsig);
     gsl_matrix_free(sigisqrt);
-    free(mapavw);
-    free(mapmavw);
+    if (mapavw) free(mapavw);
+    if (mapmavw) free(mapmavw);
 
     return exit_status;
   }

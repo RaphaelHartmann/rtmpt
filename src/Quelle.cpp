@@ -528,7 +528,7 @@ namespace drtmpt {
   //estimate variance-covariance matrix of posterior distribution of parameters
   void make_supersigs(int anz, double* parmonstore, gsl_matrix* supsig, gsl_matrix* sigisqrt) {
   	// pool
-  	gsl_matrix_view ssig = gsl_matrix_view_array(supersig, NOTHREADS, n_all_parameters * n_all_parameters);
+  	gsl_matrix_view ssig = gsl_matrix_view_array(supersig.data(), NOTHREADS, n_all_parameters * n_all_parameters);
   	gsl_vector* ones = gsl_vector_alloc(NOTHREADS);
   	gsl_vector* temp = gsl_vector_alloc(n_all_parameters*n_all_parameters);
   	gsl_vector_set_all(ones, 1.0/(anz*NOTHREADS));

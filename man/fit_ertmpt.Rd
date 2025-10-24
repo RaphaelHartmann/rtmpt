@@ -2,7 +2,7 @@
 % Please edit documentation in R/call_rtmpt.R
 \name{fit_ertmpt}
 \alias{fit_ertmpt}
-\title{Fit Exponential-RT-MPT Models}
+\title{Fit Exponential RT-MPT Models}
 \usage{
 fit_ertmpt(
   model,
@@ -94,8 +94,9 @@ be saved in the output as a matrix. Its default is \code{FALSE}.}
 A list of the class \code{ertmpt_fit} containing 
   \itemize{
     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
-    \item \code{diags}: some diagnostics like deviance information criterion, posterior predictive checks for the frequencies and latencies, 
-                        potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the group-level parameters,
+    \item \code{diags}: some diagnostics like deviance information criterion (DIC1 by Spiegelhalter et al., 2002 and DIC2 by Gelman et al., 2004), 
+    posterior predictive checks for the frequencies and latencies, potential scale reduction factors, and also the 99\% and 95\% HDIs and medians 
+    for the group-level parameters,
     \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
     \item \code{indices} (optional): if enabled, WAIC and LOO,
     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO. 
@@ -105,7 +106,7 @@ A list of the class \code{ertmpt_fit} containing
 \description{
 Given model and data, this function calls an altered version of the C++ program by Klauer and Kellen (2018) to sample from
   the posterior distribution via a Metropolis-Gibbs sampler and storing it in an mcmc.list called \code{samples}. 
-  Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
+  Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002 and Gelman et al., 2004),
   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list 
   called \code{diags}. Optionally, the \code{indices} widely applicable information criterion (WAIC; Watanabe, 2010; Vehtari et al., 2017) and 
   leave-one-out cross-validation (LOO; Vehtari et al., 2017) can be saved. Additionally the log-likelihood (\code{LogLik}) can also be stored. 
@@ -142,6 +143,8 @@ ertmpt_out
 # Type ?SimData for another working example.
 }
 \references{
+Gelman, Andrew; Carlin, John B.; Stern, Hal S.; Rubin, Donald B. (2004). Bayesian Data Analysis: Second Edition. Texts in Statistical Science. CRC Press.
+
 Hartmann, R., Johannsen, L., & Klauer, K. C. (2020). rtmpt: An R package for fitting response-time extended multinomial processing tree models. 
   \emph{Behavior Research Methods, 52}(3), 1313–1338. 
 

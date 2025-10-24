@@ -72,7 +72,7 @@ namespace ertmpt {
   
   	gsl_matrix_free(cx);
   	//gsl_vector_free(s);
-  	free(xb);
+  	if (xb) free(xb);
   
   }
   
@@ -126,7 +126,7 @@ namespace ertmpt {
   
   	if (xb) free(xb);
   	if (hout) free(hout);
-  	free(ntig);
+  	if (ntig) free(ntig);
   	gsl_matrix_free(cx);
   	// gsl_vector_free(s);
   }

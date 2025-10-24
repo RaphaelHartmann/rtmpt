@@ -361,7 +361,7 @@ extern "C" {
     int outCnt = 0, prtCnt = 0;
     SEXP pars_samples = PROTECT(Rf_allocMatrix(REALSXP, SAMPLE_SIZE, n_all_parameters));
     outCnt++;
-    SEXP loglik = PROTECT(Rf_allocMatrix(REALSXP, SAMPLE_SIZE, datenzahl));
+    SEXP loglik = PROTECT(Rf_allocMatrix(REALSXP, sample_size, datenzahl));
     outCnt++;
     SEXP ans = PROTECT(Rf_allocVector(VECSXP, outCnt));
     prtCnt = outCnt + 1;
@@ -371,20 +371,22 @@ extern "C" {
     double *Rloglik = REAL(loglik);
 
 
-    for (int i=0; i< SAMPLE_SIZE; i++) {
+    for (int i=0; i < sample_size; i++) {
       for (int j = 0; j < n_all_parameters; j++) {
-        Rpars_samples[i + j*SAMPLE_SIZE] = complete_sample[i*(n_all_parameters) + j];
+        if (i < SAMPLE_SIZE) {
+          Rpars_samples[i + j*SAMPLE_SIZE] = complete_sample[i*(n_all_parameters) + j];
+        }
       }
       if (log_lik_flag) {
         for (int j = 0; j < datenzahl; j++) {
-          Rloglik[i + j*SAMPLE_SIZE] = loglik_vec[i*datenzahl + j];
+          Rloglik[i + j*sample_size] = loglik_vec[i*datenzahl + j];
         }
       }
     }
 
 
     if (complete_sample) free(complete_sample);
-    free(loglik_vec);
+    if (loglik_vec) free(loglik_vec);
 
 
     SET_VECTOR_ELT(ans, 0, pars_samples);

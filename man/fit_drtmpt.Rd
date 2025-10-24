@@ -2,7 +2,7 @@
 % Please edit documentation in R/call_rtmpt.R
 \name{fit_drtmpt}
 \alias{fit_drtmpt}
-\title{Fit Diffusion-RT-MPT Models}
+\title{Fit Diffusion RT-MPT Models}
 \usage{
 fit_drtmpt(
   model,
@@ -93,17 +93,18 @@ Allowed parameters are:
 A list of the class \code{drtmpt_fit} containing
   \itemize{
     \item \code{samples}: the posterior samples as an \code{mcmc.list} object,
-    \item \code{diags}: some diagnostics like deviance information criterion, posterior predictive checks for the frequencies and latencies,
-                        potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the group-level parameters,
-    \item \code{specs}: some model specifications like the model, arguments of the model call, and information about the data transformation,
+    \item \code{diags}: some diagnostics like deviance information criterion (DIC2 by Gelman et al., 2004), posterior predictive checks for 
+                        the frequencies and latencies, potential scale reduction factors, and also the 99\% and 95\% HDIs and medians for the 
+                        group-level parameters, \item \code{specs}: some model specifications like the model, arguments of the model call, 
+                        and information about the data transformation,
     \item \code{indices} (optional): if enabled, WAIC and LOO,
     \item \code{LogLik} (optional): if enabled, the log-likelihood matrix used for WAIC and LOO.
     \item \code{summary} includes posterior mean and median of the main parameters.
   }
 }
 \description{
-Given model and data, this function a Hamiltonian MCMC sampler and stores the samples in an mcmc.list called \code{samples}.
-  Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC; Spiegelhalter et al., 2002),
+Given model and data, this function uses a Hamiltonian MCMC sampler and stores the samples in an mcmc.list called \code{samples}.
+  Posterior predictive checks developed by Klauer (2010), deviance information criterion (DIC, Gelman et al., 2004),
   99\% and 95\% highest density intervals (HDI) together with the median will be provided for the main parameters in a list
   called \code{diags}. Optionally, the \code{indices} widely applicable information criterion (WAIC; Watanabe, 2010; Vehtari et al., 2017) and
   leave-one-out cross-validation (LOO; Vehtari et al., 2017) can be saved. Additionally the log-likelihood (\code{LogLik}) can also be stored.
@@ -139,10 +140,13 @@ drtmpt_out
 }
 }
 \references{
+Gelman, Andrew; Carlin, John B.; Stern, Hal S.; Rubin, Donald B. (2004). \emph{Bayesian Data Analysis: Second Edition.} 
+  Texts in Statistical Science. CRC Press.
+
 Klauer, K. C. (2010). Hierarchical multinomial processing tree models: A latent-trait approach. \emph{Psychometrika, 75(1)}, 70-98.
 
-Spiegelhalter, D. J., Best, N. G., Carlin, B. P., & Van Der Linde, A. (2002). Bayesian measures of model complexity and fit.
-  \emph{Journal of the royal statistical society: Series b (statistical methodology), 64(4)}, 583-639.
+Klauer, K. C., Hartmann, R., & Meyer-Grant, C. G. (2024). RT-MPTs: Process models for response-time distributions with diffusion-model kernels. 
+  \emph{Journal of Mathematical Psychology, 120}, 102857.
 
 Vehtari, A., Gelman, A., & Gabry, J. (2017). Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC.
   \emph{Statistics and Computing, 27(5)}, 1413-1432.

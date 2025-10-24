@@ -147,6 +147,11 @@ to_ertmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {
   infofile <- get_infofile(model, mdl_txt = mdl_txt, mdl_info = mdl_info)
   
   
+  # remove temporary files
+  file.remove(mdl_txt)
+  file.remove(mdl_info)
+  
+  
   # return
   return(model)
   
@@ -382,6 +387,11 @@ to_drtmpt_model <- function(eqn_file = NULL, mdl_file = NULL) {
   mdl_txt <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".txt"))
   mdl_info <- gsub("\\\\", "/", tempfile(pattern = "model", tmpdir = tempdir(), fileext = ".info"))
   infofile <- get_infofile(model, mdl_txt = mdl_txt, mdl_info = mdl_info)
+  
+  
+  # remove temporary files
+  file.remove(mdl_txt)
+  file.remove(mdl_info)
   
   
   # RETURN

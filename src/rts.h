@@ -561,7 +561,7 @@ namespace drtmpt {
   extern Node* trees[13];
   
   //variance/covariance matrix of posterior distribution
-  extern double* supersig;
+  extern std::vector<double> supersig;
   //number of parameters in NUTS sampler
   extern int nhamil;
   extern int phase; //phase = 1,2, 3, or 4
