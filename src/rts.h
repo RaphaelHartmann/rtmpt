@@ -66,13 +66,13 @@ extern int *cat2resp;
 //number of responses
 extern int respno;
 //loglikelihood vector
-extern double *loglik_vec;
+extern std::vector<double> loglik_vec;
 //number of process parameters
 extern int nKERN;
 //number of responses
 extern int nRESP;
 //maps categories on responses (from R)
-extern int *CatToResp;
+extern std::vector<int> CatToResp;
 
 
 //trial information inputted

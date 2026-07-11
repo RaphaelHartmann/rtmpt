@@ -254,7 +254,7 @@ namespace ertmpt {
   	datenzahl = static_cast<int>(daten.size());
   	
   	// Log-Likelihood vector
-  	loglik_vec = (double *)malloc(SAMPLE_SIZE * datenzahl * sizeof(double));
+  	loglik_vec.resize(SAMPLE_SIZE * datenzahl);
   	
   	//REPEAT:
   	set_ns(daten, indi, kerntree, kerncat, igroup);
@@ -826,7 +826,7 @@ namespace drtmpt {
     if (generate_or_diagnose) gibbs_times_new(daten, rsts);
     
     // Log-Likelihood vector
-    loglik_vec = (double *)malloc(sample_size * datenzahl * sizeof(double));
+    loglik_vec.resize(sample_size * datenzahl);
     
     diagnosis(daten, idaten, kerntree, rst);
 

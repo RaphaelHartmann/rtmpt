@@ -11,13 +11,13 @@ const char *DATA;
 int nKERN;
 int nPROCS;
 int nRESP;
-int *CatToResp = 0;
+std::vector<int> CatToResp;
 // number of all parameters
 int n_all_parameters;
 // number of total trials
 int datenzahl;
 // loglikelihood vector
-double *loglik_vec;
+std::vector<double> loglik_vec;
 
 namespace ertmpt {
 
@@ -157,7 +157,7 @@ extern "C" {
 		nPROCS = INTEGER(in)[6];
 		nRESP = INTEGER(in)[7];
 
-		CatToResp = (int *)calloc(nKERN, sizeof(int));
+		CatToResp.resize(nKERN, 0);
 		ConstProb = (double *)calloc(nPROCS, sizeof(double));
 		CompMinus = (int *)calloc(nPROCS, sizeof(int));
 		CompPlus = (int *)calloc(nPROCS, sizeof(int));
@@ -255,11 +255,11 @@ extern "C" {
 		Rf_setAttrib(ans,R_NamesSymbol,names);
 
 		// // free variables
-		free(CatToResp);
+
 		free(ConstProb);
 		free(CompMinus);
 		free(CompPlus);
-		free(loglik_vec);
+
 
 
 		/* Unprotect the ans and names objects */
@@ -303,7 +303,7 @@ extern "C" {
     nPROCS = INTEGER(in1)[8];
     nRESP = INTEGER(in1)[9];
 
-    CatToResp = (int *)calloc(nKERN, sizeof(int));
+    CatToResp.resize(nKERN, 0);
     for (int i = 0; i < nKERN; i++) {
       CatToResp[i] = INTEGER(in1)[10+i];
     }
@@ -386,7 +386,7 @@ extern "C" {
 
 
     if (complete_sample) free(complete_sample);
-    if (loglik_vec) free(loglik_vec);
+
 
 
     SET_VECTOR_ELT(ans, 0, pars_samples);
@@ -409,7 +409,7 @@ extern "C" {
     if (kern2free) free(kern2free);
     if (consts) free(consts);
     if (comp) free(comp);
-    if (CatToResp) free(CatToResp);
+
 
 
     return(ans);
