@@ -207,138 +207,37 @@ namespace ertmpt {
   	int exit_status = 0;
 
   	//	NagError fail;	INIT_FAIL(fail);
-  		/* Choose the base generator */
-  		/* Random Seed */
+		/* Choose the base generator */
+		/* Random Seed */
 
-  	gsl_rng *rst1;
-  	long int seed = std::time(0); seed = abs(seed * seed);
-  	if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  	rst1 = gsl_rng_alloc(T_rng);
-  	gsl_rng_set(rst1, seed);
-  	long int n = gsl_rng_max(rst1) / 2;
-
-
-  	gsl_rng *rst2;
-  	seed = gsl_rng_uniform_int(rst1, n) + 1;
-  	if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  	rst2 = gsl_rng_alloc(T_rng);
-  	gsl_rng_set(rst2, seed);
-
-
-  	gsl_rng *rst3; rst3 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 3) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst3, seed);
+  	long seed = static_cast<long>(std::time(nullptr));
+  	seed = std::abs(seed * seed);
+  	
+  	const std::size_t num_rngs = NOTHREADS;
+  	std::vector<gsl_rng*> rsts(num_rngs, nullptr);
+  	
+  	rsts[0] = gsl_rng_alloc(T_rng);
+  	if (rsts[0] == nullptr) {
+  	  Rf_error("could not allocate RNG 0.");
   	}
-
-
-  	gsl_rng *rst4; rst4 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 4) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst4, seed);
+  	gsl_rng_set(rsts[0], seed);
+  	
+  	const long n = gsl_rng_max(rsts[0]) / 2;
+  	
+  	for (std::size_t i = 1; i < num_rngs; ++i) {
+  	  seed = gsl_rng_uniform_int(rsts[0], n) + 1;
+  	  rsts[i] = gsl_rng_alloc(T_rng);
+  	  if (rsts[i] == nullptr) {
+  	    for (std::size_t j = 0; j < i; ++j) {
+  	      gsl_rng_free(rsts[j]);
+  	    }
+  	    Rf_error("could not allocate of the RNGs.");
+  	  }
+  	  gsl_rng_set(rsts[i], seed);
   	}
-
-
-  	gsl_rng *rst5; rst5 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 5) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst5, seed);
-  	}
-
-
-  	gsl_rng *rst6; rst6 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 6) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst6, seed);
-  	}
-
-
-  	gsl_rng *rst7; rst7 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 7) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst7, seed);
-  	}
-
-
-  	gsl_rng *rst8; rst8 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 8) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst8, seed);
-  	}
-
-
-  	gsl_rng *rst9; rst9 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 9) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst9, seed);
-  	}
-
-
-  	gsl_rng *rst10; rst10 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 10) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst10, seed);
-  	}
-
-
-  	gsl_rng *rst11; rst11 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 11) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst11, seed);
-  	}
-
-
-  	gsl_rng *rst12; rst12 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 12) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst12, seed);
-  	}
-
-
-  	gsl_rng *rst13; rst13 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 13) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst13, seed);
-  	}
-
-
-  	gsl_rng *rst14; rst14 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 14) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst14, seed);
-  	}
-
-
-  	gsl_rng *rst15; rst15 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 15) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst15, seed);
-  	}
-
-
-  	gsl_rng *rst16; rst16 = gsl_rng_alloc(T_rng);
-  	if (NOTHREADS >= 16) {
-  		seed = gsl_rng_uniform_int(rst1, n) + 1;
-  		if (DEBUG) Rprintf("%d\n", (seed <= 0));
-  		gsl_rng_set(rst16, seed);
-  	}
-
 
   	gsl_rng *rst;   rst = gsl_rng_alloc(T_rng);
-  	gsl_rng_memcpy(rst, rst1);
+  	gsl_rng_memcpy(rst, rsts[0]);
   	// std::cout << gsl_rng_size(rst) << std::endl;
   	if (DEBUG) Rprintf("%d\n", static_cast<int>(gsl_rng_size(rst)));
   	// std::cout << gsl_rng_name(rst) << std::endl;
@@ -488,10 +387,9 @@ namespace ertmpt {
   	n_all_parameters = ifree*igroup     + ilamfree*igroup       + ((ifree+ilamfree)*(ifree+ilamfree+1))/2       + indi*ifree         + indi*ilamfree           + restparsno;
   	n_bridge_parameters = n_all_parameters + ifree + ilamfree + respno;
 
-  	gsl_rng_memcpy(rst1, rst);
+  	gsl_rng_memcpy(rsts[0], rst);
   	if (generate_or_diagnose) gibbs_times_new(daten, nnodes, nz, nz_position, beta, ntau, ntau_position,
-  																						rst1, rst2, rst3, rst4, rst5, rst6, rst7, rst8, rst9, rst10, rst11, rst12, rst13, rst14, rst15, rst16,
-  																						lambdas, restpars);
+  																						rsts, lambdas, restpars);
 
 
   	if (lambdas) free(lambdas);
@@ -530,22 +428,9 @@ namespace ertmpt {
   	if (consts) free(consts);
   	if (pfad_index) free(pfad_index);
   	gsl_rng_free(rst);
-  	gsl_rng_free(rst1);
-  	gsl_rng_free(rst2);
-  	gsl_rng_free(rst3);
-  	gsl_rng_free(rst4);
-  	gsl_rng_free(rst5);
-  	gsl_rng_free(rst6);
-  	gsl_rng_free(rst7);
-  	gsl_rng_free(rst8);
-  	gsl_rng_free(rst9);
-  	gsl_rng_free(rst10);
-  	gsl_rng_free(rst11);
-  	gsl_rng_free(rst12);
-  	gsl_rng_free(rst13);
-  	gsl_rng_free(rst14);
-  	gsl_rng_free(rst15);
-  	gsl_rng_free(rst16);
+  	for (std::size_t i = 0; i < rsts.size(); ++i) {
+  	  gsl_rng_free(rsts[i]);
+  	}
   	return exit_status;
   }
 
@@ -653,9 +538,8 @@ namespace drtmpt {
     for (int i = 0; i != 3 * kernpar; i++) comb[i] = -1;
 
     no_patterns = 0;
-    for (int itree = 0; itree != kerntree; itree++)
-      for (int n = 0; n != nodes_per_tree[itree]; n++)
-      {
+    for (int itree = 0; itree != kerntree; itree++) {
+      for (int n = 0; n != nodes_per_tree[itree]; n++) {
         bool neu = true;
         int ia = dTREE_AND_NODE2PAR(itree, n, 0);
         int iv = dTREE_AND_NODE2PAR(itree, n, 1);
@@ -669,15 +553,16 @@ namespace drtmpt {
           no_patterns++;
         }
       }
-      for (int itree = 0; itree != kerntree; itree++)
-        for (int n = 0; n != nodes_per_tree[itree]; n++)
-        {
-          int ia = dTREE_AND_NODE2PAR(itree, n, 0);
-          int iv = dTREE_AND_NODE2PAR(itree, n, 1);
-          int iw = dTREE_AND_NODE2PAR(itree, n, 2);
+    }
+    for (int itree = 0; itree != kerntree; itree++)
+      for (int n = 0; n != nodes_per_tree[itree]; n++)
+      {
+        int ia = dTREE_AND_NODE2PAR(itree, n, 0);
+        int iv = dTREE_AND_NODE2PAR(itree, n, 1);
+        int iw = dTREE_AND_NODE2PAR(itree, n, 2);
 
-          dTREE_AND_NODE2MAP(itree, n) = dMAP(ia, iv, iw);
-        }
+        dTREE_AND_NODE2MAP(itree, n) = dMAP(ia, iv, iw);
+      }
   }
 
   //compute positions of tau in double* alltaus by tree, node, and parameter type (threshold, drift, start point)
@@ -693,13 +578,13 @@ namespace drtmpt {
 
     for (int i = 0; i != indi * no_patterns; i++) loffset[i] = ltemp[i] = 0;
     int jj = 0;
-    for (int im = 0; im != no_patterns; im++)
+    for (int im = 0; im != no_patterns; im++) {
       for (int t = 0; t != indi; t++) {
         dLOFFSET(t, im) = jj;
         jj += 2* dNNODES(t, im);
       }
-
-      for (int i = 0; i != 2 * nodemax * datenzahl; i++) tau_by_node[i] = -1;
+    }
+    for (int i = 0; i != 2 * nodemax * datenzahl; i++) tau_by_node[i] = -1;
 
     for (int i = 0; i != datenzahl; i++) {
       int itree = daten[i].tree, t = daten[i].person;
@@ -748,7 +633,7 @@ namespace drtmpt {
     for (int i = 0; i != kerncat * 2 * nodemax * 2; i++) cdrin[i] = -1;
     for (int i = 0; i != kerncat; i++) ncdrin[i] = 0;
 
-    for (int j = 0; j != kerncat; j++)
+    for (int j = 0; j != kerncat; j++) {
       for (int r = 0; r != nodes_per_tree[cat2tree[j]]; r++) {
         bool flag[2] = { false,false };
         for (int k = 0; k != branch[j]; k++) if (dAR(j, k, r) != 0) {
@@ -761,40 +646,43 @@ namespace drtmpt {
           }
         }
       }
+    }
 
-
-      for (int i = 0; i != kerncat * zweig * nodemax; i++) drin[i] = -1;
+    for (int i = 0; i != kerncat * zweig * nodemax; i++) drin[i] = -1;
     for (int i = 0; i != kerncat * zweig; i++) ndrin[i] = 0;
 
-    for (int j = 0; j != kerncat; j++)
-      for (int k = 0; k != branch[j]; k++)
+    for (int j = 0; j != kerncat; j++) {
+      for (int k = 0; k != branch[j]; k++) {
         for (int r = 0; r != nodes_per_tree[cat2tree[j]]; r++) if (dAR(j, k, r) != 0) {
           dDRIN(j, k, dNDRIN(j, k)) = r;
           dNDRIN(j, k)++;
         }
-        for (int j = 0; j!= kerncat; j++) {
-          int k = branch[j];
-          pfadmax[j] = 0;
-          for (int p = 0; p != k; p++) pfadmax[j] = std::max(dNDRIN(j, p), pfadmax[j]);
-        }
+      }
+    }  
+    for (int j = 0; j!= kerncat; j++) {
+      int k = branch[j];
+      pfadmax[j] = 0;
+      for (int p = 0; p != k; p++) pfadmax[j] = std::max(dNDRIN(j, p), pfadmax[j]);
+    }
   }
 
   //map diffusion-model parameters by type and index ip on ifree[type]-scales on position in hampar
   void make_parameter_maps(int* mapmavw, int* mapavw) {
     int jj = 0;
-    for (int ig = 0; ig != igroup; ig++)
-      for (int type = 0; type != 3; type++)
-        for (int ip = 0; ip != ifree[type]; ip++)
+    for (int ig = 0; ig != igroup; ig++) {
+      for (int type = 0; type != 3; type++) {
+        for (int ip = 0; ip != ifree[type]; ip++) {
           if (dCOMP(type, ip)) {
             dmapMAVW(ig, type, ip) = jj; jj++;
           }
-
-          for (int t = 0; t != indi; t++)
-            for (int type = 0; type != 3; type++)
-              for (int ip = 0; ip != ifree[type]; ip++)
-                if (dCOMP(type, ip)) {
-                  dmapAVW(t, type, ip) = jj; jj++;
-                }
+    }}}
+    for (int t = 0; t != indi; t++) {
+      for (int type = 0; type != 3; type++) {
+        for (int ip = 0; ip != ifree[type]; ip++) {
+          if (dCOMP(type, ip)) {
+            dmapAVW(t, type, ip) = jj; jj++;
+          }
+    }}}
   }
 
   //minimum response time associated with parameter combinations, nodes, and outcome
@@ -848,19 +736,35 @@ namespace drtmpt {
     
     std::vector<trial> daten;
     int exit_status = 0;
-    long int seed = static_cast<long>(std::time(nullptr)); seed = abs(seed * seed);
-    gsl_rng* rst1;   rst1 = gsl_rng_alloc(T_rng); gsl_rng_set(rst1, seed);
-    long int n = gsl_rng_max(rst1) / 2;
-    seed = gsl_rng_uniform_int(rst1, n) + 1;
-    gsl_rng* rst2;   rst2 = gsl_rng_alloc(T_rng); gsl_rng_set(rst2, seed);
-    seed = gsl_rng_uniform_int(rst1, n) + 1;
-    gsl_rng* rst3;   rst3 = gsl_rng_alloc(T_rng); gsl_rng_set(rst3, seed);
-    seed = gsl_rng_uniform_int(rst1, n) + 1;
-    gsl_rng* rst4;   rst4 = gsl_rng_alloc(T_rng); gsl_rng_set(rst4, seed);
-
-    gsl_rng* rst;   rst = gsl_rng_alloc(T_rng);
-    gsl_rng_memcpy(rst, rst1);
-
+    long seed = static_cast<long>(std::time(nullptr));
+    seed = std::abs(seed * seed);
+    
+    const std::size_t num_rngs = NOTHREADS;
+    std::vector<gsl_rng*> rsts(num_rngs, nullptr);
+    
+    rsts[0] = gsl_rng_alloc(T_rng);
+    if (rsts[0] == nullptr) {
+      Rf_error("could not allocate RNG 0.");
+    }
+    gsl_rng_set(rsts[0], seed);
+    
+    const long n = gsl_rng_max(rsts[0]) / 2;
+    
+    for (std::size_t i = 1; i < num_rngs; ++i) {
+      seed = gsl_rng_uniform_int(rsts[0], n) + 1;
+      rsts[i] = gsl_rng_alloc(T_rng);
+      if (rsts[i] == nullptr) {
+        for (std::size_t j = 0; j < i; ++j) {
+          gsl_rng_free(rsts[j]);
+        }
+        Rf_error("could not allocate of the RNGs.");
+      }
+      gsl_rng_set(rsts[i], seed);
+    }
+    
+    gsl_rng* rst = gsl_rng_alloc(T_rng);
+    gsl_rng_memcpy(rst, rsts[0]);
+// 
     int kerntree;
     lies(daten);
     datenzahl = static_cast<int>(daten.size());
@@ -919,7 +823,7 @@ namespace drtmpt {
     //                    ma,mv,mw                 a,v,w            sig                           rmu     lambdas+sig_t           gam                     omega
     supsig = gsl_matrix_alloc(n_all_parameters, n_all_parameters);
     sigisqrt = gsl_matrix_alloc(n_all_parameters, n_all_parameters);
-    if (generate_or_diagnose) gibbs_times_new(daten, rst1, rst2, rst3, rst4);
+    if (generate_or_diagnose) gibbs_times_new(daten, rsts);
     
     // Log-Likelihood vector
     loglik_vec = (double *)malloc(sample_size * datenzahl * sizeof(double));
@@ -953,10 +857,9 @@ namespace drtmpt {
     if (free2comp) free(free2comp);
     //if (consts) free(consts);
     gsl_rng_free(rst);
-    gsl_rng_free(rst1);
-    gsl_rng_free(rst2);
-    gsl_rng_free(rst3);
-    gsl_rng_free(rst4);
+    for (std::size_t i = 0; i < rsts.size(); ++i) {
+      gsl_rng_free(rsts[i]);
+    }
 
     gsl_matrix_free(supsig);
     gsl_matrix_free(sigisqrt);

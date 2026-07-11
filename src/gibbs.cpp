@@ -22,7 +22,7 @@ namespace drtmpt {
     }
 
     for (int x = 0; x != datenzahl; x++) {
-      int old_path = paths[x];
+      // int old_path = paths[x];
       make_path(daten[x], nips, x, paths[x], hampar, tavw, tlams, loglambdas, alltaus, rest, ars_store, rst);
       //#pragma omp atomic
       //		MONITOR(0, 1)++;
@@ -245,7 +245,7 @@ namespace drtmpt {
   }
 
   //the sampler
-  void gibbs_times_new(const std::vector<trial> & daten,  gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4) {
+  void gibbs_times_new(const std::vector<trial> & daten,  std::vector<gsl_rng*>& rsts) {
 
     int irun, ioff, factor;
     //settings for adaptive choice of stepsize
@@ -269,7 +269,7 @@ namespace drtmpt {
     double* sample = 0; if (!(sample = (double*)malloc(satemp * sizeof(double)))) { Rprintf("Allocation failure\n"); }
 
     //initialize parameters 0 = randomly 1 = based on individual max. lik. estimates
-    if (!goon) initialize(INITIALIZE, daten, xeps, parmonstore, n_value_store, valuestore, rst1, rst2, rst3, rst4);
+    if (!goon) initialize(INITIALIZE, daten, xeps, parmonstore, n_value_store, valuestore, rsts);
     // main loop GIBBS
     double* xwbr = 0; if (!(xwbr = (double*)calloc(3 * n_all_parameters, sizeof(double)))) { Rprintf("Allocation failure\n"); }
     bool save = false;
@@ -323,7 +323,7 @@ namespace drtmpt {
       raustemp.clear();
       std::string tempPath = std::string(TMPDIR) + "temp";
       std::rename(RAUS, tempPath.c_str());
-      pop_continue(n_value_store, irun, valuestore, parmonstore, rst1, rst2, rst3, rst4);
+      pop_continue(n_value_store, irun, valuestore, parmonstore, rsts);
       if (!(complete_sample = (double*)malloc(SAMPLE_SIZE * (n_all_parameters) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
     }
     // reicht nicht iresp = IREP generell, wenn Phase1 und Phase2 Vielfaches davon?
@@ -361,21 +361,11 @@ namespace drtmpt {
         double epsm, activeeps, Hobjective;
 
         //run sampler ireps times
-        switch (ithread + 1) {
-        case 1: gsl_rng_memcpy(rst, rst1); break;
-        case 2: gsl_rng_memcpy(rst, rst2); break;
-        case 3: gsl_rng_memcpy(rst, rst3); break;
-        case 4: gsl_rng_memcpy(rst, rst4); break;
-        }
+        gsl_rng_memcpy(rst, rsts[ithread]);
         pop(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
         gibbs_and_monitor(daten, nips, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, paths, liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon, rst, ithread, save, sample);
         push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
-        switch (ithread + 1) {
-        case 1: gsl_rng_memcpy(rst1, rst); break;
-        case 2: gsl_rng_memcpy(rst2, rst); break;
-        case 3: gsl_rng_memcpy(rst3, rst); break;
-        case 4: gsl_rng_memcpy(rst4, rst); break;
-        }
+        gsl_rng_memcpy(rsts[ithread], rst);
 
         //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
         //r statitstics
@@ -438,21 +428,11 @@ namespace drtmpt {
       // double liknorm[6];
       // double epsm, activeeps, Hobjective;
       //run sampler ireps times
-      switch (ithread + 1) {
-      case 1: gsl_rng_memcpy(rst, rst1); break;
-      case 2: gsl_rng_memcpy(rst, rst2); break;
-      case 3: gsl_rng_memcpy(rst, rst3); break;
-      case 4: gsl_rng_memcpy(rst, rst4); break;
-      }
+      gsl_rng_memcpy(rst, rsts[ithread]);
       pop(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
       gibbs_and_monitor(daten, nips, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, paths, liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon, rst, NOTHREADS-1, save, sample);
       push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
-      switch (ithread + 1) {
-      case 1: gsl_rng_memcpy(rst1, rst); break;
-      case 2: gsl_rng_memcpy(rst2, rst); break;
-      case 3: gsl_rng_memcpy(rst3, rst); break;
-      case 4: gsl_rng_memcpy(rst4, rst); break;
-      }
+      gsl_rng_memcpy(rsts[ithread], rst);
 
 
       //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
@@ -583,7 +563,7 @@ namespace drtmpt {
       gsl_vector_view ty = gsl_vector_view_array(supersig.data(), NOTHREADS * n_all_parameters * n_all_parameters);
       gsl_vector_set_zero(&ty.vector);
       phase = 3;
-      transit_from2_to3(n_all_parameters, parmonstore, n_value_store, valuestore, rst1);
+      transit_from2_to3(n_all_parameters, parmonstore, n_value_store, valuestore, rsts[0]);
       //		char x; std::cin >> x;
       goto RESTART;
     }
@@ -619,13 +599,13 @@ namespace drtmpt {
   #define COMPLETE_SAMPLE(S,I,P) complete_sample[(S)*(sample_size/NOTHREADS)*(n_all_parameters) + (I)*(n_all_parameters)+P]
     if (save) {
       int irt = ireps / THIN;
-      for (int is = 0; is != (NOTHREADS); is++)
+      for (int is = 0; is != (NOTHREADS); is++) {
         for (int i = 0; i != irt; i++) {
           for (int j = 0; j != n_all_parameters; j++)
             COMPLETE_SAMPLE(is, ioff * IREP / THIN + i, j) = dSAMPLE(is * IREP + i * THIN, j);
         }
-
-        ioff += 1;
+      }
+      ioff += 1;
       if (ioff * NOTHREADS * ireps / THIN < sample_size) goto WEITER;
     }
 
@@ -687,7 +667,7 @@ namespace drtmpt {
     }
     outputFile.close();
 
-    push_continue(n_value_store, irun, valuestore, parmonstore, rst1, rst2, rst3, rst4);
+    push_continue(n_value_store, irun, valuestore, parmonstore, rsts);
 
     removetrees(trees);
 

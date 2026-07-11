@@ -420,7 +420,7 @@ namespace ertmpt {
   		for (int ip = ifree; ip != ifree + ilamfree; ip++) lambdas[t*ilamfree + ip - ifree] = xsave[ip];
   		restpars[t + 3] = xsave[n - 2];
   		restpars[t + indi + 3] = gsl_pow_2(xsave[n - 1]);
-  #pragma optimize("", off)
+  // #pragma optimize("", off)
   		if (!DEBUG) {
   			int pos = static_cast<int>(ML_bar * progress);
   			Rprintf("\r[");
@@ -433,7 +433,7 @@ namespace ertmpt {
   			}
   			Rprintf("] %d%%", static_cast<int>(progress * 100.0));
   		}
-  #pragma optimize("", on)
+  // #pragma optimize("", on)
   
   	}
   	Rprintf("\n\n");
@@ -495,7 +495,7 @@ namespace drtmpt {
   double objfun(const gsl_vector* y, void* params)
   {
     one_params* pars = (one_params*)params;
-    int n = (pars->n), m = (pars->m);
+    int m = (pars->m);//n = (pars->n), 
     bool restart = (pars->restart);
     std::vector<std::vector<double>> icdaten = (pars->icdaten);
     double* x = 0; if (!(x = (double*)malloc(m * sizeof(double)))) { Rprintf("Allocation failure\n"); }
@@ -575,7 +575,7 @@ namespace drtmpt {
         for (int t = ithread*NperThread; t < (ithread+1)*NperThread; t++) {
           double oldfit = GSL_POSINF;
           
-          gsl_vector* xx = gsl_vector_alloc(icompg + 2);
+          // gsl_vector* xx = gsl_vector_alloc(icompg + 2);
           gsl_vector* xsave = gsl_vector_alloc(icompg + 2);
           
           bool restart = false;
@@ -670,12 +670,12 @@ namespace drtmpt {
           }
           
           int iz = 0;
-          for (int type = 0; type != 3; type++)
-            for (int ip = 0; ip != ifree[type]; ip++)
-              if (dCOMP(type, ip)) dAVW(t, type, ip) = gsl_vector_get(xsave,iz++);
-              lambdas[t] = gsl_vector_get(xsave,icompg);
-              lambdas[t + indi] = exp(gsl_vector_get(xsave,icompg + 1));
-              gsl_vector_free(xsave);
+          for (int type = 0; type != 3; type++) {
+            for (int ip = 0; ip != ifree[type]; ip++) {
+              if (dCOMP(type, ip)) dAVW(t, type, ip) = gsl_vector_get(xsave,iz++);}}
+          lambdas[t] = gsl_vector_get(xsave,icompg);
+          lambdas[t + indi] = exp(gsl_vector_get(xsave,icompg + 1));
+          gsl_vector_free(xsave);
         }
       });
     }
@@ -686,7 +686,7 @@ namespace drtmpt {
       
       progress = 1.0*(t+1-(AmntOfThreads-1)*NperThread)/(indi-(AmntOfThreads-1)*NperThread);
       
-      gsl_vector* xx = gsl_vector_alloc(icompg + 2);
+      // gsl_vector* xx = gsl_vector_alloc(icompg + 2);
       gsl_vector* xsave = gsl_vector_alloc(icompg + 2);
       
       bool restart = false;
@@ -781,27 +781,27 @@ namespace drtmpt {
       }
       
       int iz = 0;
-      for (int type = 0; type != 3; type++)
-        for (int ip = 0; ip != ifree[type]; ip++)
-          if (dCOMP(type, ip)) dAVW(t, type, ip) = gsl_vector_get(xsave,iz++);
-          lambdas[t] = gsl_vector_get(xsave,icompg);
-          lambdas[t + indi] = exp(gsl_vector_get(xsave,icompg + 1));
-          gsl_vector_free(xsave);
+      for (int type = 0; type != 3; type++) {
+        for (int ip = 0; ip != ifree[type]; ip++) {
+          if (dCOMP(type, ip)) dAVW(t, type, ip) = gsl_vector_get(xsave,iz++);}}
+      lambdas[t] = gsl_vector_get(xsave,icompg);
+      lambdas[t + indi] = exp(gsl_vector_get(xsave,icompg + 1));
+      gsl_vector_free(xsave);
           
-          //#pragma optimize("", off)
-          if (PROG_BAR_FLAG) {
-            int pos = static_cast<int>(ML_bar * progress);
-            Rprintf("\r[");
-            for (int i = 0; i < ML_bar; i++) {
-              if (i < pos) {
-                Rprintf("=");
-              } else if (i == pos) {
-                Rprintf(">");
-              } else Rprintf(" ");
-            }
-            Rprintf("] %d%%", static_cast<int>(progress * 100.0));
-          }
-          //#pragma optimize("", on)
+      //#pragma optimize("", off)
+      if (PROG_BAR_FLAG) {
+        int pos = static_cast<int>(ML_bar * progress);
+        Rprintf("\r[");
+        for (int i = 0; i < ML_bar; i++) {
+          if (i < pos) {
+            Rprintf("=");
+          } else if (i == pos) {
+            Rprintf(">");
+          } else Rprintf(" ");
+        }
+        Rprintf("] %d%%", static_cast<int>(progress * 100.0));
+      }
+      //#pragma optimize("", on)
     }
     
     for (int ithread = 0; ithread < AmntOfThreads-1; ithread++) {

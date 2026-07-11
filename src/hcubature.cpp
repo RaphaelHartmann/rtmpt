@@ -279,7 +279,7 @@ int hcubature(int integrand(unsigned dim, const double* x, void* p, unsigned fdi
     }
     int numevals = (n == 1) ? 15 : 1 + 4 * n + 2 * n * (n - 1) + pow(2, n);
     int evals_per_box = numevals;
-    int kdiv = out.kdivide;
+    // int kdiv = out.kdivide;
     err[0] = out.err;
     val[0] = out.result;
     // convergence test

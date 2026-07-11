@@ -269,8 +269,7 @@ namespace ertmpt {
   double logexgaussian(double lam, double mu, double sd, double t);
   
   void gibbs_times_new(std::vector<trial> daten,int *nnodes,int nz, int *nz_position,double *beta,int ntau, int *ntau_position,
-  	gsl_rng *rst1, gsl_rng *rst2, gsl_rng *rst3, gsl_rng *rst4, gsl_rng *rst5, gsl_rng *rst6, gsl_rng *rst7, gsl_rng *rst8, gsl_rng *rst9, gsl_rng *rst10, gsl_rng *rst11, gsl_rng *rst12, gsl_rng *rst13, gsl_rng *rst14, gsl_rng *rst15, gsl_rng *rst16,
-  	double *lambdas, double* restpars);
+                       std::vector<gsl_rng*>& rsts,	double *lambdas, double* restpars);
   
   void make_tij_for_one_trial_new(trial one,double *rhos, double *lambdas,double *restpars,double *pij);
   
@@ -657,11 +656,11 @@ namespace drtmpt {
   //show interim results
   void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *consts, double rmax, int imax, int irun);
   //initialize: flag = 0 random; flag = 1 using max. lik. personwise parameter estimates
-  void initialize(int flag, const std::vector<trial> & daten, double xeps, double* parmonstore, int n_value_store, double* valuestore, gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4);
+  void initialize(int flag, const std::vector<trial> & daten, double xeps, double* parmonstore, int n_value_store, double* valuestore, std::vector<gsl_rng*>& rsts);
   //compute r-statistcs
   void r_statistic(int ido, int n_all_parameters, int istream, int iter, double *parmon, double *xwbr, double &rmax, int &imax);
   //the sampler
-  void gibbs_times_new(const std::vector<trial> & daten, gsl_rng *rst1, gsl_rng *rst2, gsl_rng *rst3, gsl_rng *rst4);
+  void gibbs_times_new(const std::vector<trial> & daten, std::vector<gsl_rng*>& rsts);
   //expected mean of diffusion process completion time at threshold pm
   double exp_mean(int pm, double a, double v, double w);
   //log probability of diffusion process ending at threshold pm
@@ -712,9 +711,9 @@ namespace drtmpt {
   //compute summaries of results, dic, posterior model checks, posterior contrasts, etc.
   void diagnosis(const std::vector<trial> & daten, int* idaten, int kerntree, gsl_rng* rst);
   //store results for continuation in a separate run
-  void push_continue(int n_value_store, int irun, double* valuestore, double* parmonstore, gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4);
+  void push_continue(int n_value_store, int irun, double* valuestore, double* parmonstore, std::vector<gsl_rng*>&);
   //retrieve results for continuation in a separate run
-  void pop_continue(int n_value_store, int& irun, double* valuestore, double* parmonstore, gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4);
+  void pop_continue(int n_value_store, int& irun, double* valuestore, double* parmonstore, std::vector<gsl_rng*>&);
   //compute convolution of densities
   void convolution2(const std::vector<double> &rts, int pfadlength, int* low_or_up, double* a, double* v, double* w, double mu, double sig, std::vector<double>& pbranch);
   //maximum likelihood estimation of personwise diffusion-model parameters

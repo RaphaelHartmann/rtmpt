@@ -57,7 +57,7 @@ namespace drtmpt {
   
   // computes log(exp(xa) - exp(xb)); xa should be larger than xb
   double logdiff(double xa, double xb) {
-    double result;
+    // double result;
     if (xb >= xa) {
       //		std::cout << "logdiff";
       return(GSL_NEGINF);
@@ -287,14 +287,14 @@ namespace drtmpt {
     }
     Rprintf("\n");
     
-    int m = (irun + 1) * ireps;
+    // int m = (irun + 1) * ireps;
     
   } // end on_screen3
   
   //go from mavw and avw to vector hampar
   void make_hampar_avw(double* mavw, double* avw, gsl_vector* hampar) {
     int jj = 0;
-    for (int ig = 0; ig != igroup; ig++)
+    for (int ig = 0; ig != igroup; ig++) {
       for (int type = 0; type != 3; type++) {
         int ift = ifree[type];
         for (int ip = 0; ip != ift; ip++)
@@ -302,21 +302,22 @@ namespace drtmpt {
             gsl_vector_set(hampar, jj, dMAVW(ig, type, ip)); jj++;
           }
       }
-      
-      for (int t = 0; t != indi; t++)
-        for (int type = 0; type != 3; type++) {
-          int ift = ifree[type];
-          for (int ip = 0; ip != ift; ip++)
-            if (dCOMP(type, ip)) {
-              gsl_vector_set(hampar, jj, dAVW(t, type, ip)); jj++;
-            }
-        }
+    }
+    for (int t = 0; t != indi; t++) {
+      for (int type = 0; type != 3; type++) {
+        int ift = ifree[type];
+        for (int ip = 0; ip != ift; ip++)
+          if (dCOMP(type, ip)) {
+            gsl_vector_set(hampar, jj, dAVW(t, type, ip)); jj++;
+          }
+      }
+    }
   }
   
   //go from vector hampar to mavw and avw
   void inv_make_hampar_avw(double* mavw, double* avw, gsl_vector* hampar) {
     int jj = 0;
-    for (int ig = 0; ig != igroup; ig++)
+    for (int ig = 0; ig != igroup; ig++) {
       for (int type = 0; type != 3; type++) {
         int ift = ifree[type];
         for (int ip = 0; ip != ift; ip++)
@@ -324,15 +325,16 @@ namespace drtmpt {
             dMAVW(ig, type, ip) = gsl_vector_get(hampar, jj); jj++;
           }
       }
-      
-      for (int t = 0; t != indi; t++)
-        for (int type = 0; type != 3; type++) {
-          int ift = ifree[type];
-          for (int ip = 0; ip != ift; ip++)
-            if (dCOMP(type, ip)) {
-              dAVW(t, type, ip) = gsl_vector_get(hampar, jj); jj++;
-            }
-        }
+    }
+    for (int t = 0; t != indi; t++) {
+      for (int type = 0; type != 3; type++) {
+        int ift = ifree[type];
+        for (int ip = 0; ip != ift; ip++)
+          if (dCOMP(type, ip)) {
+            dAVW(t, type, ip) = gsl_vector_get(hampar, jj); jj++;
+          }
+      }
+    }
   }
   
   //go from rmu und labmda to hampar
@@ -516,7 +518,7 @@ namespace drtmpt {
     free(avw); free(mavw); free(rmu); free(lambdas);
   }
   
-  void initialize(int flag, const std::vector<trial> & daten, double xeps, double* parmonstore, int n_value_store, double* valuestore, gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4) {
+  void initialize(int flag, const std::vector<trial> & daten, double xeps, double* parmonstore, int n_value_store, double* valuestore, std::vector<gsl_rng*>& rsts) {
     //flag = 0 initialize random; flag = 1 initialize with max lik
     gsl_rng* xst;   xst = gsl_rng_alloc(T_rng);
     double liknorm[6] = { 0 * 6 };
@@ -545,7 +547,7 @@ namespace drtmpt {
     for (int ithread = 0; ithread != NOTHREADS; ithread++) {
       if (flag == 1) {
         int jj = igroup * icompg;
-        for (int t = 0; t != indi; t++)
+        for (int t = 0; t != indi; t++) {
           for (int type = 0; type != 3; type++) {
             int ift = ifree[type];
             for (int ip = 0; ip != ift; ip++)
@@ -553,20 +555,16 @@ namespace drtmpt {
                 gsl_vector_set(hampar, jj, avw_temp[t * 3 * ifreemax + type * ifreemax + ip]); jj++;
               }
           }
-          jj = (indi + igroup) * icompg + igroup * respno;
+        }
+        jj = (indi + igroup) * icompg + igroup * respno;
         for (int it = 0; it != indi; it++) for (int ir = 0; ir != respno; ir++)
           gsl_vector_set(hampar, jj + it * respno + ir, lambdas_temp[it]);
         jj += indi * respno;
         for (int it = 0; it != indi; it++) gsl_vector_set(hampar, jj + it, lambdas_temp[indi + it]);
       }
       
-      switch (ithread + 1) {
-      case 1: gsl_rng_memcpy(xst, rst1); break;
-      case 2: gsl_rng_memcpy(xst, rst2); break;
-      case 3: gsl_rng_memcpy(xst, rst3); break;
-      case 4: gsl_rng_memcpy(xst, rst4); break;
-      }
-      
+      gsl_rng_memcpy(xst, rsts[ithread]);
+
       if (flag == 0) initialize_new0(daten, hampar, tavw, tlams, ai, loglambdas, bi, paths, xst);
       else initialize_new1(daten, hampar, tavw, tlams, ai, loglambdas, bi, paths, xst);
       
@@ -616,12 +614,7 @@ namespace drtmpt {
       
       make_nips(daten, paths, nips);
       push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
-      switch (ithread + 1) {
-      case 1: gsl_rng_memcpy(rst1, xst); break;
-      case 2: gsl_rng_memcpy(rst2, xst); break;
-      case 3: gsl_rng_memcpy(rst3, xst); break;
-      case 4: gsl_rng_memcpy(rst4, xst); break;
-      }
+      gsl_rng_memcpy(rsts[ithread], xst);
     }
     
     gsl_rng_free(xst);
@@ -741,14 +734,17 @@ namespace drtmpt {
   }
   
   //store required parameters and settings for sample increase after the algorithm has finished.
-  void push_continue(int n_value_store, int irun, double* valuestore, double* parmonstore, gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4) {
+  void push_continue(int n_value_store, int irun, double* valuestore, double* parmonstore, std::vector<gsl_rng*>& rsts) {
     
     FILE* random;
     fopen_s(&random, RANDOM, "wb");
-    gsl_rng_fwrite(random, rst1);
-    gsl_rng_fwrite(random, rst2);
-    gsl_rng_fwrite(random, rst3);
-    gsl_rng_fwrite(random, rst4);
+    for (std::size_t i = 0; i < rsts.size(); ++i) {
+      gsl_rng_fwrite(random, rsts[i]);
+    }
+    // gsl_rng_fwrite(random, rst1);
+    // gsl_rng_fwrite(random, rst2);
+    // gsl_rng_fwrite(random, rst3);
+    // gsl_rng_fwrite(random, rst4);
     fclose(random);
     
     std::ofstream contin; contin.open(CONTINUE);
@@ -769,15 +765,18 @@ namespace drtmpt {
   }
   
   //retrieve required parameters and settings for sample increase after the algorithm has finished.
-  void pop_continue(int n_value_store, int& irun, double* valuestore, double* parmonstore, gsl_rng* rst1, gsl_rng* rst2, gsl_rng* rst3, gsl_rng* rst4) {
+  void pop_continue(int n_value_store, int& irun, double* valuestore, double* parmonstore, std::vector<gsl_rng*>& rsts) {
     
     //	supersig = (double*)calloc(NOTHREADS * n_all_parameters * n_all_parameters, sizeof(double));
     FILE* random;
     fopen_s(&random, RANDOM, "rb");
-    gsl_rng_fread(random, rst1);
-    gsl_rng_fread(random, rst2);
-    gsl_rng_fread(random, rst3);
-    gsl_rng_fread(random, rst4);
+    for (std::size_t i = 0; i < rsts.size(); ++i) {
+      gsl_rng_fread(random, rsts[i]);
+    }
+    // gsl_rng_fread(random, rst1);
+    // gsl_rng_fread(random, rst2);
+    // gsl_rng_fread(random, rst3);
+    // gsl_rng_fread(random, rst4);
     fclose(random);
     
     std::ifstream contin; contin.open(CONTINUE);
@@ -802,7 +801,7 @@ namespace drtmpt {
              unsigned fdim, double* retval)
   {
     struct my_params* params = (struct my_params*)p;
-    int pfadlength = (params->pfadlength);
+    // int pfadlength = (params->pfadlength);
     double* a = (params->a);
     double* v = (params->v);
     double* w = (params->w);

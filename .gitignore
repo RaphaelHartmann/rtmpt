@@ -13,3 +13,4 @@ src/*.dll
 src-x64/*
 src-i386/*
 
+.positai

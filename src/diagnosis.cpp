@@ -843,11 +843,11 @@ namespace drtmpt {
       person << std::setw(5) << t;
       for (int type = 0; type != 3; type++) {
         int ift = ifree[type];
-        for (int iz = 0; iz != ift; iz++)
+        for (int iz = 0; iz != ift; iz++) {
           if (dCOMP(type, iz)) person << std::setw(20) << dMTAVW(t, type, iz);
-          for (int ir = 0; ir != respno; ir++) person << std::setw(20) << mlambdas[t * respno + ir];
-          person << std::setw(20) << mlambdas[indi * respno + t] << std::endl;
-          
+        }
+        for (int ir = 0; ir != respno; ir++) person << std::setw(20) << mlambdas[t * respno + ir];
+        person << std::setw(20) << mlambdas[indi * respno + t] << std::endl;
       }
     }
     person.close();
@@ -918,7 +918,7 @@ namespace drtmpt {
     Rprintf("SIGMA [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "SIG" << std::endl;
     int iz = isigoff + indi - 1;
-    for (int ix = 0; ix != icompg; ix++)
+    for (int ix = 0; ix != icompg; ix++) {
       for (int jz = ix; jz != icompg; jz++) {
         iz++;
         for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
@@ -930,8 +930,9 @@ namespace drtmpt {
         Rprintf("\n");
         if (save_diagnose) { tests_out << std::setw(3) << ix + 1 << std::setw(3) << jz + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
       }
+    }
       
-      Rprintf("Mean motor/encoding times per group [median, 96 and 99%% HDI]\n");
+    Rprintf("Mean motor/encoding times per group [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Mean motor/encoding times per group" << std::endl;
     iz = irmuoff;
     
@@ -948,7 +949,7 @@ namespace drtmpt {
     Rprintf("GAMMA [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Sig motor/encoding times" << std::endl;
     iz =  (icompg * (icompg + 1)) / 2 + isigoff + indi- 1;
-    for (int ip = 0; ip != respno; ip++)
+    for (int ip = 0; ip != respno; ip++) {
       for (int jp = ip; jp != respno; jp++) {
         iz++;
         for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
@@ -960,8 +961,9 @@ namespace drtmpt {
         Rprintf("\n");
         if (save_diagnose) { tests_out << std::setw(3) << ip + 1 << std::setw(3) << jp + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
       }
-      
-      Rprintf("Omega^2 [median, 96 and 99%% HDI]\n");
+    }
+    
+    Rprintf("Omega^2 [median, 96 and 99%% HDI]\n");
     if (save_diagnose) tests_out << "Residual variance" << std::endl;
     iz = n_all_parameters - 1;
     for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
@@ -1023,7 +1025,7 @@ namespace drtmpt {
       std::vector<double> pbranch; pbranch.clear();
       convolution2(rts, pfadlength, low_or_up, a, v, w, mu, sig, pbranch);
       p.push_back(pbranch);
-      if (a) free(a); if (v) free(v); if (w) free(w); if (low_or_up) free(low_or_up);
+      free(a); free(v); free(w); free(low_or_up);
     }
     ps.clear();
     for (int x = 0; x != static_cast<int>(rts.size()); x++) {
@@ -1040,7 +1042,7 @@ namespace drtmpt {
     //   log_lik << std::setprecision(12);
     // }
 
-    double dbar = 0.0, pd = 0.0, pv = 0.0;
+    double dbar = 0.0, pv = 0.0; //, pd = 0.0
     
     double* tavw = 0; if (!(tavw = (double*)calloc(ifreemax * 3 * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
     double* lambdas = 0; if (!(lambdas = (double*)calloc((respno + 1) * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
@@ -1285,13 +1287,13 @@ namespace drtmpt {
   
   //samples path from path probabilities
   int make_path_for_one_trial(int branchno, double* pij, gsl_rng* rst) {
-    int exit_status = 0;
+    // int exit_status = 0;
     int help = 0; double temp;
     if (branchno > 1) {
       double u = oneuni(rst); temp = pij[help];
       while (u > temp) {
         help++;
-        if (help > branchno - 1) { Rprintf("Achtung non-multinomial"); exit_status = -1; }
+        if (help > branchno - 1) { Rprintf("Achtung non-multinomial"); /*exit_status = -1;*/ }
         temp += pij[help];
       }
     }
@@ -1302,7 +1304,7 @@ namespace drtmpt {
   //posterior tests category frequencies and mean category response times
   void aggregate(int n_all_parameters, int kerntree, int* idaten, const std::vector<trial>& daten, int* nks, int* jks, int* tree2cat, double* sample, gsl_rng* rst) {
     int exit_status = 1;
-    int kein = kerncat * indi, keig = kerncat * igroup;
+    int keig = kerncat * igroup; //kein = kerncat * indi, 
     
     double* tavw = 0; if (!(tavw = (double*)malloc(ifreemax * 3 * indi * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
     
@@ -1496,7 +1498,7 @@ namespace drtmpt {
     std::ofstream meansout(MEANSOUT);
     
     //std::cout << std::setprecision(4);
-    for (int ig = 0; ig != igroup; ig++)
+    for (int ig = 0; ig != igroup; ig++) {
       for (int j = 0; j != kerncat; j++) {
         Rprintf("%3d%12.4g", j, dX1(ig,j));
         int old_new = j % 2;
@@ -1511,16 +1513,16 @@ namespace drtmpt {
         Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
         meansout << std::setw(12) << qv[1] << std::setw(12) << qv[2] << std::setw(12) << qv[3] << std::setw(3) << correct << std::endl;
       }
+    }
       
+    // Das Ganze fuer die Zeiten
       
-      // Das Ganze f�r die Zeiten
-      
-      test(tt1, tt2, "Posterior predictive checks: latencies");
+    test(tt1, tt2, "Posterior predictive checks: latencies");
     
-    int nq = 1;
+    // int nq = 1;
     
     //std::cout << std::setprecision(4);
-    for (int ig = 0; ig != igroup; ig++)
+    for (int ig = 0; ig != igroup; ig++) {
       for (int j = 0; j != kerncat; j++) {
         Rprintf("%3d%12.4g", j, dX1(ig, j));
         int old_new = j % 2;
@@ -1535,40 +1537,41 @@ namespace drtmpt {
         Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
         meansout << std::setw(12) << qv[1] << std::setw(12) << qv[2] << std::setw(12) << qv[3] << std::setw(3) << correct << std::endl;
       }
-      meansout.close();
+    }
+    meansout.close();
     
-    if (tavw) free(tavw);
+    free(tavw);
     
-    if (t1) free(t1);
-    if (t2) free(t2);
-    if (tt1) free(tt1);
-    if (tt2) free(tt2);
+    free(t1);
+    free(t2);
+    free(tt1);
+    free(tt2);
     
-    if (expe) free(expe);
-    if (rep) free(rep);
-    if (sobs) free(sobs);
-    if (sexp) free(sexp);
-    if (srep) free(srep);
+    free(expe);
+    free(rep);
+    free(sobs);
+    free(sexp);
+    free(srep);
     
-    if (texp) free(texp);
-    if (trep) free(trep);
-    if (stobs) free(stobs);
-    if (stexp) free(stexp);
-    if (strep) free(strep);
-    if (pij) free(pij);
-    if (onepij) free(onepij);
-    if (x) free(x);
+    free(texp);
+    free(trep);
+    free(stobs);
+    free(stexp);
+    free(strep);
+    free(pij);
+    free(onepij);
+    free(x);
     
-    if (tdaten) free(tdaten);
-    if (nobs) free(nobs);
-    if (ntree) free(ntree);
-    if (nrep) free(nrep);
-    if (d) free(d);
-    if (drep) free(drep);
-    if (x1) free(x1);
-    if (x2) free(x2);
-    if (xt1) free(xt1);
-    if (xt2) free(xt2);
+    free(tdaten);
+    free(nobs);
+    free(ntree);
+    free(nrep);
+    free(d);
+    free(drep);
+    free(x1);
+    free(x2);
+    free(xt1);
+    free(xt2);
   }
   
   

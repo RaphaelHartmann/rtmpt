@@ -44,10 +44,10 @@ namespace drtmpt {
         else {
           t = (fun_upper(k, upper[i].z, upper));
         }
-        t -= log(fabs(upper[i].slope));
-        
-        sum = logsum(sum, t);
-        s.push_back(sum);
+      t -= log(fabs(upper[i].slope));
+      
+      sum = logsum(sum, t);
+      s.push_back(sum);
     }
   }
   
@@ -103,10 +103,10 @@ namespace drtmpt {
           else {
             t = (fun_upper(k, upper[j].z, upper));
           }
-          t -= log(fabs(upper[j].slope));
-          if (j == 0) sum = t;
-          else sum = logsum(sum, t);
-          if (j != i) s[j] = sum; else s.insert(s.begin() + j, sum);
+        t -= log(fabs(upper[j].slope));
+        if (j == 0) sum = t;
+        else sum = logsum(sum, t);
+        if (j != i) s[j] = sum; else s.insert(s.begin() + j, sum);
       }
     }
     if (i + 1 < k) {

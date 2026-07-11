@@ -113,7 +113,7 @@ namespace drtmpt {
 
 
   	for (int t = 0; t != indi; t++) {
-  		int sdt = indi * respno + t;
+  		// int sdt = indi * respno + t;
   		double dsdt = gsl_vector_get(hampar, isigoff + t);
   		temp -= priordf * omega / (2 * gsl_pow_2(dsdt));
 
@@ -298,7 +298,7 @@ namespace drtmpt {
   	gsl_blas_daxpy(eps, ptemp, hampar);
 
   	for (int t = 0; t != indi; t++) {
-  		int iofft = iavwoff + t * icompg, itfr = 3 * t * ifreemax;
+  		int itfr = 3 * t * ifreemax; //iofft = iavwoff + t * icompg, 
   		for (int type = 0; type != 3; type++) {
   			int ift = ifree[type];
   			for (int ip = 0; ip != ift; ip++) if (dCOMP(type, ip)) {
@@ -398,7 +398,7 @@ namespace drtmpt {
   			};
   			if (root->status == 2) {
   				if (speicher[root->index].s == 1) {
-  					int i = root->index, ipl = i + root->level;
+  					int i = root->index;//, ipl = i + root->level;
   					int ndd = speicher[i + 1].n, nd = speicher[i].n;
   					//					if ((ndd + nd) == 0) std::cout << "und nu?";
   					if ((ndd > 0) && ((ndd + nd) * oneuni(rst) <= ndd)) {
@@ -441,7 +441,7 @@ namespace drtmpt {
   	double lamtest = gsl_vector_get(hampar, 0);
 
   	bool adapt = (phase == 1) && (m <= PHASE1);
-  	int xn = isigoff + indi;
+  	// int xn = isigoff + indi;
 
   	double* dstore = 0; if (!(dstore = (double*)malloc(ntau * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
   	gsl_vector* p = gsl_vector_alloc(nhamil);

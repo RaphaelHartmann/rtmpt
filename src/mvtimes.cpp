@@ -826,15 +826,17 @@ namespace ertmpt {
   		}
   	gsl_linalg_cholesky_decomp(cy);
   	jj = 0;
-  	for (int iz = 0; iz != n; iz++)
+  	for (int iz = 0; iz != n; iz++) {
   		for (int jz = 0; jz <= iz; jz++) {
   			if (iz != jz) temp[igroup*respno + 1 + jj] = gsl_matrix_get(cy, iz, jz); else
   				temp[igroup*respno + 1 + jj] = log(gsl_matrix_get(cy, iz, jz));
   			jj++;
   		}
+  	}
+  	for (int i = 0; i != restparsno; i++) bridge_sample[offset + i] = temp[i];
+  	
   	gsl_matrix_free(cy); free(tau); free(temp);
   
-  	for (int i = 0; i != restparsno; i++) bridge_sample[offset + i] = temp[i];
   	offset += restparsno;
   
   	bridge_sample[offset++] = llik;
@@ -955,7 +957,7 @@ namespace ertmpt {
   			mu[iz + ig * ifree] = 0.0; int ng = 0;
   			{
   				for (int t = 0; t != indi; t++) if (t2group[t] == ig) {
-  					if (BETA(t, iz) < -4.0) BETA(t, iz) = -4.0 + 0.1*onenorm(rst); if (BETA(t, iz) > 4.0) BETA(t, iz) = 4.0 + 0.1*onenorm(rst);
+  					if (BETA(t, iz) < -4.0) {BETA(t, iz) = -4.0 + 0.1*onenorm(rst);} if (BETA(t, iz) > 4.0) BETA(t, iz) = 4.0 + 0.1*onenorm(rst);
   					mu[iz + ig * ifree] += BETA(t, iz); ng++;
   				}
   				mu[iz + ig * ifree] = (mu[iz + ig * ifree] + onenorm(rst)) / (ng + 1);
@@ -1008,8 +1010,7 @@ namespace ertmpt {
   
   
   void gibbs_times_new(std::vector<trial> daten, int *nnodes, int nz, int *nz_position, double *beta, int ntau, int *ntau_position,
-  	gsl_rng *rst1, gsl_rng *rst2, gsl_rng *rst3, gsl_rng *rst4, gsl_rng *rst5, gsl_rng *rst6, gsl_rng *rst7, gsl_rng *rst8, gsl_rng *rst9, gsl_rng *rst10, gsl_rng *rst11, gsl_rng *rst12, gsl_rng *rst13, gsl_rng *rst14, gsl_rng *rst15, gsl_rng *rst16,
-  	double* lambdas, double* restpars) {
+                       std::vector<gsl_rng*>& rsts, double* lambdas, double* restpars) {
   	bool do_burnin = (BURNIN > 0);
   	std::ofstream raus;
   	// std::ofstream raus_bridge;
@@ -1054,46 +1055,12 @@ namespace ertmpt {
   
   	for (int ithread = 0; ithread != NOTHREADS; ithread++) {
   		// pop f�r rst
-  		switch (ithread + 1) {
-  		case 1: gsl_rng_memcpy(xst, rst1); break;
-  		case 2: gsl_rng_memcpy(xst, rst2); break;
-  		case 3: gsl_rng_memcpy(xst, rst3); break;
-  		case 4: gsl_rng_memcpy(xst, rst4); break;
-  		case 5: gsl_rng_memcpy(xst, rst5); break;
-  		case 6: gsl_rng_memcpy(xst, rst6); break;
-  		case 7: gsl_rng_memcpy(xst, rst7); break;
-  		case 8: gsl_rng_memcpy(xst, rst8); break;
-  		case 9: gsl_rng_memcpy(xst, rst9); break;
-  		case 10: gsl_rng_memcpy(xst, rst10); break;
-  		case 11: gsl_rng_memcpy(xst, rst11); break;
-  		case 12: gsl_rng_memcpy(xst, rst12); break;
-  		case 13: gsl_rng_memcpy(xst, rst13); break;
-  		case 14: gsl_rng_memcpy(xst, rst14); break;
-  		case 15: gsl_rng_memcpy(xst, rst15); break;
-  		case 16: gsl_rng_memcpy(xst, rst16); break;
-  		}
+  		gsl_rng_memcpy(xst, rsts[ithread]);
   		pop(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
   		initialize_new(daten, mu, lams, rhos, beta, lambdas, restpars, slams, xst);
   		for (int i = 0; i != 2 * n_all_parameters; i++) parmon[i] = 0.0;
   		push(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  		switch (ithread + 1) {
-  			case 1: gsl_rng_memcpy(rst1, xst); break;
-  			case 2: gsl_rng_memcpy(rst2, xst); break;
-  			case 3: gsl_rng_memcpy(rst3, xst); break;
-  			case 4: gsl_rng_memcpy(rst4, xst); break;
-  			case 5: gsl_rng_memcpy(rst5, xst); break;
-  			case 6: gsl_rng_memcpy(rst6, xst); break;
-  			case 7: gsl_rng_memcpy(rst7, xst); break;
-  			case 8: gsl_rng_memcpy(rst8, xst); break;
-  			case 9: gsl_rng_memcpy(rst9, xst); break;
-  			case 10: gsl_rng_memcpy(rst10, xst); break;
-  			case 11: gsl_rng_memcpy(rst11, xst); break;
-  			case 12: gsl_rng_memcpy(rst12, xst); break;
-  			case 13: gsl_rng_memcpy(rst13, xst); break;
-  			case 14: gsl_rng_memcpy(rst14, xst); break;
-  			case 15: gsl_rng_memcpy(rst15, xst); break;
-  			case 16: gsl_rng_memcpy(rst16, xst); break;
-  		}
+  		gsl_rng_memcpy(rsts[ithread], xst);
   	}
   	gsl_rng_free(xst);
   	free(lams); free(slams); free(rhos); free(mu); free(factor);
@@ -1142,46 +1109,13 @@ namespace ertmpt {
   
   			gsl_rng *rst;
   			rst = gsl_rng_alloc(T_rng);
-  			switch (ithread + 1) {
-  				case 1: gsl_rng_memcpy(rst, rst1); break;
-  				case 2: gsl_rng_memcpy(rst, rst2); break;
-  				case 3: gsl_rng_memcpy(rst, rst3); break;
-  				case 4: gsl_rng_memcpy(rst, rst4); break;
-  				case 5: gsl_rng_memcpy(rst, rst5); break;
-  				case 6: gsl_rng_memcpy(rst, rst6); break;
-  				case 7: gsl_rng_memcpy(rst, rst7); break;
-  				case 8: gsl_rng_memcpy(rst, rst8); break;
-  				case 9: gsl_rng_memcpy(rst, rst9); break;
-  				case 10: gsl_rng_memcpy(rst, rst10); break;
-  				case 11: gsl_rng_memcpy(rst, rst11); break;
-  				case 12: gsl_rng_memcpy(rst, rst12); break;
-  				case 13: gsl_rng_memcpy(rst, rst13); break;
-  				case 14: gsl_rng_memcpy(rst, rst14); break;
-  				case 15: gsl_rng_memcpy(rst, rst15); break;
-  				case 16: gsl_rng_memcpy(rst, rst16); break;
-  			}
+  			gsl_rng_memcpy(rst, rsts[ithread]);
   			pop(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
   			gibbs_and_monitor(daten,factor, mu, lams, beta, rhos, lambdas, ntau, ntau_position, restpars, slams, nnodes,
   				nz, nz_position, offset, n_all_parameters, parmon, rst, ithread, save, sample, n_bridge_store, bridge_sample);
   			push(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  			switch (ithread + 1) {
-  				case 1: gsl_rng_memcpy(rst1, rst); break;
-  				case 2: gsl_rng_memcpy(rst2, rst); break;
-  				case 3: gsl_rng_memcpy(rst3, rst); break;
-  				case 4: gsl_rng_memcpy(rst4, rst); break;
-  				case 5: gsl_rng_memcpy(rst5, rst); break;
-  				case 6: gsl_rng_memcpy(rst6, rst); break;
-  				case 7: gsl_rng_memcpy(rst7, rst); break;
-  				case 8: gsl_rng_memcpy(rst8, rst); break;
-  				case 9: gsl_rng_memcpy(rst9, rst); break;
-  				case 10: gsl_rng_memcpy(rst10, rst); break;
-  				case 11: gsl_rng_memcpy(rst11, rst); break;
-  				case 12: gsl_rng_memcpy(rst12, rst); break;
-  				case 13: gsl_rng_memcpy(rst13, rst); break;
-  				case 14: gsl_rng_memcpy(rst14, rst); break;
-  				case 15: gsl_rng_memcpy(rst15, rst); break;
-  				case 16: gsl_rng_memcpy(rst16, rst); break;
-  			}
+  			gsl_rng_memcpy(rsts[ithread], rst);
+  			
   			int ido = 2;
   
   			while (ithread != atm_int);
@@ -1211,46 +1145,13 @@ namespace ertmpt {
     
     	gsl_rng *rst;
     	rst = gsl_rng_alloc(T_rng);
-    	switch (NOTHREADS) {
-    		case 1: gsl_rng_memcpy(rst, rst1); break;
-    		case 2: gsl_rng_memcpy(rst, rst2); break;
-    		case 3: gsl_rng_memcpy(rst, rst3); break;
-    		case 4: gsl_rng_memcpy(rst, rst4); break;
-    		case 5: gsl_rng_memcpy(rst, rst5); break;
-    		case 6: gsl_rng_memcpy(rst, rst6); break;
-    		case 7: gsl_rng_memcpy(rst, rst7); break;
-    		case 8: gsl_rng_memcpy(rst, rst8); break;
-    		case 9: gsl_rng_memcpy(rst, rst9); break;
-    		case 10: gsl_rng_memcpy(rst, rst10); break;
-    		case 11: gsl_rng_memcpy(rst, rst11); break;
-    		case 12: gsl_rng_memcpy(rst, rst12); break;
-    		case 13: gsl_rng_memcpy(rst, rst13); break;
-    		case 14: gsl_rng_memcpy(rst, rst14); break;
-    		case 15: gsl_rng_memcpy(rst, rst15); break;
-    		case 16: gsl_rng_memcpy(rst, rst16); break;
-    	}
+    	gsl_rng_memcpy(rst, rsts[NOTHREADS-1]);
     	pop(NOTHREADS-1, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
     	gibbs_and_monitor(daten,factor, mu, lams, beta, rhos, lambdas, ntau, ntau_position, restpars, slams, nnodes,
     		nz, nz_position, offset, n_all_parameters, parmon, rst, NOTHREADS-1, save, sample, n_bridge_store, bridge_sample);
     	push(NOTHREADS-1, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-    	switch (NOTHREADS) {
-    		case 1: gsl_rng_memcpy(rst1, rst); break;
-    		case 2: gsl_rng_memcpy(rst2, rst); break;
-    		case 3: gsl_rng_memcpy(rst3, rst); break;
-    		case 4: gsl_rng_memcpy(rst4, rst); break;
-    		case 5: gsl_rng_memcpy(rst5, rst); break;
-    		case 6: gsl_rng_memcpy(rst6, rst); break;
-    		case 7: gsl_rng_memcpy(rst7, rst); break;
-    		case 8: gsl_rng_memcpy(rst8, rst); break;
-    		case 9: gsl_rng_memcpy(rst9, rst); break;
-    		case 10: gsl_rng_memcpy(rst10, rst); break;
-    		case 11: gsl_rng_memcpy(rst11, rst); break;
-    		case 12: gsl_rng_memcpy(rst12, rst); break;
-    		case 13: gsl_rng_memcpy(rst13, rst); break;
-    		case 14: gsl_rng_memcpy(rst14, rst); break;
-    		case 15: gsl_rng_memcpy(rst15, rst); break;
-    		case 16: gsl_rng_memcpy(rst16, rst); break;
-    	}
+    	gsl_rng_memcpy(rsts[NOTHREADS-1], rst);
+    	
     	int ido = 2;
     
     	while (NOTHREADS-1 != atm_int);
@@ -1479,11 +1380,12 @@ namespace drtmpt {
     gsl_matrix_view Xsigi = gsl_matrix_view_array(sigi, nvar, nvar);
     
     
-    for (int j = 0; j != nvar; j++)
+    for (int j = 0; j != nvar; j++) {
       for (int i = j; i != nvar; i++) {
         if (i != j) gsl_matrix_set(cx, j, i, gsl_matrix_get(cx, i, j));
       }
-      gsl_matrix_memcpy(&Xsigi.matrix, cx);
+    }
+    gsl_matrix_memcpy(&Xsigi.matrix, cx);
     gsl_linalg_cholesky_decomp1(cx);
     
     

@@ -62,7 +62,7 @@ namespace drtmpt {
 
   	for (int x = 0; x != datenzahl; x++) {
   		int t = daten[x].person;
-  		int r = cat2resp[daten[x].category], igr = t2group[t] * respno + r, itr = t * respno + r;
+  		int r = cat2resp[daten[x].category], itr = t * respno + r; //, igr = t2group[t] * respno + r
   		temp -= gsl_log1p(gsl_pow_2((rest[x] - tlams[itr]) / explambdas[t]) / degf);
   	}
   	temp *= (degf + 1.0) / 2.0;
@@ -79,7 +79,7 @@ namespace drtmpt {
   		double lalogs = -gsl_vector_get(hampar, isigoff + t);
   		temp += (priordf + 1) * lalogs;
   		for (int r = 0; r != respno; r++) {
-  			int igr = t2group[t] * respno + r, itr = t * respno + r;
+  			int itr = t * respno + r; //igr = t2group[t] * respno + r
   			temp -= nppr[itr] * log(gsl_cdf_tdist_P((tlams[itr]) / explambdas[t], degf));
   			temp += nppr[itr] * (lalogs - xemp);
   		}
@@ -214,7 +214,7 @@ namespace drtmpt {
   	for (int x = 0; x != datenzahl; x++) {
   		int t = daten[x].person;
   		int r = cat2resp[daten[x].category];
-  		int itr = t * respno + r, igr = t2group[t] * respno + r;
+  		int itr = t * respno + r; //, igr = t2group[t] * respno + r;
   		double xa = tlams[itr] - rest[x];
   		double xx = xa / (1.0 + gsl_pow_2(xa / explambda[t]) / degf);
   		dlam[itr] += xx;
@@ -231,7 +231,7 @@ namespace drtmpt {
   		dlam[it] /= gsl_pow_3(sig);
   		dlam[it] += (priordf + 1) / sig;
   		for (int r = 0; r != respno; r++) {
-  			int itr = t * respno + r, igr = t2group[t] * respno + r;
+  			int itr = t * respno + r; //, igr = t2group[t] * respno + r;
   			dlam[itr] *= dings / gsl_pow_2(sig);
   			double mu = tlams[itr];
 
