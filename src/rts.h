@@ -165,16 +165,16 @@ namespace ertmpt {
   
   //Globale Variablen
   
-  extern int *cat2tree;
-  extern int *branch;
-  extern int *ar;
-  extern int *nodes_per_tree;
-  extern int *tree_and_node2par;
-  extern bool *comp;
+  extern std::vector<int> cat2tree;
+  extern std::vector<int> branch;
+  extern std::vector<int> ar;
+  extern std::vector<int> nodes_per_tree;
+  extern std::vector<int> tree_and_node2par;
+  extern std::vector<char> comp;
   extern int ilamfree, ifree,ipred;
   
-  extern int *ndrin,*drin;
-  extern int *nppr;
+  extern std::vector<int> ndrin, drin;
+  extern std::vector<int> nppr;
   extern int n_bridge_parameters;
   
   extern int RMAX_reached;
@@ -184,9 +184,9 @@ namespace ertmpt {
   extern int alphaoff;
   extern int sigalphaoff;
   extern int restparsno;
-  extern int *free2kern;
-  extern int *kern2free;
-  extern double *consts;
+  extern std::vector<int> free2kern;
+  extern std::vector<int> kern2free;
+  extern std::vector<double> consts;
   
   extern double pr_df_sigma_sqr;
   extern double pr_shape_omega_sqr;
@@ -200,7 +200,7 @@ namespace ertmpt {
   extern double pr_sf_scale_matrix_TAU;
   extern int pr_df_add_inv_wish;
   
-  extern int *pfad_index;
+  extern std::vector<int> pfad_index;
   extern std::vector<pfadinfo> path_info;
   
   void make_idaten(std::vector<trial> daten,int *idaten);

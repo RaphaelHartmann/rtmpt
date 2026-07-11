@@ -64,17 +64,17 @@ void set_t2group(const std::vector<trial> & daten, int* t2group, int* ng) {
 namespace ertmpt {
 
   // Globale Variablen
-  int *cat2tree=0;
-  int *ar=0;
-  int *branch=0;
-  int *nodes_per_tree=0;
-  int *tree_and_node2par=0;
-  bool *comp=0;
+  std::vector<int> cat2tree;
+  std::vector<int> ar;
+  std::vector<int> branch;
+  std::vector<int> nodes_per_tree;
+  std::vector<int> tree_and_node2par;
+  std::vector<char> comp;
   int ifree, ilamfree;
   int ipred;
-  int *ndrin=0, *drin=0;
+  std::vector<int> ndrin, drin;
   // int n_all_parameters;
-  int *nppr=0;
+  std::vector<int> nppr;
   // int n_bridge_parameters;
 
   int RMAX_reached ;
@@ -84,11 +84,11 @@ namespace ertmpt {
   int alphaoff;
   int sigalphaoff;
   int restparsno;
-  int *free2kern=0;
-  int *kern2free=0;
-  double *consts=0;
+  std::vector<int> free2kern;
+  std::vector<int> kern2free;
+  std::vector<double> consts;
 
-  int *pfad_index = 0;
+  std::vector<int> pfad_index;
   std::vector<pfadinfo> path_info;
 
 
@@ -258,8 +258,8 @@ namespace ertmpt {
   	
   	//REPEAT:
   	set_ns(daten, indi, kerntree, kerncat, igroup);
-  	cat2tree = (int *)malloc(kerncat * sizeof(int));
-  	set_cat2tree(daten, cat2tree);
+	cat2tree.resize(kerncat);
+	set_cat2tree(daten, cat2tree.data());
   	t2group = (int *)malloc(indi * sizeof(int));
   	ng = (int*)calloc(igroup, sizeof(int));
   	set_t2group(daten, t2group, ng);
@@ -271,25 +271,25 @@ namespace ertmpt {
 		// Model Design
   	// in lies gesetzt	zweig=2; kernpar = 2; nodemax=2;
   	//a = (int *)malloc(kerncat*zweig*kernpar * sizeof(int));
-  	ar = (int *)malloc(kerncat*zweig*nodemax * sizeof(int));
+  	ar.resize(kerncat*zweig*nodemax);
   	//    #define A(I,J,K) a[I*zweig*kernpar + J*kernpar + K]
   	//if (!(b = (int *)malloc(kerncat*zweig*kernpar * sizeof(int)))) { printf("Allocation failure\n");	exit_status = -1; }
-  	branch = (int *)malloc(kerncat * sizeof(int));
+  	branch.resize(kerncat);
   	//    #define B(I,J,K) b[I*zweig*kernpar + J*kernpar + K]
   	int *nodes_per_par = 0;  nodes_per_par = (int *)malloc(kerntree*kernpar * sizeof(int));
   	//    #define NODES(I,J) nodes_per_par[I*kernpar + J]
-  	nodes_per_tree = (int *)malloc(kerntree * sizeof(int));
-  	tree_and_node2par = (int *)malloc(kerntree*nodemax * sizeof(int));
-  	drin = (int *)malloc(kerncat*zweig*nodemax * sizeof(int));
-  	ndrin = (int *)malloc(kerncat*zweig * sizeof(int));
-  	pfad_index = (int *)malloc(kerncat*zweig * sizeof(int));
+  	nodes_per_tree.resize(kerntree);
+  	tree_and_node2par.resize(kerntree*nodemax);
+  	drin.resize(kerncat*zweig*nodemax);
+  	ndrin.resize(kerncat*zweig);
+  	pfad_index.resize(kerncat*zweig);
 
   	// Model specifications
   		// Parameter: beta_comp yes/no
-  	comp = (bool *)malloc(3 * kernpar * sizeof(bool));
-  	consts = (double *)malloc(kernpar * sizeof(double));
+	comp.resize(3 * kernpar);
+	consts.resize(kernpar);
 
-  	model_design(kerntree, ar, branch, nodes_per_par, nodes_per_tree, tree_and_node2par);
+  	model_design(kerntree, ar.data(), branch.data(), nodes_per_par, nodes_per_tree.data(), tree_and_node2par.data());
 
   	ifree = 0;
     ilamfree = 0;
@@ -314,8 +314,8 @@ namespace ertmpt {
     }
 
 
-  	free2kern = (int *)malloc((ifree + ilamfree) * sizeof(int));
-  	kern2free = (int *)malloc(3 * kernpar * sizeof(int));
+	free2kern.resize(ifree + ilamfree);
+	kern2free.resize(3 * kernpar);
 
   	for (int ip = 0; ip != 3 * kernpar; ip++) {
   		kern2free[ip] = k2f[ip];
@@ -328,7 +328,7 @@ namespace ertmpt {
   	// else kern2free[ip] = -1;
 
 
-  	extract_pfadinfo(pfad_index, path_info);
+  	extract_pfadinfo(pfad_index.data(), path_info);
 
 
 
@@ -353,7 +353,7 @@ namespace ertmpt {
   	make_positions(daten, nnodes, nz_position, ntau_position);
 
   	//nppr berechnen, factor definieren
-  	nppr = (int *)malloc(indi*respno * sizeof(int));
+  	nppr.resize(indi*respno);
 
   	for (int t = 0; t != indi * respno; t++) nppr[t] = 0;
   	for (int x = 0; x != static_cast<int>(daten.size()); x++)
@@ -402,31 +402,17 @@ namespace ertmpt {
   	// char x; std::cin >> x;
 
 
-  	if (cat2tree) free(cat2tree);
   	if (t2group) free(t2group);
   	//if (a) free(a);
-  	if (ar) free(ar);
   	//if (b) free(b);
-  	if (branch) free(branch);
   	if (nodes_per_par) free(nodes_per_par);
-  	if (nodes_per_tree) free(nodes_per_tree);
-  	if (tree_and_node2par) free(tree_and_node2par);
   	//if (g2) free(g2);
   	//if (likeli) free(likeli);
   	if (nnodes) free(nnodes);
   	if (idaten) free(idaten);
 
-  	if (comp) free(comp);
   	if (nz_position) free(nz_position);
   	if (ntau_position) free(ntau_position);
-  	if (drin) free(drin);
-  	if (ndrin) free(ndrin);
-  	if (nppr) free(nppr);
-
-  	if (free2kern) free(free2kern);
-  	if (kern2free) free(kern2free);
-  	if (consts) free(consts);
-  	if (pfad_index) free(pfad_index);
   	gsl_rng_free(rst);
   	for (std::size_t i = 0; i < rsts.size(); ++i) {
   	  gsl_rng_free(rsts[i]);
