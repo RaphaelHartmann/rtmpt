@@ -22,25 +22,22 @@ namespace ertmpt {
 	void make_rtau(double *restpars, double *taui, double* slams, gsl_rng *rst) {
 	#define XY(I,J) xy[(I)*(respno) + J]
 
-
-		double *xy = 0;	xy = (double *)malloc((indi + respno + 1 + pr_df_add_inv_wish)*(respno) * sizeof(double));
-		double *tau = 0;	tau = (double *)malloc(respno*(respno) * sizeof(double));
+		std::vector<double> xy((indi + respno + 1 + pr_df_add_inv_wish) * respno);
+		std::vector<double> tau(respno * respno);
 
 		for (int i = 0; i != indi; i++) {
 			for (int j = 0; j != respno; j++) XY(i, j) = restpars[alphaoff + i * respno + j];
 		}
-		invwis(indi, respno, xy, tau, taui, pr_sf_scale_matrix_TAU, rst);
+		invwis(indi, respno, xy.data(), tau.data(), taui, pr_sf_scale_matrix_TAU, rst);
 		int iz = -1;
 		for (int i = 0; i != respno; i++) for (int j = i; j != respno; j++) restpars[igroup*respno + 1 + (++iz)] = tau[i*respno + j];
-		if (xy) free(xy);
-		if (tau) free(tau);
 	}
 
 	void make_rsigalpha(std::vector<trial> daten, double* factor, double *rest, double *restpar, double* slams, bool xflag, gsl_rng *rst) {
 
-		double *u = 0; u = (double *)malloc(indi * sizeof(double));
-		double *fn = 0; fn = (double *)malloc(respno * sizeof(double));
-		double *n_per_person = 0; n_per_person = (double *)malloc(indi * sizeof(double));
+		std::vector<double> u(indi);
+		std::vector<double> fn(respno);
+		std::vector<double> n_per_person(indi);
 
 		double sigsquar = restpar[1 + respno * igroup - 1];
 		int no_trials = static_cast<int>(daten.size());
@@ -92,23 +89,18 @@ namespace ertmpt {
 
 
 		}
-		if (u) free(u);
-		if (fn) free(fn);
-		if (n_per_person) free(n_per_person);
 	}
 
 
 
 	void make_ralpha(std::vector<trial> daten, double* factor, double *rest, double *restpars, double* slams, double *taui, gsl_rng *rst) {
 
-
-
-		double *w = 0;	w = (double *)malloc(respno * sizeof(double));
-		double *hba = 0;	hba = (double *)malloc(respno * sizeof(double));
-		double *fig = 0;	fig = (double *)malloc(indi*respno * sizeof(double));
-		double *xfig = 0;	xfig = (double *)malloc(respno*respno * sizeof(double));
-		double *ba = 0;	ba = (double *)malloc(indi*respno * sizeof(double));
-		double *fn = 0; fn = (double *)malloc(respno * sizeof(double));
+		std::vector<double> w(respno);
+		std::vector<double> hba(respno);
+		std::vector<double> fig(indi * respno);
+		std::vector<double> xfig(respno * respno);
+		std::vector<double> ba(indi * respno);
+		std::vector<double> fn(respno);
 	#define FIG(T,I) fig[T*respno+I]
 	#define XFIG(I,J) xfig[I*respno+J]
 	#define BA(T,I) ba[T*respno+I]
@@ -138,7 +130,7 @@ namespace ertmpt {
 		for (int t = 0; t != indi; t++) {
 
 			double factornew = 0.0, factorold = 0;
-			double *store = 0;	store = (double *)malloc(respno * sizeof(double));
+			std::vector<double> store(respno);
 			for (int ir = 0; ir != respno; ir++) store[ir] = restpars[alphaoff + t * respno + ir];
 
 			for (int r = 0; r != respno; r++) {
@@ -148,7 +140,7 @@ namespace ertmpt {
 			for (int iz = 0; iz != respno; iz++) {
 				w[iz] = BA(t, iz) / restpars[sigalphaoff + t]; XFIG(iz, iz) = FIG(t, iz) / restpars[sigalphaoff + t] + TAUI(iz, iz);
 			}
-			bayesreg(respno, w, xfig, hba, rst);
+			bayesreg(respno, w.data(), xfig.data(), hba.data(), rst);
 			for (int ip = 0; ip != respno; ip++) restpars[alphaoff + t * respno + ip] = hba[ip];
 
 			for (int r = 0; r != respno; r++) {
@@ -164,26 +156,18 @@ namespace ertmpt {
 				for (int ir = 0; ir != respno; ir++) restpars[alphaoff + t * respno + ir] = store[ir]; // std::cout << " alpha";
 			}
 			else for (int ir = 0; ir != respno; ir++) FACTOR(t, ir) = fn[ir];
-			if (store) free(store);
 
 		}
 
-
-		if (w) free(w);
-		if (hba) free(hba);
-		if (fig) free(fig);
-		if (xfig) free(xfig);
-		if (ba) free(ba);
-		if (fn) free(fn);
 
 	}
 
 
 	void make_slams(std::vector<trial> daten, double* factor, double *rest, double *restpars, double *slams, gsl_rng *rst) {
 
-		double *fig = 0;	fig = (double *)malloc(indi*respno * sizeof(double));
-		double *ba = 0;	ba = (double *)malloc(indi*respno * sizeof(double));
-		double *fn = 0; fn = (double *)malloc(indi * sizeof(double));
+		std::vector<double> fig(indi * respno);
+		std::vector<double> ba(indi * respno);
+		std::vector<double> fn(indi);
 
 		for (int t = 0; t != indi; t++) for (int iz = 0; iz != respno; iz++) { BA(t, iz) = 0.0; FIG(t, iz) = 0.0; }
 
@@ -224,9 +208,6 @@ namespace ertmpt {
 			}
 			else for (int t = 0; t != indi; t++) FACTOR(t, r) = fn[t];
 		}
-		if (fig) free(fig);
-		if (ba) free(ba);
-		if (fn) free(fn);
 	}
 
 
@@ -234,15 +215,15 @@ namespace ertmpt {
 	void make_rmu(std::vector<trial> daten, double* factor, double *rest, double *restpar, double *slams, gsl_rng *rst) {
 
 		int no_trials = static_cast<int>(daten.size()); double sig_prior = pr_var_mu_gamma;//1.0 / 0.1;
-		double *u = 0; u = (double *)malloc(igroup*respno * sizeof(double));
-		double *rsig = 0; rsig = (double *)malloc(igroup*respno * sizeof(double));
-		double *spostg = 0; spostg = (double *)malloc(igroup*respno * sizeof(double));
-		double *factorold = 0; factorold = (double *)malloc(igroup*respno * sizeof(double));
-		double *fn = 0; fn = (double *)malloc(indi * respno* sizeof(double));
+		std::vector<double> u(igroup * respno);
+		std::vector<double> rsig(igroup * respno);
+		std::vector<double> spostg(igroup * respno);
+		std::vector<double> factorold(igroup * respno);
+		std::vector<double> fn(indi * respno);
 
-		double *store = 0; store = (double *)malloc(igroup*respno * sizeof(double));
-		double *factornew = 0; factornew = (double *)malloc(igroup*respno * sizeof(double));
-		bool *keepold = 0; keepold = (bool *)malloc(igroup*respno * sizeof(bool));
+		std::vector<double> store(igroup * respno);
+		std::vector<double> factornew(igroup * respno);
+		std::vector<char> keepold(igroup * respno);
 
 		for (int ig = 0; ig != igroup * respno; ig++) { u[ig] = pr_mean_mu_gamma/sig_prior; rsig[ig] = 0.0; spostg[ig] = 1.0 / sig_prior; }
 
@@ -297,14 +278,6 @@ namespace ertmpt {
 			if (!(keepold[t2group[t] * respno + ir])) FACTOR(t, ir) = fn[t*respno+ir];
 
 
-		if (u) free(u);
-		if (rsig) free(rsig);
-		if (spostg) free(spostg);
-		if (factorold) free(factorold);
-		if (fn) free(fn);
-		free(store);
-		free(factornew);
-		free(keepold);
 	}
 
 	void make_rsig(std::vector<trial> daten, double *rest, double *restpar, gsl_rng *rst) {
