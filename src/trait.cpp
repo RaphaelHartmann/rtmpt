@@ -12,13 +12,11 @@ namespace ertmpt {
   #define SSIG(I,J) ssig[I*nvar + J]
   #define XX(T,J) xx[T*nvar + J]
   #define XB(T,J) xb[T*nvar+J]
-  	double *xb;
-  
+
   	gsl_matrix *cx = gsl_matrix_alloc(nvar, nvar);
   	//gsl_vector *s = gsl_vector_alloc(nvar);
-  
-  
-  	xb = (double *)malloc(nvar*(cases + nvar + 1 + pr_df_add_inv_wish) * sizeof(double));
+
+  	std::vector<double> xb(nvar * (cases + nvar + 1 + pr_df_add_inv_wish));
   
   
   	for (int j = 0; j != nvar; j++)
@@ -72,18 +70,15 @@ namespace ertmpt {
   
   	gsl_matrix_free(cx);
   	//gsl_vector_free(s);
-  	if (xb) free(xb);
-  
+
   }
   
   void bayesreg(int n, double *mean, double *sigma, double *out, gsl_rng *rst) {
   #define NTIG(I,J) ntig[I*n+J]
-  
-  
-  	double *xb = 0, *hout = 0, *ntig = 0;
-  	xb = (double *)malloc(n * sizeof(double));
-  	hout = (double *)malloc(n * sizeof(double));
-  	ntig = (double *)malloc(n*n * sizeof(double));
+
+  	std::vector<double> xb(n);
+  	std::vector<double> hout(n);
+  	std::vector<double> ntig(n * n);
   
   	gsl_matrix *cx = gsl_matrix_alloc(n, n);
   	//gsl_vector *s  = gsl_vector_alloc(n);
@@ -124,9 +119,6 @@ namespace ertmpt {
   		out[i] += hout[i];
   	}
   
-  	if (xb) free(xb);
-  	if (hout) free(hout);
-  	if (ntig) free(ntig);
   	gsl_matrix_free(cx);
   	// gsl_vector_free(s);
   }
@@ -183,9 +175,9 @@ namespace ertmpt {
   
   
   void make_mu(double *mu, double *lams, double *beta, int *nnodes, double *z, gsl_rng *rst) {
-  
-  	double *mean = 0;	mean = (double *)calloc((igroup * ifree),  sizeof(double));
-  	double *xtx = 0;	xtx = (double *)calloc((igroup * ifree) , sizeof(double));
+
+  	std::vector<double> mean(igroup * ifree, 0.0);
+  	std::vector<double> xtx(igroup * ifree, 0.0);
   
   	int jj = -1;
   
@@ -210,14 +202,12 @@ namespace ertmpt {
   		}
   	}
   
-  	if (xtx) free(xtx);
-  	if (mean) free(mean);
   }
   
   void make_lams(double *mu, double *lams, double *beta, int *nnodes, double *z, gsl_rng *rst) {
-  
-  	double *w = 0;	w = (double *)calloc(ifree , sizeof(double));
-  	double *u = 0;	u = (double *)malloc(ifree * sizeof(double));
+
+  	std::vector<double> w(ifree, 0.0);
+  	std::vector<double> u(ifree);
   
   	for (int iz = 0; iz != ifree; iz++) u[iz] = PRIOR;
   
@@ -243,8 +233,6 @@ namespace ertmpt {
   		lams[iz] = (PRIOR + w[iz]) / u[iz] + onenorm(rst) / sqrt(u[iz]);
   	}
   
-  	if (w) free(w);
-  	if (u) free(u);
   }
 
 }

@@ -110,8 +110,8 @@ namespace ertmpt {
   
   	for (int k = 0; k != branch[j]; k++) {
   		int pfadlength = NDRIN(j, k);
-  
-  		double *lams = 0; lams = (double *)malloc(pfadlength * sizeof(double));
+
+  		std::vector<double> lams(pfadlength);
   		int complength = 0;
   		/*if (PFAD_INDEX(j,k)==-1) {
   			for (int ir = 0; ir != pfadlength; ir++) {
@@ -186,21 +186,19 @@ namespace ertmpt {
   		}*/
   		if ((complength >= 2) /*&& (PFAD_INDEX(j, k) > -1)*/) {
   			// printf("in >= 2\n");
-  			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
+  			std::vector<double> loglams(complength);
   			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
   			// int ipfad = PFAD_INDEX(j, k);
   			// pfadinfo akt_pfad = path_info[ipfad];
-  			double temp = logf_tij(akt_pfad.a, akt_pfad.r, lams,loglams, rmu, rsig, rt);
+  			double temp = logf_tij(akt_pfad.a, akt_pfad.r, lams.data(), loglams.data(), rmu, rsig, rt);
   			if (temp == GSL_NEGINF) {
   				pij[k] = -sqrt(DBL_MAX);
   				restart = true;
   			}
   			else pij[k] = (temp)-xsi;
-  			if (loglams) free(loglams);
   			// printf("end >= 2\n");
   		}
-  
-  		free(lams);
+
   	}
   
   }
@@ -217,15 +215,14 @@ namespace ertmpt {
   {
   	double *pars = (double *)params;
   	int n = static_cast<int>(trunc(pars[0]));
-  	double *x = 0; x = (double *)malloc(n * sizeof(double));
+  	std::vector<double> x(n);
   	for (int i = 0; i != n; i++) x[i] = gsl_vector_get(y, i);
-  	trans(n, x, pars, false);
+  	trans(n, x.data(), pars, false);
   	if (DEBUG) {if (!(x[1] == x[1])) Rprintf("x[1] is NaN\n");}
-  
-  
-  	double *lambdas = 0; lambdas = (double *)malloc(ilamfree * sizeof(double));
-  	double *x_for_all = 0; x_for_all = (double *)malloc(ifree * sizeof(double));
-  	double *pij = 0; pij = (double *)malloc(zweig * sizeof(double));
+
+  	std::vector<double> lambdas(ilamfree);
+  	std::vector<double> x_for_all(ifree);
+  	std::vector<double> pij(zweig);
   
   	int trialno = static_cast<int>(itdaten.size());
   
@@ -247,9 +244,9 @@ namespace ertmpt {
   	for (int x = 0; x != trialno; x++) {
   		trial one = itdaten[x];  one.person = 0;
   
-  		make_tij_for_repetitions(one, lambdas, rmu, rsig, xsi, pij);
+  		make_tij_for_repetitions(one, lambdas.data(), rmu, rsig, xsi, pij.data());
   		double p;
-  		make_pij_for_one_trial_new_new(one, x_for_all, pij, p);
+  		make_pij_for_one_trial_new_new(one, x_for_all.data(), pij.data(), p);
   		loglik += -2 * p;
   	}
   	if (!std::isfinite(loglik)) {
@@ -257,11 +254,6 @@ namespace ertmpt {
   		if (DEBUG) printf("unfortunate\n");
   	}
   	else restart = false;
-  	free(x);
-  	free(pij);
-  	free(lambdas);
-  	free(x_for_all);
-  
   	return(loglik);
   
   }
@@ -270,12 +262,11 @@ namespace ertmpt {
   
   void tby_individuals(std::vector<trial> daten, int kerntree, double *beta, double *lambdas, double *restpars, gsl_rng *rst) {
   #define BETA(T,I) beta[T*ifree+I]
-  
-  	double *pars = 0, *x = 0, *xsave = 0;
+
   	int n = ifree + ilamfree + 2;
-  	x = (double *)malloc(n * sizeof(double));
-  	xsave = (double *)malloc(n * sizeof(double));
-  	pars = (double *)malloc((2 * n + 1) * sizeof(double));
+  	std::vector<double> x(n);
+  	std::vector<double> xsave(n);
+  	std::vector<double> pars(2 * n + 1);
   
   
   	double oldfit;
@@ -335,7 +326,7 @@ namespace ertmpt {
   				x[i] = gsl_min(x[i], pars[1 + n + i] - 0.01*(1 + oneuni(rst)));
   			}
   
-  			trans(n, x, pars, true);
+  			trans(n, x.data(), pars.data(), true);
   
   			size_t iter = 0;
   			int status;
@@ -351,8 +342,8 @@ namespace ertmpt {
   
   			my_func.n = n;
   			my_func.f = objfun;
-  			my_func.params = pars;
-  
+  			my_func.params = pars.data();
+
   			xx = gsl_vector_alloc(n);
   			for (int i = 0; i != n; i++) gsl_vector_set(xx, i, x[i]);
   
@@ -413,7 +404,7 @@ namespace ertmpt {
   		}
   
   
-  		trans(n, xsave, pars, false);
+  		trans(n, xsave.data(), pars.data(), false);
   
   		// int iz = 0;
   		for (int ip = 0; ip != ifree; ip++) { BETA(t, ip) = xsave[ip]; }
@@ -438,11 +429,8 @@ namespace ertmpt {
   	}
   	Rprintf("\n\n");
   
-  	free(x);
-  	free(xsave);
-  	free(pars);
   }
-  
+
 }
 
 

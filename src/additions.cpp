@@ -41,13 +41,13 @@ namespace ertmpt {
   
   }
   
-  void logPhikl(int k, int a, std::vector<int> r, double *lams, double *loglams, int l, double &hypoplus, double &hypominus) {
-  	int *iz = 0; iz = (int *)malloc(a * sizeof(int));
+	void logPhikl(int k, int a, std::vector<int> r, double *lams, double *loglams, int l, double &hypoplus, double &hypominus) {
+		std::vector<int> iz(a);
   
   	hypoplus = hypominus = GSL_NEGINF;
   //	double zwi = 0;
   	bool fplus = true, fminus = true;
-  	init_step(k, a, iz, l - 1);
+		init_step(k, a, iz.data(), l - 1);
   	bool temp = true;
   	while (temp)
   	{
@@ -75,7 +75,7 @@ namespace ertmpt {
   			 */
   			// for (int i = 0; i != a; i++) Rprintf("%4d", iz[i]); Rprintf("\n");
   		}
-  		temp = step(k, a, iz, l - 1);
+  		temp = step(k, a, iz.data(), l - 1);
   	}
   
   	// if ((l - 1) % 2 == 1) {
@@ -84,8 +84,7 @@ namespace ertmpt {
   	// 	hypominus = temp;
   	// }
   
-  	free(iz);
-  //	hypoplus += gsl_sf_lnfact(l - 1);
+	//	hypoplus += gsl_sf_lnfact(l - 1);
   //	hypominus += gsl_sf_lnfact(l - 1);
   }
   
@@ -488,9 +487,9 @@ namespace ertmpt {
   */
   
   
-  void extract_pfadinfo(int *pfad_index,  std::vector<pfadinfo> &path_info) {
-  
-  	int* counts = 0; counts = (int*)malloc(2 * kernpar * sizeof(int));
+	void extract_pfadinfo(int *pfad_index,  std::vector<pfadinfo> &path_info) {
+
+		std::vector<int> counts(2 * kernpar);
     path_info.clear();
   
   	for (int c = 0; c != kerncat; c++) {
@@ -531,10 +530,9 @@ namespace ertmpt {
   			}
   	}
   
-  	if(counts) free(counts);
-  
-  
-  
+
+
+
   	// int *counts = 0; counts = (int *)malloc(2*kernpar * sizeof(int));
   	// path_info.clear();
   	// for (int c = 0; c != kerncat; c++) {
