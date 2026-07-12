@@ -34,14 +34,14 @@ namespace ertmpt {
 	int SAMPLE_SIZE;
 	int IREP;
 
-	double *ConstProb = 0;
-	int *CompMinus = 0;
-	int *CompPlus = 0;
+	std::vector<double> ConstProb;
+	std::vector<int> CompMinus;
+	std::vector<int> CompPlus;
 
 	double RMAX;
 
-	double *complete_sample = 0;
-	double *complete_bridge = 0;
+	std::vector<double> complete_sample;
+	std::vector<double> complete_bridge;
 
 	int n_bridge_parameters;
 
@@ -158,9 +158,9 @@ extern "C" {
 		nRESP = INTEGER(in)[7];
 
 		CatToResp.resize(nKERN, 0);
-		ConstProb = (double *)calloc(nPROCS, sizeof(double));
-		CompMinus = (int *)calloc(nPROCS, sizeof(int));
-		CompPlus = (int *)calloc(nPROCS, sizeof(int));
+		ConstProb.resize(nPROCS);
+		CompMinus.resize(nPROCS);
+		CompPlus.resize(nPROCS);
 		for (int i = 0; i < nKERN; i++) {
 		  CatToResp[i] = INTEGER(in2)[i];
 		}
@@ -234,8 +234,7 @@ extern "C" {
 			  }
 			}
 		}
-		if (complete_sample) free(complete_sample);
-		if (complete_bridge) free(complete_bridge);
+
 
 
 		SET_VECTOR_ELT(ans,0,prob);
@@ -256,9 +255,7 @@ extern "C" {
 
 		// // free variables
 
-		free(ConstProb);
-		free(CompMinus);
-		free(CompPlus);
+
 
 
 

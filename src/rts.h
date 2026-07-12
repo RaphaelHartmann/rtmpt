@@ -156,12 +156,12 @@ namespace ertmpt {
   extern int SAMPLE_SIZE;
   extern double RMAX;
   
-  extern double *ConstProb;
-  extern int *CompMinus;
-  extern int *CompPlus;
+  extern std::vector<double> ConstProb;
+  extern std::vector<int> CompMinus;
+  extern std::vector<int> CompPlus;
   
-  extern double *complete_sample;
-  extern double *complete_bridge;
+  extern std::vector<double> complete_sample;
+  extern std::vector<double> complete_bridge;
   
   //Globale Variablen
   

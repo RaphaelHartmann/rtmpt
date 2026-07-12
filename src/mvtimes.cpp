@@ -80,9 +80,9 @@ namespace ertmpt {
   #define RHOS(IG,IZ) rhos[(IG)*ilamfree+IZ]
   #define LAMBDAS(T,IZ) lambdas[T*ilamfree+IZ] //PM=0 negativ; PM=1 positiv
   
-  	double *n = 0;	n = (double *)calloc(igroup * ilamfree, sizeof(double));
-  	double *te = 0;	te = (double *)calloc(indi * ilamfree, sizeof(double));
-  	double *p = 0;	p = (double *)calloc(igroup * ilamfree, sizeof(double));
+	std::vector<double> n(igroup * ilamfree);
+	std::vector<double> te(indi * ilamfree);
+	std::vector<double> p(igroup * ilamfree);
   
   
   // Rprintf("hier 1\n");
@@ -149,9 +149,7 @@ namespace ertmpt {
   	}
   */
   
-    if (n) free(n);
-  	if (p) free(p);
-  	if (te) free(te);
+
   }
   
   void lambda_cond(double scale, double norm, double n, double alpha, double p, double *beta, double *sigi, double *lambdas, double *lams, int t, int iz, bool deriv, point &h) {
@@ -185,8 +183,8 @@ namespace ertmpt {
   
   void make_lambdas_new(int *nnodes, double *taus, double *beta, double *sigi, double *rhos, double *lambdas, double *lams, gsl_rng *rst) {
   
-  	double* n = 0;	n = (double*)calloc(indi * ilamfree, sizeof(double));
-  	double* p = 0;	p = (double*)calloc(indi * ilamfree, sizeof(double));
+	std::vector<double> n(indi * ilamfree);
+	std::vector<double> p(indi * ilamfree);
   
     int jj = 0;
   
@@ -220,8 +218,7 @@ namespace ertmpt {
       }
     }
   
-  	if (n) free(n);
-  	if (p) free(p);
+
   
   /*
   	for (int ip = 0; ip != kernpar; ip++) if ((comp[kernpar + ip]) || (comp[ip + 2 * kernpar])) {
@@ -297,9 +294,9 @@ namespace ertmpt {
   
   void make_lamb2(int *nnodes, double *taus, double *beta, double *sigi, double *rhos, double *lambdas, double *lams, gsl_rng *rst) {
   
-  	double *b = 0;	b = (double *)calloc(ilamfree*indi , sizeof(double));
-  	double *m = 0;	m = (double *)calloc(ilamfree , sizeof(double));
-  	double *n = 0;	n = (double *)calloc(ilamfree , sizeof(double));
+	std::vector<double> b(ilamfree * indi);
+	std::vector<double> m(ilamfree);
+	std::vector<double> n(ilamfree);
   	int jj = 0;
   
   	for (int ip = 0; ip != kernpar; ip++) if ((comp[kernpar + ip]) || (comp[ip + 2 * kernpar])) {
@@ -325,7 +322,7 @@ namespace ertmpt {
   		double step = 1, totallow;//=(0.1-1.0)*sqrt(abs(n[pm]));
   		totallow = -DBL_MAX;
   		double scale = sqrt(m[iz] / indi);
-  		double temp = ars(step, scale, totallow, n[iz], n[iz], b, sigi, lambdas, lams, xt, iz, start, rst, lam2); //std::cout << temp<< std::endl;
+  		double temp = ars(step, scale, totallow, n[iz], n[iz], b.data(), sigi, lambdas, lams, xt, iz, start, rst, lam2); //std::cout << temp<< std::endl;
   		lams[ifree + iz] = 1 + temp / scale;
   	}
   
@@ -368,25 +365,20 @@ namespace ertmpt {
   	}
   */
   
-  	if (b) free(b);
-  	if (m) free(m);
-  	if (n) free(n);
+
   }
   
   void make_betas_new(double *mu, double *lams, double *beta, double *sigi, int *nnodes, double *z, double *lambdas, gsl_rng *rst) {
   	//	NagError fail;	INIT_FAIL(fail);
   
-  	double* w = 0; w = (double*)malloc(ifree * sizeof(double));
-  	double* hba = 0; hba = (double*)malloc(ifree * sizeof(double));
-  	double* fig = 0; fig = (double*)malloc(indi * ifree * sizeof(double));
-  	double* xfig = 0;	xfig = (double*)malloc(ifree * ifree * sizeof(double));
-  	double* ba = 0;	ba = (double*)malloc(indi * ifree * sizeof(double));
+	std::vector<double> w(ifree);
+	std::vector<double> hba(ifree);
+	std::vector<double> fig(indi * ifree);
+	std::vector<double> xfig(ifree * ifree);
+	std::vector<double> ba(indi * ifree);
   #define FIG(T,I) fig[T*ifree+I]
   #define XFIG(I,J) xfig[I*ifree+J]
   #define BA(T,I) ba[T*ifree+I]
-  
-  
-  	for (int t = 0; t != indi; t++) for (int iz = 0; iz != ifree; iz++) { BA(t, iz) = 0.0; FIG(t, iz) = 0.0; }
   
   
   
@@ -412,16 +404,12 @@ namespace ertmpt {
   		for (int iz = 0; iz != ifree; iz++) {
   			for (int jz = 0; jz != ifree; jz++) if (iz != jz) XFIG(iz, jz) = SIGI(iz, jz); else XFIG(iz, iz) = FIG(t, iz) + SIGI(iz, iz);
   		}
-  		bayesreg(ifree, w, xfig, hba, rst);
+  		bayesreg(ifree, w.data(), xfig.data(), hba.data(), rst);
   		for (int iz = 0; iz != ifree; iz++)  BETA(t, iz) = hba[iz];
   	}
   
   
-  	if (w) free(w);
-  	if (hba) free(hba);
-  	if (fig) free(fig);
-  	if (xfig) free(xfig);
-  	if (ba) free(ba);
+
   }
   
   
@@ -432,13 +420,12 @@ namespace ertmpt {
   void sample_sig(double *beta, double *lambdas, double *sig, double *sigi, gsl_rng *rst) {
   #define XY(I,J) xy[(I)*(ifree+ilamfree) + J]
   
-  	double *xy = 0;	xy = (double *)malloc((indi + ifree + ilamfree + 1 + pr_df_add_inv_wish)*(ifree + ilamfree) * sizeof(double));
+  	std::vector<double> xy((indi + ifree + ilamfree + 1 + pr_df_add_inv_wish) * (ifree + ilamfree));
   	for (int i = 0; i != indi; i++) {
   		for (int iz = 0; iz != ifree; iz++) XY(i, iz) = BETA(i, iz);
   		for (int j = 0; j != ilamfree; j++) XY(i, ifree + j) = LAMBDAS(i, j);
   	}
-  	invwis(indi, (ifree + ilamfree), xy, sig, sigi, pr_sf_scale_matrix_SIG, rst);
-  	if (xy) free(xy);
+	invwis(indi, (ifree + ilamfree), xy.data(), sig, sigi, pr_sf_scale_matrix_SIG, rst);
   }
   
   #define TREE_AND_NODE2PAR(ITREE,R) tree_and_node2par[ITREE*nodemax+R]
@@ -537,7 +524,7 @@ namespace ertmpt {
   
   	for (int k = 0; k != branch[j]; k++) {
   		int pfadlength = NDRIN(j, k);
-  		double *lams = 0; lams = (double *)malloc(pfadlength * sizeof(double));
+  		std::vector<double> lams(pfadlength);
   		int complength = 0;
   /*		if (PFAD_INDEX(j, k) == -1) {
   			for (int ir = 0; ir != pfadlength; ir++) {
@@ -607,19 +594,18 @@ namespace ertmpt {
   
   		}*/
   		if ((complength >= 2) /*&& (PFAD_INDEX(j, k) > -1)*/) {
-  			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
+  			std::vector<double> loglams(complength);
   			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
   			// int ipfad = PFAD_INDEX(j, k);
   			// pfadinfo akt_pfad = path_info[ipfad];
-  			double temp = logf_tij(akt_pfad.a, akt_pfad.r, lams,loglams, rmu, rsig, rt);
+  			double temp = logf_tij(akt_pfad.a, akt_pfad.r, lams.data(), loglams.data(), rmu, rsig, rt);
   			if (temp == GSL_NEGINF) {
   				pij[k] = GSL_NEGINF;
   			}
   			else pij[k] = temp;
-  			if (loglams) free(loglams);
   		}
   
-  		if (lams) free(lams);
+
   	}
   
   }
@@ -630,29 +616,29 @@ namespace ertmpt {
   void gibbs_full_cycle(std::vector <trial> daten, double *factor, double *mu, double *lams, double *beta, double *sig, double *rhos, double *lambdas,
   	int ntau, int *ntau_position, double *taus, int nz, int *nz_position, int *nnodes, double *restpars, double *slams, bool xflag, gsl_rng *rst) {
   	//	NagError fail;	INIT_FAIL(fail);
-  	double *x_for_all = 0; x_for_all = (double *)malloc(indi*kernpar * sizeof(double));
-  	make_parameters_for_all(mu, lams, beta, x_for_all);
-  
-  	double *pij = 0; pij = (double *)malloc(zweig * sizeof(double));
-  	double *z = 0; z = (double *)malloc(nz * sizeof(double));
-  	double *rest = 0; rest = (double *)malloc(daten.size() * sizeof(double));
-  	double *taui = 0; taui = (double *)malloc(respno*respno * sizeof(double));
+	std::vector<double> x_for_all(indi * kernpar);
+	make_parameters_for_all(mu, lams, beta, x_for_all.data());
+
+	std::vector<double> pij(zweig);
+	std::vector<double> z(nz);
+	std::vector<double> rest(daten.size());
+	std::vector<double> taui(respno * respno);
   
   	int trialno = static_cast<int>(daten.size());
   
   	for (int x = 0; x != trialno; x++) {
   		double p;
   		trial one = daten[x];
-  		make_tij_for_one_trial_new(one, rhos, lambdas, lams, restpars, slams, pij);
-  		make_pij_for_one_trial(one, x_for_all, pij,p);
-  		int ipath = make_path_for_one_trial(branch[one.category], pij,p, rst);
-  		make_zs_one_trial(one, x, ipath, mu, lams, beta, nz_position, z, rst);
-  		make_taus_one_trial_new_new(one, x, ipath, rhos, lambdas, lams, ntau_position, taus, rest, restpars, slams, rst);
+  		make_tij_for_one_trial_new(one, rhos, lambdas, lams, restpars, slams, pij.data());
+  		make_pij_for_one_trial(one, x_for_all.data(), pij.data(), p);
+  		int ipath = make_path_for_one_trial(branch[one.category], pij.data(), p, rst);
+  		make_zs_one_trial(one, x, ipath, mu, lams, beta, nz_position, z.data(), rst);
+  		make_taus_one_trial_new_new(one, x, ipath, rhos, lambdas, lams, ntau_position, taus, rest.data(), restpars, slams, rst);
   	}
-  
+
   	make_rhos(nnodes, lambdas, lams, taus, rhos, rst);
-  	make_rtau(restpars, taui, slams, rst);
-  
+  	make_rtau(restpars, taui.data(), slams, rst);
+
   	if (xflag)
   		for (int t = 0; t != indi; t++)
   			for (int r = 0; r != respno; r++) {
@@ -660,36 +646,29 @@ namespace ertmpt {
   				double rsig = sqrt(restpars[sigalphaoff + t]);
   				FACTOR(t, r) = lnnorm(mu / rsig)*NPPR(t, r);
   			}
-  	make_rmu(daten, factor, rest, restpars, slams, rst);
-  	make_slams(daten, factor, rest, restpars, slams, rst);
-  	make_ralpha(daten, factor, rest, restpars, slams, taui, rst);
-  	make_rsigalpha(daten, factor, rest, restpars, slams, xflag, rst);
-  	make_rsig(daten, rest, restpars, rst);
+  	make_rmu(daten, factor, rest.data(), restpars, slams, rst);
+  	make_slams(daten, factor, rest.data(), restpars, slams, rst);
+  	make_ralpha(daten, factor, rest.data(), restpars, slams, taui.data(), rst);
+  	make_rsigalpha(daten, factor, rest.data(), restpars, slams, xflag, rst);
+  	make_rsig(daten, rest.data(), restpars, rst);
   
-  	make_mu(mu, lams, beta, nnodes, z, rst);
-  	int npar = ifree + ilamfree;
-  	double *sigi = 0; sigi = (double *)malloc(npar*npar * sizeof(double));
-  	sample_sig(beta, lambdas, sig, sigi, rst);
-  
-  	make_lams(mu, lams, beta, nnodes, z, rst);
-  	make_betas_new(mu, lams, beta, sigi, nnodes, z, lambdas, rst);
-  	make_lamb2(nnodes, taus, beta, sigi, rhos, lambdas, lams, rst);
-  	make_lambdas_new(nnodes, taus, beta, sigi, rhos, lambdas, lams, rst);
-  
-  	if (x_for_all) free(x_for_all);
-  	if (pij) free(pij);
-  	if (z) free(z);
-  	if (sigi) free(sigi);
-  	if (rest) free(rest);
-  	if (taui) free(taui);
+  	make_mu(mu, lams, beta, nnodes, z.data(), rst);
+	int npar = ifree + ilamfree;
+	std::vector<double> sigi(npar * npar);
+	sample_sig(beta, lambdas, sig, sigi.data(), rst);
+
+	make_lams(mu, lams, beta, nnodes, z.data(), rst);
+	make_betas_new(mu, lams, beta, sigi.data(), nnodes, z.data(), lambdas, rst);
+	make_lamb2(nnodes, taus, beta, sigi.data(), rhos, lambdas, lams, rst);
+	make_lambdas_new(nnodes, taus, beta, sigi.data(), rhos, lambdas, lams, rst);
   }
   
   void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *beta, double rmax, int irun) {
   #define SIG(I,J) sig[I*(ifree+ilamfree)+J]
   #define XWBR(T,I) xwbr[(T-1)*n_all_parameters+I]
   #define PARMON(I,J) parmon[(I-1)*n_all_parameters+J]
-  
-  	double *sig = 0;	sig = (double *)malloc((ifree + ilamfree)*(ifree + ilamfree) * sizeof(double));;
+
+	std::vector<double> sig((ifree + ilamfree) * (ifree + ilamfree));
   	int jz;
   	Rprintf("THETAS\nmean:"); //std::cout << "MUS" << std::endl;
   	jz = -1;
@@ -770,9 +749,7 @@ namespace ertmpt {
   	Rprintf("\n\n");
   	BURNIN_flag = false;
   
-  	if (sig) free(sig);
-  
-  	R_CheckUserInterrupt();
+	R_CheckUserInterrupt();
   } // end on_screen3
   
   void belege_bridge(int ithread, int ix, int n_bridge_store, double *bridge_sample, double *mu, double *lams,
@@ -810,9 +787,9 @@ namespace ertmpt {
   	offset += respno;
   
   
-  	double *tau = (double *)malloc(respno*respno * sizeof(double));
-  
-  	double *temp = (double *)malloc(restparsno * sizeof(double));
+	std::vector<double> tau(respno * respno);
+
+	std::vector<double> temp(restparsno);
   	for (int iz = 0; iz != restparsno; iz++) temp[iz] = restpars[iz];
   
   	n = respno;
@@ -835,7 +812,7 @@ namespace ertmpt {
   	}
   	for (int i = 0; i != restparsno; i++) bridge_sample[offset + i] = temp[i];
   	
-  	gsl_matrix_free(cy); free(tau); free(temp);
+  	gsl_matrix_free(cy);
   
   	offset += restparsno;
   
@@ -845,11 +822,11 @@ namespace ertmpt {
   }
   
   double loglik(std::vector<trial> daten, double *rhos, double *mu, double *beta, double *lambdas, double* lams, double *restpars, double *slams) {
-  	double *x_for_all = 0; x_for_all = (double *)malloc(indi*kernpar * sizeof(double));
-  	make_parameters_for_all(mu, lams, beta, x_for_all);
-  
-  	double *xsi = 0; xsi = (double *)malloc(indi*respno * sizeof(double));
-  	double *pij = 0; pij = (double *)malloc(zweig * sizeof(double));
+	std::vector<double> x_for_all(indi * kernpar);
+	make_parameters_for_all(mu, lams, beta, x_for_all.data());
+
+	std::vector<double> xsi(indi * respno);
+	std::vector<double> pij(zweig);
   
   
   	for (int t = 0; t != indi; t++) for (int r = 0; r != respno; r++) {
@@ -864,23 +841,20 @@ namespace ertmpt {
   		double p;
   		trial one = daten[x];
   		int t = one.person; int r=cat2resp[one.category];
-  		make_tij_for_one_trial_new(one, rhos, lambdas, lams, restpars, slams, pij);
-  		make_pij_for_one_trial(one, x_for_all, pij, p);
+		make_tij_for_one_trial_new(one, rhos, lambdas, lams, restpars, slams, pij.data());
+		make_pij_for_one_trial(one, x_for_all.data(), pij.data(), p);
   		temp += p-xsi[t*respno+r];
   	}
-  	free(x_for_all);
-  	free(xsi);
-  	free(pij);
-  	return temp;
+	return temp;
   }
   
   void gibbs_and_monitor(std::vector<trial> daten,double* factor, double *mu, double *lams, double *beta, double *rhos, double *lambdas, int ntau, int *ntau_position, double *restpars, double *slams,
   	int *nnodes, int nz, int *nz_position, int offset, int n_all_parameters, double *parmon, gsl_rng *rst, int ithread,
   	bool save, double *sample, int n_bridge_store, double *bridge_sample) {
-  	double *sig = 0;	sig = (double *)malloc((ifree + ilamfree)*(ifree + ilamfree) * sizeof(double));;
-  	int *signs = 0; signs = (int *)malloc((ifree + ilamfree) * sizeof(int));
-  	double *temp = 0; temp = (double *)malloc(n_all_parameters * sizeof(double));
-  	double *taus = 0; taus = (double *)malloc(ntau * sizeof(double));
+	std::vector<double> sig((ifree + ilamfree) * (ifree + ilamfree));
+	std::vector<int> signs(ifree + ilamfree);
+	std::vector<double> temp(n_all_parameters);
+	std::vector<double> taus(ntau);
   
   
   
@@ -889,7 +863,7 @@ namespace ertmpt {
   
   
   		bool xflag = (i == 0) && (offset == 0) ? true : false;
-  		gibbs_full_cycle(daten,factor, mu, lams, beta, sig, rhos, lambdas, ntau, ntau_position, taus, nz, nz_position, nnodes, restpars, slams, xflag, rst);
+  		gibbs_full_cycle(daten, factor, mu, lams, beta, sig.data(), rhos, lambdas, ntau, ntau_position, taus.data(), nz, nz_position, nnodes, restpars, slams, xflag, rst);
   
   		int jj = -1;
   		for (int iz = 0; iz != ifree + ilamfree; iz++) signs[iz] = (lams[iz] >= 0) ? 1 : -1;
@@ -928,7 +902,7 @@ namespace ertmpt {
   			for (int j = 0; j != n_all_parameters; j++) sample[off + j] = temp[j];
   			double llik = loglik(daten, rhos, mu, beta, lambdas, lams, restpars, slams);
   			sample[off + n_all_parameters] = llik;
-  			if (for_bridge_flag) belege_bridge(ithread, i, n_bridge_store, bridge_sample, mu, lams, rhos, beta, lambdas, sig, restpars, slams, llik);
+  			if (for_bridge_flag) belege_bridge(ithread, i, n_bridge_store, bridge_sample, mu, lams, rhos, beta, lambdas, sig.data(), restpars, slams, llik);
   		}
   		if ((i == 0) && (offset == 0)) for (int j = 0; j != 2 * n_all_parameters; j++) parmon[j] = 0.0;
   		double r = 1.0 / (i + offset + 1);
@@ -939,10 +913,7 @@ namespace ertmpt {
   			PARMON(1, j) += dev * r;
   		}
   	}
-  	if (sig) free(sig);
-  	if (signs) free(signs);
-  	if (temp) free(temp);
-  	if (taus) free(taus);
+
   
   }
   
@@ -983,7 +954,7 @@ namespace ertmpt {
   			lax = log(lax) / lams[i + ifree] + onenorm(rst); LAMBDAS(t, i) = lax;
   		}
   
-  	double *temp_rest = 0;  temp_rest = (double *)malloc(restparsno * sizeof(double));
+  	std::vector<double> temp_rest(restparsno);
   	for (int i = 0; i != restparsno; i++) { temp_rest[i] = restpars[i]; restpars[i] = 0.0; }
   
   
@@ -1003,7 +974,7 @@ namespace ertmpt {
   
   
   
-  	if (temp_rest) free(temp_rest);
+  
   
   
   }
@@ -1015,67 +986,64 @@ namespace ertmpt {
   	std::ofstream raus;
   	// std::ofstream raus_bridge;
   
-  	double *lams = 0; lams = (double *)malloc((ifree + ilamfree) * sizeof(double));
-  	double *slams = 0; slams = (double *)malloc(respno * sizeof(double));
-  	double *rhos = 0; rhos = (double *)malloc(ilamfree*igroup * sizeof(double));
-  	double *mu = 0; mu = (double *)malloc(ifree*igroup * sizeof(double));
-  	double *factor = 0; factor = (double *)malloc(indi*respno * sizeof(double));
-  
-  
-  	gsl_rng *xst;   xst = gsl_rng_alloc(T_rng);
-  
-  
-  	// n_all_parameters = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree + restparsno;
-  	int n_value_store = (indi + igroup + 1)*ifree + (indi + igroup + 1)*ilamfree + restparsno + respno + indi * respno;
-  	int n_bridge_store = (n_value_store - indi * respno) + ((ifree + ilamfree + 1)*(ifree + ilamfree)) / 2 + 1;
-  
-  	double *parmon = 0; parmon = (double *)malloc(2 * n_all_parameters * sizeof(double));
-  	for (int i = 0; i != 2 * n_all_parameters; i++) parmon[i] = 0.0;
-  
-  	double *valuestore = 0; valuestore = (double *)malloc(NOTHREADS*n_value_store * sizeof(double));
-  	double *parmonstore = 0; parmonstore = (double *)malloc(NOTHREADS * 2 * n_all_parameters * sizeof(double));
-  
-  
-  	int satemp = NOTHREADS * IREP*(n_all_parameters+1);
-  	double *sample = 0; sample = (double *)malloc(satemp * sizeof(double));
-  
-  
-  	// f�r bridge_sampler
-  	double *bridge_sample = 0;
-  	if (for_bridge_flag)
-  		bridge_sample = (double *)malloc(NOTHREADS*IREP*n_bridge_store * sizeof(double));
+	std::vector<double> lams(ifree + ilamfree);
+	std::vector<double> slams(respno);
+	std::vector<double> rhos(ilamfree * igroup);
+	std::vector<double> mu(ifree * igroup);
+	std::vector<double> factor(indi * respno);
+
+
+	gsl_rng *xst;   xst = gsl_rng_alloc(T_rng);
+
+
+	// n_all_parameters = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree + restparsno;
+	int n_value_store = (indi + igroup + 1)*ifree + (indi + igroup + 1)*ilamfree + restparsno + respno + indi * respno;
+	int n_bridge_store = (n_value_store - indi * respno) + ((ifree + ilamfree + 1)*(ifree + ilamfree)) / 2 + 1;
+
+	std::vector<double> parmon(2 * n_all_parameters);
+
+	std::vector<double> valuestore(NOTHREADS * n_value_store);
+	std::vector<double> parmonstore(NOTHREADS * 2 * n_all_parameters);
+
+
+	int satemp = NOTHREADS * IREP*(n_all_parameters+1);
+	std::vector<double> sample(satemp);
+
+
+	// f�r bridge_sampler
+	std::vector<double> bridge_sample;
+	if (for_bridge_flag)
+		bridge_sample.resize(NOTHREADS * IREP * n_bridge_store);
   
   	//
   
-  	// push f�r rstoreNOTHREADS
-  	for (int ithread = 0; ithread != NOTHREADS; ithread++) {
-  		push(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  	}
-  
-  
-  	for (int ithread = 0; ithread != NOTHREADS; ithread++) {
-  		// pop f�r rst
-  		gsl_rng_memcpy(xst, rsts[ithread]);
-  		pop(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  		initialize_new(daten, mu, lams, rhos, beta, lambdas, restpars, slams, xst);
-  		for (int i = 0; i != 2 * n_all_parameters; i++) parmon[i] = 0.0;
-  		push(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  		gsl_rng_memcpy(rsts[ithread], xst);
-  	}
-  	gsl_rng_free(xst);
-  	free(lams); free(slams); free(rhos); free(mu); free(factor);
-  	// main loop GIBBS
+	// push f�r rstoreNOTHREADS
+	for (int ithread = 0; ithread != NOTHREADS; ithread++) {
+		push(ithread, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta, lambdas, restpars, slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
+	}
+
+
+	for (int ithread = 0; ithread != NOTHREADS; ithread++) {
+		// pop f�r rst
+		gsl_rng_memcpy(xst, rsts[ithread]);
+		pop(ithread, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta, lambdas, restpars, slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
+		initialize_new(daten, mu.data(), lams.data(), rhos.data(), beta, lambdas, restpars, slams.data(), xst);
+		std::fill(parmon.begin(), parmon.end(), 0.0);
+		push(ithread, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta, lambdas, restpars, slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
+		gsl_rng_memcpy(rsts[ithread], xst);
+	}
+	gsl_rng_free(xst);
+	// main loop GIBBS
+	std::vector<double> xwbr;
+	double rmax;
+	int irun;
+	bool save;
   RESTART:
-  	double *xwbr = 0; xwbr = (double *)malloc(3 * n_all_parameters * sizeof(double));
-  	for (int i = 0; i != 3 * n_all_parameters; i++) xwbr[i] = 0.0;
-  	double rmax = 0.0;
-  	int irun = -1;
-  
-  
-  	bool save = false;
-  	if (do_burnin) ireps = BURNIN; else ireps = IREP;
-  	// double *complete_sample = 0;
-  	// double *complete_bridge = 0;
+	xwbr.assign(3 * n_all_parameters, 0.0);
+	rmax = 0.0;
+	irun = -1;
+	save = false;
+	if (do_burnin) ireps = BURNIN; else ireps = IREP;
   	int ioff = 0;
   WEITER: irun++;
   	int offset = irun * ireps;
@@ -1093,63 +1061,58 @@ namespace ertmpt {
   		threads[ithread] = std::thread([&, ithread]() {
       // threads[ithread] = std::thread([ithread,rst1,rst2,rst3,rst4,rst5,rst6,rst7,rst8,rst9,rst10,rst11,rst12,rst13,rst14,rst15,rst16, save,sample,ntau,ntau_position,nz_position,n_value_store,daten,nnodes,nz,offset,valuestore,parmonstore,xwbr,rmax,free2kern,kern2free,comp,cat2tree, kernpar,kerncat,indi,zweig,branch,nodemax,ar,nodes_per_tree,tree_and_node2par,ilamfree, ifree,ipred,ndrin,drin,path_info,pfad_index,n_all_parameters,nppr,igroup,t2group,ireps,cat2resp,respno,alphaoff,sigalphaoff,restparsno,consts,bridge_sample,n_bridge_store]() {
   
-  			//double rmax2 = 0;
-  			double *mu = 0, *lams = 0, *slams = 0, *beta = 0, *rhos = 0, *lambdas = 0, *restpars = 0, *factor = 0, *parmon = 0;
-  			
-  			mu = (double *)malloc(ifree*igroup * sizeof(double));
-  			lams = (double *)malloc((ifree + ilamfree) * sizeof(double));
-  			slams = (double *)malloc(respno * sizeof(double));
-  			beta = (double *)malloc(indi*ifree * sizeof(double));
-  
-  			parmon = (double *)malloc(2 * n_all_parameters * sizeof(double));
-  			rhos = (double *)malloc(ilamfree*igroup * sizeof(double));
-  			lambdas = (double *)malloc(indi*ilamfree * sizeof(double));
-  			restpars = (double *)malloc(restparsno * sizeof(double));
-  			factor = (double *)malloc(indi*respno * sizeof(double));
-  
-  			gsl_rng *rst;
-  			rst = gsl_rng_alloc(T_rng);
-  			gsl_rng_memcpy(rst, rsts[ithread]);
-  			pop(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  			gibbs_and_monitor(daten,factor, mu, lams, beta, rhos, lambdas, ntau, ntau_position, restpars, slams, nnodes,
-  				nz, nz_position, offset, n_all_parameters, parmon, rst, ithread, save, sample, n_bridge_store, bridge_sample);
-  			push(ithread, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-  			gsl_rng_memcpy(rsts[ithread], rst);
-  			
-  			int ido = 2;
-  
-  			while (ithread != atm_int);
-  			if (ithread == 0) ido = 1;
-  			int iter = offset + ireps;
-  			r_statistic(ido, n_all_parameters, ithread, iter, parmon, xwbr, rmax);
-  			atm_int++;
-  
-  			gsl_rng_free(rst);
-  			free(mu); free(lams); free(slams); free(beta); free(parmon); free(rhos); free(lambdas); free(restpars); free(factor);
+			//double rmax2 = 0;
+			std::vector<double> mu(ifree * igroup);
+			std::vector<double> lams(ifree + ilamfree);
+			std::vector<double> slams(respno);
+			std::vector<double> beta(indi * ifree);
+			std::vector<double> parmon(2 * n_all_parameters);
+			std::vector<double> rhos(ilamfree * igroup);
+			std::vector<double> lambdas(indi * ilamfree);
+			std::vector<double> restpars(restparsno);
+			std::vector<double> factor(indi * respno);
+
+			gsl_rng *rst;
+			rst = gsl_rng_alloc(T_rng);
+			gsl_rng_memcpy(rst, rsts[ithread]);
+			pop(ithread, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta.data(), lambdas.data(), restpars.data(), slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
+			gibbs_and_monitor(daten, factor.data(), mu.data(), lams.data(), beta.data(), rhos.data(), lambdas.data(), ntau, ntau_position, restpars.data(), slams.data(), nnodes,
+				nz, nz_position, offset, n_all_parameters, parmon.data(), rst, ithread, save, sample.data(), n_bridge_store, bridge_sample.data());
+			push(ithread, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta.data(), lambdas.data(), restpars.data(), slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
+			gsl_rng_memcpy(rsts[ithread], rst);
+			
+			int ido = 2;
+
+			while (ithread != atm_int);
+			if (ithread == 0) ido = 1;
+			int iter = offset + ireps;
+			r_statistic(ido, n_all_parameters, ithread, iter, parmon.data(), xwbr.data(), rmax);
+			atm_int++;
+
+			gsl_rng_free(rst);
       });
     }
   
     /* the main thread also runs */
     {
-    	double *mu = 0, *lams = 0, *slams = 0, *beta = 0, *rhos = 0, *lambdas = 0, *restpars = 0, *factor = 0;//, *parmon = 0;
-    	mu = (double *)malloc(ifree*igroup * sizeof(double));
-    	lams = (double *)malloc((ifree + ilamfree) * sizeof(double));
-    	slams = (double *)malloc(respno * sizeof(double));
-    	beta = (double *)malloc(indi*ifree * sizeof(double));
+    	std::vector<double> mu(ifree * igroup);
+    	std::vector<double> lams(ifree + ilamfree);
+    	std::vector<double> slams(respno);
+    	std::vector<double> beta(indi * ifree);
     
     	//parmon = (double *)malloc(2 * n_all_parameters * sizeof(double));
-    	rhos = (double *)malloc(ilamfree*igroup * sizeof(double));
-    	lambdas = (double *)malloc(indi*ilamfree * sizeof(double));
-    	restpars = (double *)malloc(restparsno * sizeof(double));
-    	factor = (double *)malloc(indi*respno * sizeof(double));
+    	std::vector<double> rhos(ilamfree * igroup);
+    	std::vector<double> lambdas(indi * ilamfree);
+    	std::vector<double> restpars(restparsno);
+    	std::vector<double> factor(indi * respno);
     
     	gsl_rng *rst;
     	rst = gsl_rng_alloc(T_rng);
     	gsl_rng_memcpy(rst, rsts[NOTHREADS-1]);
-    	pop(NOTHREADS-1, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
-    	gibbs_and_monitor(daten,factor, mu, lams, beta, rhos, lambdas, ntau, ntau_position, restpars, slams, nnodes,
-    		nz, nz_position, offset, n_all_parameters, parmon, rst, NOTHREADS-1, save, sample, n_bridge_store, bridge_sample);
-    	push(NOTHREADS-1, n_value_store, n_all_parameters, factor, mu, lams, rhos, beta, lambdas, restpars, slams, valuestore, parmon, parmonstore);
+    	pop(NOTHREADS-1, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta.data(), lambdas.data(), restpars.data(), slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
+    	gibbs_and_monitor(daten, factor.data(), mu.data(), lams.data(), beta.data(), rhos.data(), lambdas.data(), ntau, ntau_position, restpars.data(), slams.data(), nnodes,
+    		nz, nz_position, offset, n_all_parameters, parmon.data(), rst, NOTHREADS-1, save, sample.data(), n_bridge_store, bridge_sample.data());
+    	push(NOTHREADS-1, n_value_store, n_all_parameters, factor.data(), mu.data(), lams.data(), rhos.data(), beta.data(), lambdas.data(), restpars.data(), slams.data(), valuestore.data(), parmon.data(), parmonstore.data());
     	gsl_rng_memcpy(rsts[NOTHREADS-1], rst);
     	
     	int ido = 2;
@@ -1157,11 +1120,10 @@ namespace ertmpt {
     	while (NOTHREADS-1 != atm_int);
     	ido = 3;
     	int iter = offset + ireps;
-    	r_statistic(ido, n_all_parameters, NOTHREADS-1, iter, parmon, xwbr, rmax);
+    	r_statistic(ido, n_all_parameters, NOTHREADS-1, iter, parmon.data(), xwbr.data(), rmax);
     	atm_int.store(0);
     
     	gsl_rng_free(rst);
-    	free(mu); free(lams); free(slams); free(beta); free(rhos); free(lambdas); free(restpars); free(factor);
     }
   
     /* join threads */
@@ -1246,30 +1208,30 @@ namespace ertmpt {
   // 	}
   
   
-  	on_screen3(n_all_parameters, xwbr, parmon, beta, rmax, irun);
-  
-  
-  
-  	if (do_burnin) { do_burnin = false; goto RESTART; }
-  	if ((save) && (rmax > RMAX)) { save = false; ioff = 0; if (complete_sample) free(complete_sample); if (complete_bridge) free(complete_bridge); goto WEITER; }
-  	if (!(save) && (rmax > RMAX))  goto WEITER; else {
-  		if (!(save)) {
-  			complete_sample = (double *)malloc(SAMPLE_SIZE*(n_all_parameters+1) * sizeof(double));
-  			save = true; raus.open(RAUS);
-  			raus << std::setprecision(12);
-  			raus << std::setw(5) << SAMPLE_SIZE << " " << n_all_parameters+1 << std::endl;
-  			raus.close();
-  			if (for_bridge_flag) {
-  				// 	raus_bridge.open("raus_bridge");
-  				// 	raus_bridge << std::setprecision(12);
-  				// 	raus_bridge << std::setw(5) << SAMPLE_SIZE << " " << n_bridge_store << std::endl;
-  				// 	raus_bridge.close();
-  				complete_bridge = (double *)malloc(SAMPLE_SIZE*n_bridge_store * sizeof(double));
-  			}
-  			goto WEITER;
-  		}
-  
-  	}
+	on_screen3(n_all_parameters, xwbr.data(), parmon.data(), beta, rmax, irun);
+
+
+
+	if (do_burnin) { do_burnin = false; goto RESTART; }
+	if ((save) && (rmax > RMAX)) { save = false; ioff = 0; complete_sample.clear(); complete_bridge.clear(); goto WEITER; }
+	if (!(save) && (rmax > RMAX))  goto WEITER; else {
+		if (!(save)) {
+			complete_sample.resize(SAMPLE_SIZE * (n_all_parameters + 1));
+			save = true; raus.open(RAUS);
+			raus << std::setprecision(12);
+			raus << std::setw(5) << SAMPLE_SIZE << " " << n_all_parameters+1 << std::endl;
+			raus.close();
+			if (for_bridge_flag) {
+				// 	raus_bridge.open("raus_bridge");
+				// 	raus_bridge << std::setprecision(12);
+				// 	raus_bridge << std::setw(5) << SAMPLE_SIZE << " " << n_bridge_store << std::endl;
+				// 	raus_bridge.close();
+				complete_bridge.resize(SAMPLE_SIZE * n_bridge_store);
+			}
+			goto WEITER;
+		}
+
+	}
   #define SAMPLE(I,IP) sample[(I)*(n_all_parameters+1)+IP]
   #define COMPLETE_SAMPLE(S,I,P) complete_sample[(S)*(SAMPLE_SIZE/NOTHREADS)*(n_all_parameters+1) + (I)*(n_all_parameters+1)+P]
   #define BRIDGE_SAMPLE(I,IP) bridge_sample[(I)*n_bridge_store+IP]
@@ -1312,19 +1274,7 @@ namespace ertmpt {
   
   
   
-  	//	if (lams) free(lams);
-  	//	if (slams) free(slams);
-  	//	if (mu) free(mu);
-  	if (valuestore) free(valuestore);
-  	if (parmonstore) free(parmonstore);
-  	if (parmon) free(parmon);
-  	if (xwbr) free(xwbr);
-  	//	if (rhos) free(rhos);
-  	//	if (factor) free(factor);
-  	if (sample) free(sample);
-  	if (bridge_sample) free(bridge_sample);
-  	// if (complete_sample) free(complete_sample);
-  	// if (complete_bridge) free(complete_bridge);
+
   }
 
 }
