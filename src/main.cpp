@@ -99,8 +99,7 @@ namespace ertmpt {
   #define NODES_PER_PAR(I,J) nodes_per_par[I*kernpar + J]
   #define TREE_AND_NODE2PAR(I,J) tree_and_node2par[I*nodemax+J]
 
-  	int *nks = 0; nks = (int *)malloc(indi*kerntree * sizeof(int));
-  	for (int i = 0; i != kerntree * indi; i++) nks[i] = 0;
+  	std::vector<int> nks(indi * kerntree);
   	for (int i = 0; i != kerncat; ++i) for (int t = 0; t != indi; t++) NKS(t, cat2tree[i]) += IDATEN(t, i);
   	for (int t = 0; t != indi; t++) for (int ip = 0; ip != kernpar; ip++) {
   		NNODES(t, ip) = 0;
@@ -112,23 +111,21 @@ namespace ertmpt {
   		if (comp[ip + kernpar]) for (int t = 0; t != indi; t++) ntau += NNODES(t, ip);
   		if (comp[ip + 2 * kernpar]) for (int t = 0; t != indi; t++) ntau += NNODES(t, ip);
   	}
-  	if (nks) free(nks);
   }
 
   void make_positions(std::vector<trial> daten, int *nnodes, int *nz_position, int *ntau_position) {
   #define NZ_POSITION(X,J) nz_position[X*nodemax+J]
   #define NTAU_POSITION(X,J,PM) ntau_position[2*X*nodemax+2*J+PM]
-  	int *boffset = 0; boffset = (int *)malloc(indi*kernpar * sizeof(int));
-  	int *loffset = 0; loffset = (int *)malloc(indi*kernpar * sizeof(int));
-  	int *btemp = 0; btemp = (int *)malloc(indi*kernpar * sizeof(int));
-  	int *ltemp = 0; ltemp = (int *)malloc(indi*kernpar * sizeof(int));
+  	std::vector<int> boffset(indi * kernpar);
+  	std::vector<int> loffset(indi * kernpar);
+  	std::vector<int> btemp(indi * kernpar);
+  	std::vector<int> ltemp(indi * kernpar);
   #define BOFFSET(T,I) boffset[T*kernpar+I]
   #define LOFFSET(T,I) loffset[T*kernpar+I]
   #define BTEMP(T,I) btemp[T*kernpar+I]
   #define LTEMP(T,I) ltemp[T*kernpar+I]
 
   	int trialno = static_cast<int>(daten.size());
-  	for (int i = 0; i != indi * kernpar; i++) boffset[i] = loffset[i] = btemp[i] = ltemp[i] = 0;
   	int jj = 0;
   	for (int ip = 0; ip != kernpar; ip++) if (comp[ip])
   		for (int t = 0; t != indi; t++) {
@@ -162,10 +159,6 @@ namespace ertmpt {
   		if ((!(comp[i + kernpar]) && (comp[i + 2 * kernpar])) && (LTEMP(t, i) != NNODES(t, i))) Rprintf("L_PROBLEM%12d%12d\n", t, i);
   		if ((!(comp[i + kernpar]) && !(comp[i + 2 * kernpar])) && (LTEMP(t, i) != 0)) Rprintf("L_PROBLEM%12d%12d\n", t, i);
   	}
-  	if (boffset) free(boffset);
-  	if (loffset) free(loffset);
-  	if (btemp) free(btemp);
-  	if (ltemp) free(ltemp);
   }
 
 
@@ -263,8 +256,8 @@ namespace ertmpt {
   	t2group = (int *)malloc(indi * sizeof(int));
   	ng = (int*)calloc(igroup, sizeof(int));
   	set_t2group(daten, t2group, ng);
-  	int *idaten = 0; idaten = (int *)malloc(indi*kerncat * sizeof(int));
-  	make_idaten(daten, idaten);
+  	std::vector<int> idaten(indi * kerncat);
+  	make_idaten(daten, idaten.data());
   	//	std::cout<< std::endl;
   	//	for (int t=0;t!=indi;t++) {for (int j=0;j!=kerncat;j++) std::cout << std::setw(4) << IDATEN(t,j); std::cout<< std::endl;}
 
@@ -276,7 +269,7 @@ namespace ertmpt {
   	//if (!(b = (int *)malloc(kerncat*zweig*kernpar * sizeof(int)))) { printf("Allocation failure\n");	exit_status = -1; }
   	branch.resize(kerncat);
   	//    #define B(I,J,K) b[I*zweig*kernpar + J*kernpar + K]
-  	int *nodes_per_par = 0;  nodes_per_par = (int *)malloc(kerntree*kernpar * sizeof(int));
+  	std::vector<int> nodes_per_par(kerntree * kernpar);
   	//    #define NODES(I,J) nodes_per_par[I*kernpar + J]
   	nodes_per_tree.resize(kerntree);
   	tree_and_node2par.resize(kerntree*nodemax);
@@ -289,7 +282,7 @@ namespace ertmpt {
 	comp.resize(3 * kernpar);
 	consts.resize(kernpar);
 
-  	model_design(kerntree, ar.data(), branch.data(), nodes_per_par, nodes_per_tree.data(), tree_and_node2par.data());
+  	model_design(kerntree, ar.data(), branch.data(), nodes_per_par.data(), nodes_per_tree.data(), tree_and_node2par.data());
 
   	ifree = 0;
     ilamfree = 0;
@@ -342,15 +335,15 @@ namespace ertmpt {
   	//by_individuals(daten, kerntree, beta, g2, likeli, rst);
 
   	//nnodes berechnen
-  	int *nnodes = 0; nnodes = (int *)malloc(indi*kernpar * sizeof(int));
+  	std::vector<int> nnodes(indi * kernpar);
   	int nz, ntau;
-  	make_nodes_by_ind(idaten, kerntree, nodes_per_par, nz, nnodes, ntau);
+  	make_nodes_by_ind(idaten.data(), kerntree, nodes_per_par.data(), nz, nnodes.data(), ntau);
 
   	//NZ und NTAU Positions berechnen
   	int trialno = static_cast<int>(daten.size());
-  	int *nz_position = 0; nz_position = (int *)malloc(trialno*nodemax * sizeof(int));
-  	int *ntau_position = 0; ntau_position = (int *)malloc(2 * trialno*nodemax * sizeof(int));
-  	make_positions(daten, nnodes, nz_position, ntau_position);
+  	std::vector<int> nz_position(trialno * nodemax);
+  	std::vector<int> ntau_position(2 * trialno * nodemax);
+  	make_positions(daten, nnodes.data(), nz_position.data(), ntau_position.data());
 
   	//nppr berechnen, factor definieren
   	nppr.resize(indi*respno);
@@ -370,9 +363,9 @@ namespace ertmpt {
   	sigalphaoff = alphaoff + indi * respno;
   	restparsno = sigalphaoff + indi;
 
-  	double *beta = 0;	beta = (double *)malloc(indi*ifree * sizeof(double));;
-  	double *lambdas = 0; lambdas = (double *)malloc(indi*(ilamfree) * sizeof(double));
-  	double *restpars = 0; restpars = (double *)malloc(restparsno * sizeof(double));
+  	std::vector<double> beta(indi * ifree);
+  	std::vector<double> lambdas(indi * ilamfree);
+  	std::vector<double> restpars(restparsno);
 
   	//compute individual fits for starting points
 
@@ -380,7 +373,7 @@ namespace ertmpt {
   		consts[ip] = gsl_cdf_ugaussian_Pinv(consts[ip]);
   	}
 
-  	if (generate_or_diagnose) tby_individuals(daten, kerntree, beta, lambdas, restpars, rst);
+  	if (generate_or_diagnose) tby_individuals(daten, kerntree, beta.data(), lambdas.data(), restpars.data(), rst);
 
   	Rprintf("\nStart sampling from the posterior distribution:\n\n");
 
@@ -388,31 +381,17 @@ namespace ertmpt {
   	n_bridge_parameters = n_all_parameters + ifree + ilamfree + respno;
 
   	gsl_rng_memcpy(rsts[0], rst);
-  	if (generate_or_diagnose) gibbs_times_new(daten, nnodes, nz, nz_position, beta, ntau, ntau_position,
-  																						rsts, lambdas, restpars);
+  	if (generate_or_diagnose) gibbs_times_new(daten, nnodes.data(), nz, nz_position.data(), beta.data(), ntau, ntau_position.data(),
+  																						rsts, lambdas.data(), restpars.data());
 
-
-  	if (lambdas) free(lambdas);
-  	if (restpars) free(restpars);
-  	if (beta) free(beta);
 
   	Rprintf("\nCalculating some diagnostics. This might take some time.\n\n");
 
-  	diagnosis(daten, idaten, kerntree, rst);
+  	diagnosis(daten, idaten.data(), kerntree, rst);
   	// char x; std::cin >> x;
 
 
   	if (t2group) free(t2group);
-  	//if (a) free(a);
-  	//if (b) free(b);
-  	if (nodes_per_par) free(nodes_per_par);
-  	//if (g2) free(g2);
-  	//if (likeli) free(likeli);
-  	if (nnodes) free(nnodes);
-  	if (idaten) free(idaten);
-
-  	if (nz_position) free(nz_position);
-  	if (ntau_position) free(ntau_position);
   	gsl_rng_free(rst);
   	for (std::size_t i = 0; i < rsts.size(); ++i) {
   	  gsl_rng_free(rsts[i]);
