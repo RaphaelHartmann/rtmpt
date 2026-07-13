@@ -69,16 +69,16 @@ namespace ertmpt {
   
   void quantiles(std::vector<trial> daten, int n_all_parameters, double *sample) {
   	double qv[5];
-  	double *temp = 0; temp = (double *)malloc(SAMPLE_SIZE * sizeof(double));
-  	//std::streamsize prec = cout.precision(); std::cout << std::setprecision(4);
-  	if (save_diagnose) tests_out << std::setprecision(4);
-  	Rprintf("theta per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "MUs per group" << std::endl;
-  	for (int ig = 0; ig != igroup; ig++)
-  		for (int ip = 0; ip != kernpar; ip++) if (comp[ip]) if(free2kern[kern2free[ip]] == ip) {
-  			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = gsl_cdf_ugaussian_P(SAMPLE(j, kern2free[ip] + ig * ifree));
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+	std::vector<double> temp(SAMPLE_SIZE);
+	//std::streamsize prec = cout.precision(); std::cout << std::setprecision(4);
+	if (save_diagnose) tests_out << std::setprecision(4);
+	Rprintf("theta per group [median, 95 and 99%% HDI]\n"); if (save_diagnose) tests_out << "MUs per group" << std::endl;
+	for (int ig = 0; ig != igroup; ig++)
+		for (int ip = 0; ip != kernpar; ip++) if (comp[ip]) if(free2kern[kern2free[ip]] == ip) {
+			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = gsl_cdf_ugaussian_P(SAMPLE(j, kern2free[ip] + ig * ifree));
+  			gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   			if (save_diagnose) { tests_out << std::setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   		}
@@ -87,9 +87,9 @@ namespace ertmpt {
   	for (int ig = 0; ig != igroup; ig++)
   		for (int ip = 0; ip != kernpar; ip++) if (comp[kernpar + ip]) if(free2kern[kern2free[ip+kernpar]] == ip+kernpar) {
   			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[kernpar + ip] - ifree);
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   			if (save_diagnose) { tests_out << std::setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   		}
@@ -97,9 +97,9 @@ namespace ertmpt {
   	for (int ig = 0; ig != igroup; ig++)
   		for (int ip = 0; ip != kernpar; ip++) if (comp[ip + 2 * kernpar]) if(free2kern[kern2free[ip+2*kernpar]] == ip+2*kernpar) {
   			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0 / SAMPLE(j, igroup*ifree + ig * ilamfree + kern2free[2 * kernpar + ip] - ifree);
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%3d", ip + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   			if (save_diagnose) { tests_out << std::setw(3) << ip + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   		}
@@ -110,9 +110,9 @@ namespace ertmpt {
   		for (int jz = ix; jz != ifree + ilamfree; jz++) {
   			iz++;
   			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = SAMPLE(j, iz);
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%3d%3d", free2kern[ix]+1, free2kern[jz] + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   			if (save_diagnose) { tests_out << std::setw(3) << free2kern[ix] + 1 << std::setw(3) << free2kern[jz] + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   		}
@@ -125,9 +125,9 @@ namespace ertmpt {
   	for (int ir = 0; ir != 1 + igroup * respno; ir++) {
   		if (ir != igroup*respno) for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = 1000.0*SAMPLE(j, (iz + ir));
   		if (ir == igroup*respno) for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = SAMPLE(j, (iz + ir));
-  		gsl_sort(temp, 1, SAMPLE_SIZE);
-  		qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  		double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  		gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  		qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  		double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   		if (ir == igroup*respno) {
   			Rprintf("omega^2 [median, 95 and 99%% HDI]\n");
   		}
@@ -142,17 +142,17 @@ namespace ertmpt {
   		for (int jp = ip; jp != respno; jp++) {
   			iz++;
   			for (int j = 0; j != SAMPLE_SIZE; j++) temp[j] = SAMPLE(j, iz);
-  			gsl_sort(temp, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%3d%3d", ip + 1, jp + 1); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   			if (save_diagnose) { tests_out << std::setw(3) << ip + 1 << std::setw(3) << jp + 1; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   		}
   
   	// Daten zum Vergleich:
   	double s = 0.0; int no_trials = static_cast<int>(daten.size());
-  	double *u = 0; u = (double *)malloc(indi * sizeof(double));
-  	int *nj = 0; nj = (int *)malloc(indi * sizeof(int));
+	std::vector<double> u(indi);
+	std::vector<int> nj(indi);
   	for (int t = 0; t != indi; t++) { u[t] = 0.0; nj[t] = 0; }
   
   	for (int i = 0; i != no_trials; i++) { u[daten[i].person] += daten[i].rt / 1000.0; nj[daten[i].person]++; }
@@ -170,9 +170,7 @@ namespace ertmpt {
   		tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
   	}
   
-  	if (temp) free(temp);
-  	if (u) free(u);
-  	if (nj) free(nj);
+
   }
   
   void make_pij_for_one_trial_new(trial one, double *x_for_all, double *pij, double &pj) {
@@ -211,8 +209,8 @@ namespace ertmpt {
   
   	for (int k = 0; k != branch[j]; k++) {
   		int pfadlength = NDRIN(j, k);
-  		double *lams = 0; lams = (double *)malloc(pfadlength * sizeof(double));
-  		int complength = 0;
+		std::vector<double> lams(pfadlength);
+		int complength = 0;
 
   		int ipfad = PFAD_INDEX(j, k);
   		pfadinfo akt_pfad = path_info[ipfad];
@@ -237,21 +235,21 @@ namespace ertmpt {
   			else pij[k] = (temp);
   		}
 
-  		if ((complength >= 2) /*&& (PFAD_INDEX(j, k) > -1)*/) {
-  			double *loglams = 0; loglams = (double *)malloc(complength * sizeof(double));
+		if ((complength >= 2) /*&& (PFAD_INDEX(j, k) > -1)*/) {
+			std::vector<double> loglams(complength);
   			for (int ir = 0; ir != complength; ir++) loglams[ir] = log(lams[ir]);
   			// int ipfad = PFAD_INDEX(j, k);
   			// pfadinfo akt_pfad = path_info[ipfad];
-  			double temp = logf_tij(akt_pfad.a, akt_pfad.r, lams, loglams, rmu, rsig, rt);
+  			double temp = logf_tij(akt_pfad.a, akt_pfad.r, lams.data(), loglams.data(), rmu, rsig, rt);
   			if (temp ==GSL_NEGINF) {
   				pij[k] = temp;
   
   			}
   			else pij[k] = temp;
-  			if (loglams) free(loglams);
+  
   		}
   
-  		if (lams) free(lams);
+  
   		//	 if ((pfadlength>5) || (pfadlength==0)) cout<< "pfadlength" << std::endl;
   	}
   }
@@ -267,12 +265,12 @@ namespace ertmpt {
   	}
   	double dbar = 0.0, pd = 0.0, pv = 0.0;
   
-  	double *x_for_all = 0; x_for_all = (double *)malloc(indi*kernpar * sizeof(double));
-  	double *xbar = 0; xbar = (double *)malloc(n_all_parameters * sizeof(double));
-  	double *pij = 0; pij = (double *)malloc(zweig * sizeof(double));
-  	double *lambdas = 0; lambdas = (double *)malloc(ilamfree*indi * sizeof(double));
-  	double *rhos = 0; rhos = (double *)malloc(ilamfree*igroup * sizeof(double));
-  	double *restpars = 0; restpars = (double *)malloc(restparsno * sizeof(double));
+	std::vector<double> x_for_all(indi * kernpar);
+	std::vector<double> xbar(n_all_parameters);
+	std::vector<double> pij(zweig);
+	std::vector<double> lambdas(ilamfree * indi);
+	std::vector<double> rhos(ilamfree * igroup);
+	std::vector<double> restpars(restparsno);
   	//		double *temp=0; if (!(temp=NAG_ALLOC(SAMPLE_SIZE*sizeof(double)))){printf("Allocation failure\n");exit_status = -1;}
   
   	int trialno = static_cast<int>(daten.size());
@@ -285,18 +283,18 @@ namespace ertmpt {
   		belege_beta(sample, is, beta);
   		for (int t = 0; t != indi; t++)  for (int ip = 0; ip != kernpar; ip++) x_for_all[ip + t * kernpar] = comp[ip] ? /*gsl_cdf_ugaussian_P*/(BETA(t, kern2free[ip])) : /*gsl_cdf_ugaussian_P*/(consts[ip]);
   		// belege rhos, lambdas, restpars
-  		belege_lambdas_rhos(sample, is, rhos, lambdas);
+  		belege_lambdas_rhos(sample, is, rhos.data(), lambdas.data());
   		for (int ix = 0; ix != restparsno; ix++) restpars[ix] = SAMPLE(is, n_all_parameters - restparsno + ix);
   		double persample = 0.0;
   		for (int x = 0; x != trialno; x++) {
   			trial one = daten[x];  int t = one.person; int r = cat2resp[one.category]; double rmu = restpars[t2group[t] * respno + r] + restpars[t*respno + r + alphaoff]; double rsig = sqrt(restpars[t + sigalphaoff]);
   			double xsi = /*gsl_cdf_ugaussian_P*/lnnorm(rmu / rsig);
-  			make_tij_for_one_trial_new(one, rhos, lambdas, restpars, pij);
-  			double p;
-  			make_pij_for_one_trial_new(one, x_for_all, pij, p);
-  			p -= xsi;
-  			if (p==GSL_NEGINF)
-  				Rprintf("DIC loglik Problem\n");
+			make_tij_for_one_trial_new(one, rhos.data(), lambdas.data(), restpars.data(), pij.data());
+			double p;
+			make_pij_for_one_trial_new(one, x_for_all.data(), pij.data(), p);
+			p -= xsi;
+			if (p==GSL_NEGINF)
+				Rprintf("DIC loglik Problem\n");
   			if (log_lik_flag) {
   			  // log_lik << std::setw(20) << p;
   			  loglik_vec[is + SAMPLE_SIZE * x] = p;
@@ -326,11 +324,11 @@ namespace ertmpt {
   	for (int x = 0; x != trialno; x++) {
   		trial one = daten[x];  int t = one.person;  int r = cat2resp[one.category]; double rmu = restpars[t2group[t] * respno + r] + restpars[t*respno + r + alphaoff]; double rsig = sqrt(restpars[t + sigalphaoff]);
   		double xsi = /*gsl_cdf_ugaussian_P*/lnnorm(rmu / rsig);
-  		make_tij_for_one_trial_new(one, rhos, lambdas, restpars, pij);
-  		double p;
-  		make_pij_for_one_trial_new(one, x_for_all, pij, p);
-  		p -= xsi;
-  		if (p==GSL_NEGINF) Rprintf("DIC loglik Problem in pd\n");
+		make_tij_for_one_trial_new(one, rhos.data(), lambdas.data(), restpars.data(), pij.data());
+		double p;
+		make_pij_for_one_trial_new(one, x_for_all.data(), pij.data(), p);
+		p -= xsi;
+		if (p==GSL_NEGINF) Rprintf("DIC loglik Problem in pd\n");
   		pd += -2 * p;
   	}
   
@@ -347,12 +345,7 @@ namespace ertmpt {
   		tests_out << std::setw(15) << pd + dbar << std::setw(15) << pv + dbar << std::setw(15) << pd << std::endl << std::setw(15) << pv << std::endl;
   	}
   	// log_lik.close();
-  	if (pij) free(pij);
-  	if (xbar) free(xbar);
-  	if (x_for_all) free(x_for_all);
-  	if (rhos) free(rhos);
-  	if (lambdas) free(lambdas);
-  	if (restpars) free(restpars);
+
   }
   
   
@@ -403,39 +396,32 @@ namespace ertmpt {
   
   	//	Nag_ModeRNG mode = Nag_GenerateWithoutReference;Nag_OrderType order = Nag_RowMajor;NagError fail;	INIT_FAIL(fail);
   
-  	double *t1 = 0; t1 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
-  	double *t2 = 0; t2 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
-  
-  	int *obs = 0; obs = (int *)malloc(kerncat * sizeof(int));
-  	double *expe = 0; expe = (double *)malloc(kerncat * sizeof(double));
-  	int *rep = 0; rep = (int *)malloc(kerncat * sizeof(int));
-  
-  	int *sobs = 0; sobs = (int *)malloc(kerncat*igroup * sizeof(int));
-  	double *sexp = 0; sexp = (double *)malloc(kerncat*igroup * sizeof(double));
-  	int *srep = 0; srep = (int *)malloc(kerncat*igroup * sizeof(int));
-  
-  	double *tobs = 0; tobs = (double *)malloc(kerncat * sizeof(double));
-  	double *texp = 0; texp = (double *)malloc(kerncat * sizeof(double));
-  	double *trep = 0; trep = (double *)malloc(kerncat * sizeof(double));
-  
-  	double *stobs = 0; stobs = (double *)malloc(kerncat*igroup * sizeof(double));
-  	double *stexp = 0; stexp = (double *)malloc(kerncat*igroup * sizeof(double));
-  	double *strep = 0; strep = (double *)malloc(kerncat*igroup * sizeof(double));
-  
-  	double *pij = 0; pij = (double *)malloc(zweig*kerncat * sizeof(double));
-  	double *onepij = 0; onepij = (double *)malloc(zweig * sizeof(double));
-  	double *x = 0; x = (double *)malloc(kernpar * sizeof(double));
-  	double *lambdas = 0; lambdas = (double *)malloc(ilamfree*indi * sizeof(double));
-  	double *tdaten = 0; tdaten = (double *)malloc(indi*kerncat * sizeof(double));
-  
-  	int *nobs = 0; nobs = (int *)malloc(kerncat*igroup * sizeof(int));
-  	int *nrep = 0; nrep = (int *)malloc(kerncat*igroup * sizeof(int));
-  
-  	double *d = 0; d = (double *)malloc(kerncat * sizeof(double));
-  	double *x1 = 0; x1 = (double *)malloc(kerncat*igroup*SAMPLE_SIZE * sizeof(double));
-  	double *x2 = 0; x2 = (double *)malloc(kerncat*igroup*SAMPLE_SIZE * sizeof(double));
-  	unsigned int *drep = 0; drep = (unsigned int *)malloc(kerncat * sizeof(unsigned int));
-  	int *ng = 0; ng = (int *)malloc(igroup * sizeof(int));
+	std::vector<double> t1(SAMPLE_SIZE);
+	std::vector<double> t2(SAMPLE_SIZE);
+	std::vector<int> obs(kerncat);
+	std::vector<double> expe(kerncat);
+	std::vector<int> rep(kerncat);
+	std::vector<int> sobs(kerncat * igroup);
+	std::vector<double> sexp(kerncat * igroup);
+	std::vector<int> srep(kerncat * igroup);
+	std::vector<double> tobs(kerncat);
+	std::vector<double> texp(kerncat);
+	std::vector<double> trep(kerncat);
+	std::vector<double> stobs(kerncat * igroup);
+	std::vector<double> stexp(kerncat * igroup);
+	std::vector<double> strep(kerncat * igroup);
+	std::vector<double> pij(zweig * kerncat);
+	std::vector<double> onepij(zweig);
+	std::vector<double> x(kernpar);
+	std::vector<double> lambdas(ilamfree * indi);
+	std::vector<double> tdaten(indi * kerncat);
+	std::vector<int> nobs(kerncat * igroup);
+	std::vector<int> nrep(kerncat * igroup);
+	std::vector<double> d(kerncat);
+	std::vector<double> x1(kerncat * igroup * SAMPLE_SIZE);
+	std::vector<double> x2(kerncat * igroup * SAMPLE_SIZE);
+	std::vector<unsigned int> drep(kerncat);
+	std::vector<int> ng(igroup);
   
   #define X1(IS,IG,J) x1[IS*igroup*kerncat+ IG*kerncat+J]
   #define X2(IS,IG,J) x2[IS*igroup*kerncat+IG*kerncat+J]
@@ -455,10 +441,10 @@ namespace ertmpt {
   		belege_beta(sample, is, beta);
   		for (int t = 0; t != indi; t++) {
   			for (int ip = 0; ip != kernpar; ip++) x[ip] = comp[ip] ? gsl_cdf_ugaussian_P(BETA(t, kern2free[ip])) : gsl_cdf_ugaussian_P(consts[ip]);
-  			make_pij_for_individual(x, pij, expe); for (int j = 0; j != kerncat; j++) drep[j] = 0;
+  			make_pij_for_individual(x.data(), pij.data(), expe.data()); for (int j = 0; j != kerncat; j++) drep[j] = 0;
   			for (int it = 0; it != kerntree; it++) {
   				for (int j = 0; j != jks[it]; j++) d[j] = expe[TREE2CAT(it, j)];
-  				gsl_ran_multinomial(rst, jks[it], NKS(t, it), d, drep);
+  				gsl_ran_multinomial(rst, jks[it], NKS(t, it), d.data(), drep.data());
   				for (int j = 0; j != jks[it]; j++) rep[TREE2CAT(it, j)] = drep[j];
   			}
   			int ig = t2group[t];
@@ -469,7 +455,7 @@ namespace ertmpt {
   		}
   		t1[is] = 0.0; t2[is] = 0.0; for (int ig = 0; ig != igroup; ig++) for (int j = 0; j != kerncat; j++) { t1[is] += gsl_pow_2(SOBS(ig, j) - SEXP(ig, j)) / SEXP(ig, j); t2[is] += gsl_pow_2(SREP(ig, j) - SEXP(ig, j)) / SEXP(ig, j); }
   	}
-  	test(t1, t2, "Posterior predictive check: frequencies");
+  	test(t1.data(), t2.data(), "Posterior predictive check: frequencies");
   
   	for (int ig = 0; ig != igroup; ig++) { ng[ig] = 0; for (int t = 0; t != indi; t++) ng[ig] += (t2group[t] == ig); }
   
@@ -479,14 +465,14 @@ namespace ertmpt {
   	//std::cout << std::setprecision(4);
   	for (int ig = 0; ig != igroup; ig++)
   		for (int j = 0; j != kerncat; j++) {
-  			for (int is = 0; is != SAMPLE_SIZE; is++) t1[is] = X1(is, ig, j) / ng[ig];
-  			gsl_sort(t1, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(t1, 1, SAMPLE_SIZE);
+for (int is = 0; is != SAMPLE_SIZE; is++) t1[is] = X1(is, ig, j) / ng[ig];
+			gsl_sort(t1.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(t1.data(), 1, SAMPLE_SIZE);
   			Rprintf("%3d", j); Rprintf("%12.4g", qv[2]);
   			for (int is = 0; is != SAMPLE_SIZE; is++) t2[is] = X2(is, ig, j) / ng[ig];
-  			gsl_sort(t2, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(t2, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, t2, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, t2, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			gsl_sort(t2.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(t2.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, t2.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, t2.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
   		}
   
@@ -506,13 +492,13 @@ namespace ertmpt {
   		for (int j = 0; j != kerncat * igroup; j++) { stobs[j] = stexp[j] = strep[j] = 0.0; nobs[j] = nrep[j] = 0; }
   		// compute exp pro Person und rep pro Person; aggregate, compute chi-square
   		belege_beta(sample, is, beta);
-  		belege_nur_lambdas(sample, is, lambdas);
+  		belege_nur_lambdas(sample, is, lambdas.data());
   
   		for (int j = 0; j != kerncat; j++) nobs[j] = nrep[j] = 0;
   
   		for (int t = 0; t != indi; t++) {
-  			for (int ip = 0; ip != kernpar; ip++) x[ip] = comp[ip] ? gsl_cdf_ugaussian_P(BETA(t, kern2free[ip])) : gsl_cdf_ugaussian_P(consts[ip]);
-  			make_pij_for_individual(x, pij, expe);
+for (int ip = 0; ip != kernpar; ip++) x[ip] = comp[ip] ? gsl_cdf_ugaussian_P(BETA(t, kern2free[ip])) : gsl_cdf_ugaussian_P(consts[ip]);
+			make_pij_for_individual(x.data(), pij.data(), expe.data());
   
   			for (int j = 0; j != kerncat; j++) {
   				int r = cat2resp[j];
@@ -533,7 +519,7 @@ namespace ertmpt {
   			for (int j = 0; j != kerncat; j++) drep[j] = 0;
   			for (int it = 0; it != kerntree; it++) {
   				for (int j = 0; j != jks[it]; j++) d[j] = expe[TREE2CAT(it, j)];
-  				gsl_ran_multinomial(rst, jks[it], NKS(t, it), d, drep);
+  				gsl_ran_multinomial(rst, jks[it], NKS(t, it), d.data(), drep.data());
   				//				nag_rand_gen_multinomial(order, mode, 1,NKS(t,it),jks[it],d, r, lr,rst,drep,jks[it],&fail); if (fail.code != NE_NOERROR){printf("Error from nag_rand_gen_multinomial (g05tgc).\n%s\n",fail.message);exit_status = 1;}
   				for (int j = 0; j != jks[it]; j++) rep[TREE2CAT(it, j)] = drep[j];
   			}
@@ -545,7 +531,7 @@ namespace ertmpt {
   				for (int ir = 0; ir != rep[j]; ir++) {
   					double temp = 0.0;
   					for (int k = 0; k != branch[j]; k++) onepij[k] = log(PIJ(j, k));
-  					int ipath = make_path_for_one_trial(branch[j], onepij, 0.0, rst);
+  					int ipath = make_path_for_one_trial(branch[j], onepij.data(), 0.0, rst);
   					for (int xr = 0; xr != NDRIN(j, ipath); xr++) {
   						int r = DRIN(j, ipath, xr); int ip = TREE_AND_NODE2PAR(cat2tree[j], r);  int pm = (AR(j, ipath, r) > 0) ? 1 : 0;
   						if (comp[(1 + pm)*kernpar + ip]) {
@@ -571,60 +557,35 @@ namespace ertmpt {
   			t1[is] += gsl_pow_2(stobs[j] - stexp[j]) / stexp[j]; t2[is] += gsl_pow_2(strep[j] - stexp[j]) / stexp[j];
   		}
   	}
-  	test(t1, t2, "Posterior predictive check: latencies");
+  	test(t1.data(), t2.data(), "Posterior predictive check: latencies");
   
   
   
   	//std::cout << std::setprecision(4);
   	for (int ig = 0; ig != igroup; ig++)
   		for (int j = 0; j != kerncat; j++) {
-  			for (int is = 0; is != SAMPLE_SIZE; is++) t1[is] = X1(is, ig, j);
-  			gsl_sort(t1, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(t1, 1, SAMPLE_SIZE);
+for (int is = 0; is != SAMPLE_SIZE; is++) t1[is] = X1(is, ig, j);
+			gsl_sort(t1.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(t1.data(), 1, SAMPLE_SIZE);
   			Rprintf("%3d", j); Rprintf("%12.4g", qv[2]);
   			for (int is = 0; is != SAMPLE_SIZE; is++) t2[is] = X2(is, ig, j);
-  			gsl_sort(t2, 1, SAMPLE_SIZE);
-  			qv[2] = gsl_stats_median_from_sorted_data(t2, 1, SAMPLE_SIZE);
-  			double iv[2]; hdi(SAMPLE_SIZE, t2, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, t2, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  			gsl_sort(t2.data(), 1, SAMPLE_SIZE);
+  			qv[2] = gsl_stats_median_from_sorted_data(t2.data(), 1, SAMPLE_SIZE);
+  			double iv[2]; hdi(SAMPLE_SIZE, t2.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, t2.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   			Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
   		}
   	// if (correct) free(correct);
   
-  	if (t1) free(t1);
-  	if (t2) free(t2);
-  	if (obs) free(obs);
-  	if (expe) free(expe);
-  	if (rep) free(rep);
-  	if (sobs) free(sobs);
-  	if (sexp) free(sexp);
-  	if (srep) free(srep);
-  	if (tobs) free(tobs);
-  	if (texp) free(texp);
-  	if (trep) free(trep);
-  	if (stobs) free(stobs);
-  	if (stexp) free(stexp);
-  	if (strep) free(strep);
-  	if (pij) free(pij);
-  	if (onepij) free(onepij);
-  	if (x) free(x);
-  	if (lambdas) free(lambdas);
-  	if (tdaten) free(tdaten);
-  	if (nobs) free(nobs);
-  	if (nrep) free(nrep);
-  	if (d) free(d);
-  	if (drep) free(drep);
-  	if (x1) free(x1);
-  	if (x2) free(x2);
-  	if (ng) free(ng);
+
   }
   
 
   void correlation(double *sample, int *index1, int *index2)
   {
   #define SIGMA(I,J) sigma[I*(ilamfree+ifree)+J]
-  	double qv[5];
-  	double *temp = 0; temp = (double *)malloc(SAMPLE_SIZE * sizeof(double));
-  	double *sigma = 0; sigma = (double *)malloc((ilamfree + ifree)*(ilamfree + ifree) * sizeof(double));
+	double qv[5];
+	std::vector<double> temp(SAMPLE_SIZE);
+	std::vector<double> sigma((ilamfree + ifree)*(ilamfree + ifree));
   	for (int is = 0; is != SAMPLE_SIZE; is++) {
   		int iz = (igroup)*(ifree + ilamfree) - 1;
   		for (int ip = 0; ip != ilamfree + ifree; ip++)
@@ -642,30 +603,27 @@ namespace ertmpt {
   		}
   		temp[is] = cov / sqrt(sig1*sig2);
   	}
-  	gsl_sort(temp, 1, SAMPLE_SIZE);
-  	qv[2] = gsl_stats_median_from_sorted_data(temp, 1, SAMPLE_SIZE);
-  	double iv[2]; hdi(SAMPLE_SIZE, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+  	gsl_sort(temp.data(), 1, SAMPLE_SIZE);
+  	qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, SAMPLE_SIZE);
+  	double iv[2]; hdi(SAMPLE_SIZE, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(SAMPLE_SIZE, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
   	Rprintf("Corr"); for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]); Rprintf("\n");
   	if (save_diagnose) { tests_out << "Corr "; for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
   
-  	if (sigma) free(sigma);
-  	if (temp) free(temp);
   }
   
-  void groupwise(double *sample) {
-  
-  
-  	double *t1 = 0; t1 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
-  	double *t2 = 0; t2 = (double *)malloc(SAMPLE_SIZE * sizeof(double));
+	void groupwise(double *sample) {
+
+	std::vector<double> t1(SAMPLE_SIZE);
+	std::vector<double> t2(SAMPLE_SIZE);
   
   	for (int ip = 0; ip != ifree; ip++)
   	{
   		for (int is = 0; is != SAMPLE_SIZE; is++) {
   			//				par.push_back(gsl_cdf_ugaussian_P(SAMPLE(is,ip))-gsl_cdf_ugaussian_P(SAMPLE(is,ip+ifree)));
   			t1[is] = gsl_cdf_ugaussian_P(SAMPLE(is, ip));
-  			t2[is] = gsl_cdf_ugaussian_P(SAMPLE(is, ip + ifree));
-  		}
-  		test(t1, t2, "group-tests mu");
+		t2[is] = gsl_cdf_ugaussian_P(SAMPLE(is, ip + ifree));
+		}
+		test(t1.data(), t2.data(), "group-tests mu");
   	}
   
   	for (int ip = 0; ip != ilamfree; ip++)
@@ -674,9 +632,9 @@ namespace ertmpt {
   		for (int is = 0; is != SAMPLE_SIZE; is++) {
   			//				par.push_back(1000.0/SAMPLE(is,ip+ifree*igroup)-1000.0/SAMPLE(is,ip+ifree*igroup+2*ilamfree));
   			t1[is] = 1000.0 / SAMPLE(is, ip + ifree * igroup);
-  			t2[is] = 1000.0 / SAMPLE(is, ip + ifree * igroup + ilamfree);
-  		}
-  		test(t1, t2, "group-tests pho");
+		t2[is] = 1000.0 / SAMPLE(is, ip + ifree * igroup + ilamfree);
+		}
+		test(t1.data(), t2.data(), "group-tests pho");
   	}
   	int    iz = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree;
   	for (int ip = 0; ip != respno; ip++)
@@ -685,30 +643,26 @@ namespace ertmpt {
   		for (int is = 0; is != SAMPLE_SIZE; is++) {
   			//				par.push_back(SAMPLE(is,iz+ip)-SAMPLE(is,ip+iz+ respno));
   			t1[is] = SAMPLE(is, iz + ip);
-  			t2[is] = SAMPLE(is, iz + ip + respno);
-  		}
-  		test(t1, t2, "group-tests residual");
+		t2[is] = SAMPLE(is, iz + ip + respno);
+		}
+		test(t1.data(), t2.data(), "group-tests residual");
   	}
   	iz = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree;
 
-  	if (t1) free(t1);
-  	if (t2) free(t2);
-  
   }
   
   void diagnosis(std::vector<trial> daten, int *idaten, int kerntree, gsl_rng *rst) {
-  	int *nks = 0; nks = (int *)malloc(indi*kerntree * sizeof(int));
-  	int *jks = 0; jks = (int *)malloc(kerntree * sizeof(int));
-  	int *tree2cat = 0; tree2cat = (int *)malloc(kerntree*kerncat * sizeof(int));
-  	double *beta = 0;	beta = (double *)malloc(indi*ifree * sizeof(double));
-  
-  	n_all_parameters = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree + restparsno;
-  
-  	double *sample = 0;
-  	sample = (double *)malloc(SAMPLE_SIZE*(n_all_parameters+1) * sizeof(double));
-  	lies(n_all_parameters, sample);
-  	if (save_diagnose) tests_out.open(diagn_tests);
-  	quantiles(daten, n_all_parameters, sample);
+	std::vector<int> nks(indi * kerntree);
+	std::vector<int> jks(kerntree);
+	std::vector<int> tree2cat(kerntree * kerncat);
+	std::vector<double> beta(indi * ifree);
+
+	n_all_parameters = ifree * igroup + ilamfree * igroup + ((ifree + ilamfree)*(ifree + ilamfree + 1)) / 2 + indi * ifree + indi * ilamfree + restparsno;
+
+	std::vector<double> sample(SAMPLE_SIZE * (n_all_parameters + 1));
+	lies(n_all_parameters, sample.data());
+	if (save_diagnose) tests_out.open(diagn_tests);
+	quantiles(daten, n_all_parameters, sample.data());
   	// make nks
   
   	for (int t = 0; t != indi; t++) for (int it = 0; it != kerntree; it++) NKS(t, it) = 0;
@@ -716,8 +670,8 @@ namespace ertmpt {
   	for (int it = 0; it != kerntree; it++) jks[it] = 0;
   	for (int j = 0; j != kerncat; j++) { TREE2CAT(cat2tree[j], jks[cat2tree[j]]) = j; jks[cat2tree[j]]++; }
 
-  	dic(n_all_parameters, daten, beta, sample);
-  	aggregate(n_all_parameters, kerntree, idaten, daten, nks, jks, tree2cat, beta, sample, rst);
+	dic(n_all_parameters, daten, beta.data(), sample.data());
+	aggregate(n_all_parameters, kerntree, idaten, daten, nks.data(), jks.data(), tree2cat.data(), beta.data(), sample.data(), rst);
   	//    SSE_by_individual(n_all_parameters,kerntree, idaten, daten,nks,jks,tree2cat, beta,index,sample,rst);
   
   	// if (igroup > 1) groupwise(sample);
@@ -725,14 +679,7 @@ namespace ertmpt {
   
   	if (save_diagnose) tests_out.close();
   
-  	if (nks) free(nks);
-  	// free(index1);
-  	// free(index2);
-  	if (jks) free(jks);
-  	if (beta) free(beta);
-  
-  	if (tree2cat) free(tree2cat);
-  	if (sample) free(sample);
+
   }
 
 }
