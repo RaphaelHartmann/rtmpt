@@ -8,12 +8,12 @@ int kerncat;
 int kernpar;
 int zweig;
 int nodemax;
-int *ng;
+std::vector<int> ng;
 int indi;
-int *t2group=0;
+std::vector<int> t2group;
 int igroup;
 int respno;
-int *cat2resp = 0;
+std::vector<int> cat2resp;
 
 
 
@@ -50,7 +50,7 @@ void set_cat2tree(std::vector<trial> & daten, int *cat2tree)
 }
 
 //assign persons to groups t2group; number of persons per group ng
-void set_t2group(const std::vector<trial> & daten, int* t2group, int* ng) {
+void set_t2group(const std::vector<trial> & daten, std::vector<int>& t2group, std::vector<int>& ng) {
 
   for (int i = 0; i != datenzahl; i++) {
     trial one = daten[i];
@@ -253,9 +253,9 @@ namespace ertmpt {
   	set_ns(daten, indi, kerntree, kerncat, igroup);
 	cat2tree.resize(kerncat);
 	set_cat2tree(daten, cat2tree.data());
-  	t2group = (int *)malloc(indi * sizeof(int));
-  	ng = (int*)calloc(igroup, sizeof(int));
-  	set_t2group(daten, t2group, ng);
+	t2group.resize(indi);
+	ng.assign(igroup, 0);
+	set_t2group(daten, t2group, ng);
   	std::vector<int> idaten(indi * kerncat);
   	make_idaten(daten, idaten.data());
   	//	std::cout<< std::endl;
@@ -391,8 +391,7 @@ namespace ertmpt {
   	// char x; std::cin >> x;
 
 
-  	if (t2group) free(t2group);
-  	gsl_rng_free(rst);
+	gsl_rng_free(rst);
   	for (std::size_t i = 0; i < rsts.size(); ++i) {
   	  gsl_rng_free(rsts[i]);
   	}
@@ -772,8 +771,8 @@ namespace drtmpt {
     //NTAU Positions berechnen
     if (!(tau_by_node = (int*)malloc(2 * datenzahl * nodemax * sizeof(int)))) { Rprintf("Allocation failure\n"); }
     make_positions(daten, tau_by_node);
-    if (!(t2group = (int*)malloc(indi * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(ng = (int*)calloc(igroup, sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    t2group.resize(indi);
+    ng.assign(igroup, 0);
     set_t2group(daten, t2group, ng);
     make_rtmins(daten, rtmins);
     mapmavw = (int*)calloc(igroup * ifreemax * 3, sizeof(int));
@@ -815,9 +814,6 @@ namespace drtmpt {
     if (nppr) free(nppr);
     if (map) free(map);
     if (comb) free(comb);
-    if (t2group) free(t2group);
-    if (ng) free(ng);
-
     //if (kern2free) free(kern2free);
     if (free2comp) free(free2comp);
     //if (consts) free(consts);

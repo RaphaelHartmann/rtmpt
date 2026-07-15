@@ -52,17 +52,17 @@ extern int kernpar;
 //maximum number of nodes per subtree
 extern int nodemax;
 //number of persons by group
-extern int* ng;
+extern std::vector<int> ng;
 //number of persons
 extern int indi;
 //index of group by person
-extern int *t2group;
+extern std::vector<int> t2group;
 //number of groups
 extern int igroup;
 //total number of model parameters
 extern int n_all_parameters;
 //maps categories on responses
-extern int *cat2resp;
+extern std::vector<int> cat2resp;
 //number of responses
 extern int respno;
 //loglikelihood vector
@@ -581,7 +581,7 @@ namespace drtmpt {
   //dito
   extern int* tree_and_node2map;
   //dito
-  extern bool* comp;
+  extern std::vector<char> comp;
   //how many parameters (after accounting for equality constraints) of each type; sum thereof; maximum per type
   extern int ifree[3], ifreeg, ifreemax;
   //how many parameters (after accounting for equality constraints and constants) of each type; sum thereof
@@ -603,11 +603,11 @@ namespace drtmpt {
   //minimum size of Gibbs-Hamiltonian cycles before interim report
   extern int ireps;
   //see above under define KERN2FREE
-  extern int* kern2free;
+  extern std::vector<int> kern2free;
   //see above under define FREE2COMP
   extern int *free2comp;
   //constant value by parameter; -1 for parameters to be estimated
-  extern double *consts;
+  extern std::vector<double> consts;
   //some performance statistics
   extern double *monitor;
   //see above under define MAP

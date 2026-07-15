@@ -67,7 +67,7 @@ void lies(std::vector<trial> &daten)
   if (DEBUG) {for (int i=0;i!=20;i++) Rprintf("%6d", o[n-1-i]); Rprintf("\n");}
   
   kerncat=nKERN;
-  cat2resp = (int *)calloc(kerncat, sizeof(int));
+  cat2resp.resize(kerncat);
   for (int i=0;i!=kerncat;i++) {cat2resp[i]= CatToResp[i];}
   respno = nRESP;
 }

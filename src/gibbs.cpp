@@ -546,7 +546,7 @@ namespace drtmpt {
 
     R_CheckUserInterrupt();
     //show interim results
-    on_screen3(n_all_parameters, xwbr, parmon, consts, rmax, imax, irun);
+    on_screen3(n_all_parameters, xwbr, parmon, consts.data(), rmax, imax, irun);
     free(parmon);
     R_CheckUserInterrupt();
 

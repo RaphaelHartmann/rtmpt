@@ -38,15 +38,14 @@ void combination(int* c, int n, int p, int x) {
 }
 
 void combos(int k, double lambda, int n, std::vector<std::vector<double>>& p) {
-    int* c = (int*)malloc(k * sizeof(int));
+    std::vector<int> c(k);
     int cnk = choose(n, k) + 1;
     for (int i = 1; i != cnk; i++) {
         std::vector<double> temp(n, 0.0);
-        combination(c, n, k, i);
+        combination(c.data(), n, k, i);
         for (int j = 0; j != k; j++) temp[c[j] - 1] = lambda;
         p.push_back(temp);
     }
-    free(c);
 }
 
 void increment(std::vector<bool>& index, int k, double lambda, int n, int* c, std::vector<double>& temp) {
@@ -74,19 +73,18 @@ void increment(std::vector<bool>& index, int k, double lambda, int n, int* c, st
 }
 
 void signcombos(int k, double lambda, int n, std::vector<std::vector<double>>& p) {
-    int* c = (int*)malloc(k * sizeof(int));
+    std::vector<int> c(k);
     int cnk = choose(n, k) + 1;
     for (int i = 1; i != cnk; i++) {
         std::vector<double> temp(n, 0.0);
-        combination(c, n, k, i);
+        combination(c.data(), n, k, i);
         std::vector<bool> index; index.clear();
         int p2k = std::pow(2, k);
         for (int j = 0; j != p2k; j++) {
-            increment(index, k, lambda, n, c, temp);
+            increment(index, k, lambda, n, c.data(), temp);
             p.push_back(temp);
         }
     }
-    free(c);
 }
 
 void gauss_kronrod(double a, double b, one_d& out, void* pars, int integrand(unsigned dim, const double* x, void* p,
@@ -145,8 +143,8 @@ void clean_GenzMalik(GenzMalik& g) {
 }
 
 void integrate_GenzMalik(GenzMalik g, int n, const double* a, const double* b, one_d& out, void* pars, int integrand(unsigned dim, const double* x, void* p, unsigned fdim, double* retval)) {
-    double* c = (double*)malloc(n * sizeof(double));
-    double* deltac = (double*)malloc(n * sizeof(double));
+    std::vector<double> c(n);
+    std::vector<double> deltac(n);
 
     for (int i = 0; i != n; i++) c[i] = (a[i] + b[i]) / 2;
     for (int i = 0; i != n; i++) deltac[i] = fabs(b[i] - a[i]) / 2;
@@ -161,15 +159,15 @@ void integrate_GenzMalik(GenzMalik g, int n, const double* a, const double* b, o
     }
 
     double f1;
-    integrand(n, c, pars, 1, &f1);
+    integrand(n, c.data(), pars, 1, &f1);
     double f2 = 0.0, f3 = 0.0;
     double twelvef1 = 12 * f1;
 
     double maxdivdiff = 0.0;
-    double* divdiff = (double*)malloc(n * sizeof(double));
-    double* p2 = (double*)malloc(n * sizeof(double));
-    double* p3 = (double*)malloc(n * sizeof(double));
-    double* cc = (double*)malloc(n * sizeof(double));
+    std::vector<double> divdiff(n);
+    std::vector<double> p2(n);
+    std::vector<double> p3(n);
+    std::vector<double> cc(n);
 
     for (int i = 0; i != n; i++) {
 
@@ -177,27 +175,26 @@ void integrate_GenzMalik(GenzMalik g, int n, const double* a, const double* b, o
 
         for (int j = 0; j != n; j++) cc[j] = c[j] + p2[j];
         double f2i;
-        integrand(n, cc, pars, 1, &f2i);
+        integrand(n, cc.data(), pars, 1, &f2i);
         for (int j = 0; j != n; j++) cc[j] = c[j] - p2[j];
         double temp;
-        integrand(n, cc, pars, 1, &temp);
+        integrand(n, cc.data(), pars, 1, &temp);
         f2i += temp;
 
 
         for (int j = 0; j != n; j++) p3[j] = deltac[j] * g.p[1][i][j];
         for (int j = 0; j != n; j++) cc[j] = c[j] + p3[j];
         double f3i;
-        integrand(n, cc, pars, 1, &f3i);
+        integrand(n, cc.data(), pars, 1, &f3i);
         for (int j = 0; j != n; j++) cc[j] = c[j] - p3[j];
-        integrand(n, cc, pars, 1, &temp);
+        integrand(n, cc.data(), pars, 1, &temp);
         f3i += temp;
         f2 += f2i;
         f3 += f3i;
         divdiff[i] = fabs(f3i + twelvef1 - 7 * f2i);
 
     }
-    free(p2); free(p3);
-    double* p4 = (double*)malloc(n * sizeof(double));
+    std::vector<double> p4(n);
     double f4 = 0.0;
     int gp2s = g.p[2].size(), gp3s = g.p[3].size();
     for (int i = 0; i != gp2s; i++) {
@@ -205,22 +202,20 @@ void integrate_GenzMalik(GenzMalik g, int n, const double* a, const double* b, o
         for (int j = 0; j != n; j++) p4[j] = deltac[j] * g.p[2][i][j];
         for (int j = 0; j != n; j++) cc[j] = c[j] + p4[j];
         double temp;
-        integrand(n, cc, pars, 1, &temp);
+        integrand(n, cc.data(), pars, 1, &temp);
         f4 += temp;
     }
-    free(p4);
     double f5 = 0.0;
-    double* p5 = (double*)malloc(n * sizeof(double));
+    std::vector<double> p5(n);
     for (int i = 0; i != gp3s; i++) {
 
         for (int j = 0; j != n; j++) p5[j] = deltac[j] * g.p[3][i][j];
 
         for (int j = 0; j != n; j++) cc[j] = c[j] + p5[j];
         double temp;
-        integrand(n, cc, pars, 1, &temp);
+        integrand(n, cc.data(), pars, 1, &temp);
         f5 += temp;
     }
-    free(p5); free(cc);
     double I = v * (g.w[0] * f1 + g.w[1] * f2 + g.w[2] * f3 + g.w[3] * f4 + g.w[4] * f5);
     double Idash = v * (g.wd[0] * f1 + g.wd[1] * f2 + g.wd[2] * f3 + g.wd[3] * f4);
     double E = fabs(I - Idash);
@@ -238,32 +233,22 @@ void integrate_GenzMalik(GenzMalik g, int n, const double* a, const double* b, o
     out.result = I;
     out.err = E;
     out.kdivide = kdivide;
-    free(c); free(deltac); free(divdiff);
 }
 
 class Box {
 public:
-	Box(double* a, double* b, double I, double err, int kdivide) : a(a), b(b), I(I), E(err), kdiv(kdivide) {};
+	Box(std::vector<double> a, std::vector<double> b, double I, double err, int kdivide) : a(std::move(a)), b(std::move(b)), I(I), E(err), kdiv(kdivide) {};
 	bool operator<(const Box& box) const { return E < box.E; }
-	double* a;
-	double* b;
+	std::vector<double> a;
+	std::vector<double> b;
 	double I;
 	double E;
 	int kdiv;
 };
 
-class Box make_box(int n, const double* a, const double* b, one_d out) {
-	double* ac = (double*)malloc(n * sizeof(double));
-	double* bc = (double*)malloc(n * sizeof(double));
-	memcpy(ac, a, n * sizeof(double));
-	memcpy(bc, b, n * sizeof(double));
-	Box box(ac, bc, out.result, out.err, out.kdivide);
-	return box;
-}
-
-void delete_box(Box& box) {
-    if (box.a) free(box.a);
-    if (box.b) free(box.b);
+Box make_box(int n, const double* a, const double* b, one_d out) {
+	return Box(std::vector<double>(a, a + n), std::vector<double>(b, b + n),
+		out.result, out.err, out.kdivide);
 }
 
 int hcubature(int integrand(unsigned dim, const double* x, void* p, unsigned fdim, double* retval), void* pars, unsigned n, const double* a, const double* b,
@@ -296,31 +281,27 @@ int hcubature(int integrand(unsigned dim, const double* x, void* p, unsigned fdi
         ms.pop();
         // split along dimension kdiv
         double w = (box.b[box.kdiv] - box.a[box.kdiv]) / 2;
-        double* ma = (double*)malloc(n * sizeof(double));
-        memcpy(ma, box.a, n * sizeof(double));
+        std::vector<double> ma = box.a;
         ma[box.kdiv] += w;
-        double* mb = (double*)malloc(n * sizeof(double));
-        memcpy(mb, box.b, n * sizeof(double));
+        std::vector<double> mb = box.b;
         mb[box.kdiv] -= w;
 
         if (n == 1) gauss_kronrod(ma[0], box.b[0], out, pars, integrand);
         else {
-            integrate_GenzMalik(g, n, ma, box.b, out, pars, integrand);
+            integrate_GenzMalik(g, n, ma.data(), box.b.data(), out, pars, integrand);
         }
-        Box box1 = make_box(n, ma, box.b, out);
+        Box box1 = make_box(n, ma.data(), box.b.data(), out);
         ms.push(box1);
 
         if (n == 1) gauss_kronrod(box.a[0], mb[0], out, pars, integrand);
         else {
-            integrate_GenzMalik(g, n, box.a, mb, out, pars, integrand);
+            integrate_GenzMalik(g, n, box.a.data(), mb.data(), out, pars, integrand);
         }
-        Box box2 = make_box(n, box.a, mb, out);
+        Box box2 = make_box(n, box.a.data(), mb.data(), out);
         ms.push(box2);
         val[0] += box1.I + box2.I - box.I;
         err[0] += box1.E + box2.E - box.E;
         numevals += 2 * evals_per_box;
-        delete_box(box);
-        free(ma); free(mb);
         if (((err[0] <= std::max(reqRelError * fabs(val[0]), reqAbsError)) || ((maxEval != 0) && (numevals >= static_cast<int>(maxEval)))) || !(std::isfinite(val[0])) ) {
             break;
         }
@@ -332,7 +313,6 @@ int hcubature(int integrand(unsigned dim, const double* x, void* p, unsigned fdi
         Box box = ms.top();
         val[0] += box.I;
         err[0] += box.E;
-        delete_box(box);
         ms.pop();
     }
     clean_GenzMalik(g);

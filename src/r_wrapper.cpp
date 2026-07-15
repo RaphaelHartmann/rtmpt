@@ -125,10 +125,10 @@ namespace drtmpt {
   int maxtreedepth4;// = 9;
 
   //int kernpar;
-  int *kern2free = 0;
+  std::vector<int> kern2free;
   int ifree[3];
-  bool *comp = 0;
-  double *consts = 0;
+  std::vector<char> comp;
+  std::vector<double> consts;
 
 }
 
@@ -339,12 +339,12 @@ extern "C" {
 
 
     // CONSTANTS AND EQUALIZATION
-    consts = (double*)malloc(nPROCS * 3 * sizeof(double));
+    consts.resize(nPROCS * 3);
     for (int i = 0; i < nPROCS*3; i++) {
       consts[i] = REAL(re3)[i];
     }
-    kern2free = (int*)malloc(nPROCS * 3 * sizeof(int));
-    comp = (bool*)malloc(nPROCS * 3 * sizeof(bool));
+    kern2free.resize(nPROCS * 3);
+    comp.resize(nPROCS * 3);
     for (int i = 0; i < nPROCS*3; i++) {
       kern2free[i] = INTEGER(in5)[i];
       comp[i] = (INTEGER(in5)[i+nPROCS*3] == 1);
@@ -403,9 +403,6 @@ extern "C" {
 
 
     // FREE DYNAMIC VARIABLES
-    if (kern2free) free(kern2free);
-    if (consts) free(consts);
-    if (comp) free(comp);
 
 
 
