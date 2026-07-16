@@ -447,7 +447,6 @@ namespace drtmpt {
   int RMAX_reached;
 
   //int* kern2free = 0;
-  int *free2comp = 0;
   // double *consts = 0;
   double *monitor = 0;
 
@@ -815,7 +814,6 @@ namespace drtmpt {
     if (map) free(map);
     if (comb) free(comb);
     //if (kern2free) free(kern2free);
-    if (free2comp) free(free2comp);
     //if (consts) free(consts);
     gsl_rng_free(rst);
     for (std::size_t i = 0; i < rsts.size(); ++i) {

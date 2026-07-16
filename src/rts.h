@@ -605,7 +605,7 @@ namespace drtmpt {
   //see above under define KERN2FREE
   extern std::vector<int> kern2free;
   //see above under define FREE2COMP
-  extern int *free2comp;
+  extern std::vector<int> free2comp;
   //constant value by parameter; -1 for parameters to be estimated
   extern std::vector<double> consts;
   //some performance statistics

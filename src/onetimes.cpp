@@ -453,10 +453,10 @@ namespace drtmpt {
     int bj = branch[j];
     for (int k = 0; k != bj; k++) {
       int pfadlength = dNDRIN(j, k);
-      double* a = (double*)malloc(pfadlength * sizeof(double));
-      double* v = (double*)malloc(pfadlength * sizeof(double));
-      double* w = (double*)malloc(pfadlength * sizeof(double));
-      int* low_or_up = (int*)malloc(pfadlength * sizeof(int));
+      std::vector<double> a(pfadlength);
+      std::vector<double> v(pfadlength);
+      std::vector<double> w(pfadlength);
+      std::vector<int> low_or_up(pfadlength);
       for (int ir = 0; ir != pfadlength; ir++) {
         int r = dDRIN(j, k, ir);
         low_or_up[ir] = dAR(j, k, r);
@@ -466,9 +466,8 @@ namespace drtmpt {
       }
       
       std::vector<double> pbranch; pbranch.clear();
-      convolution2(rts, pfadlength, low_or_up, a, v, w, mu, sig, pbranch);
+      convolution2(rts, pfadlength, low_or_up.data(), a.data(), v.data(), w.data(), mu, sig, pbranch);
       p.push_back(pbranch);
-      free(a); free(v); free(w); free(low_or_up);
     }
     ps.clear();
     int rtss = rts.size();
@@ -486,8 +485,7 @@ namespace drtmpt {
     int m = (pars->m);//n = (pars->n), 
     bool restart = (pars->restart);
     std::vector<std::vector<double>> icdaten = (pars->icdaten);
-    double* x = 0; if (!(x = (double*)malloc(m * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    //	for (int i = 0; i != n; i++) x[i] = gsl_vector_get(y, i);
+    std::vector<double> x(m);
     int jj = 0, iz = 0;
     for (int itype = 0; itype != 3; itype++) {
       int ift = ifree[itype];
@@ -507,7 +505,7 @@ namespace drtmpt {
     
     for (int j = 0; j != kerncat; j++) {
       std::vector<double> ps;
-      if (icdaten[j].size() > 0) make_p_ind_cat(icdaten[j], j, x, ps);
+      if (icdaten[j].size() > 0) make_p_ind_cat(icdaten[j], j, x.data(), ps);
       int icdjs = icdaten[j].size();
       for (int i = 0; i != icdjs; i++) loglik += -2 * ps[i];
       loglik += 2 * icdjs * xsi;
@@ -516,7 +514,6 @@ namespace drtmpt {
     if (!isfinite(loglik)) { restart = true; loglik = -1.0e10; }
     else restart = false;
     pars->restart = restart;
-    free(x);
     return(loglik);
   }
   

@@ -129,6 +129,7 @@ namespace drtmpt {
   int ifree[3];
   std::vector<char> comp;
   std::vector<double> consts;
+  std::vector<int> free2comp;
 
 }
 

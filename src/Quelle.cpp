@@ -208,8 +208,8 @@ namespace drtmpt {
   //derivatives of model likelihood by motor-time related parameters
   void   dhudlam2(const std::vector<trial> & daten, double* rest, gsl_vector* hampar, double* tlams, double* explambda, double omega, gsl_vector* dhampar) {
 
-  	double* dlam = (double*)calloc(indi * (respno + 1), sizeof(double));
-  	double* dhrmu = (double*)calloc(igroup * respno, sizeof(double));
+  	std::vector<double> dlam(indi * (respno + 1), 0.0);
+  	std::vector<double> dhrmu(igroup * respno, 0.0);
 
   	for (int x = 0; x != datenzahl; x++) {
   		int t = daten[x].person;
@@ -253,16 +253,15 @@ namespace drtmpt {
   	}
 
   	gsl_vector_view t3 = gsl_vector_subvector(dhampar, ilamoff, indi * (respno + 1));
-  	gsl_vector_view t4 = gsl_vector_view_array(dlam, indi * (respno + 1));
+  	gsl_vector_view t4 = gsl_vector_view_array(dlam.data(), indi * (respno + 1));
   	gsl_vector_memcpy(&t3.vector, &t4.vector);
   	gsl_vector_view t5 = gsl_vector_subvector(dhampar, irmuoff, igroup * respno);
-  	gsl_vector_view t6 = gsl_vector_view_array(dhrmu, igroup * respno);
+  	gsl_vector_view t6 = gsl_vector_view_array(dhrmu.data(), igroup * respno);
   	gsl_vector_memcpy(&t5.vector, &t6.vector);
 
   	// Korrektur wegen Jacoby-Faktor
   	//kann mit blas beschleunigt werden
   	for (int t = 0; t != indi; t++) gsl_vector_set(dhampar, isigoff + t, (-1.0) + gsl_vector_get(dhampar, isigoff + t) * explambda[t]);
-  	free(dlam); free(dhrmu);
   	// what is missing from dhampar for person-specific deviations is: 1. Chain-rule for transformation using Cholesky-factor of Sigma 2. standard-normal prior for transformed person-specific deviations
   // These contributions can be found in void dmvnlkjdy
   }
@@ -295,7 +294,7 @@ namespace drtmpt {
   double step0(int* nips, gsl_vector* dhampar, const std::vector<trial> & daten,  double* rest,
   	 double* alltaus, struct Theta* theta, gsl_vector* p, double u, int v, int j, double eps, int& n, int& s, double liknorm[6]) {
 
-  	double* dstore = 0; if (!(dstore = (double*)malloc(ntau * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+  	std::vector<double> dstore(ntau);
   	double* loglambdas = theta->loglambda;
   	double* tavw = theta->tavw;
   	double* tlams = theta->tlams;
@@ -306,9 +305,9 @@ namespace drtmpt {
   	gsl_matrix* wt = gsl_matrix_alloc(icompg, icompg);
   	gsl_matrix* wr = gsl_matrix_alloc(respno, respno);
 
-  	Leapfrog2(nips, hampar, zt, zr, wt, wr, tavw, tlams, dhampar, daten,  loglambdas, alltaus, dstore, rest, omega, v * eps, p);
+  	Leapfrog2(nips, hampar, zt, zr, wt, wr, tavw, tlams, dhampar, daten,  loglambdas, alltaus, dstore.data(), rest, omega, v * eps, p);
 
-  	double temp = joint_likelihood2(nips, hampar, tavw, alltaus, dstore, liknorm[0]) +
+  	double temp = joint_likelihood2(nips, hampar, tavw, alltaus, dstore.data(), liknorm[0]) +
   		rjoint_likelihood2(daten, rest, hampar, tlams, loglambdas, omega, liknorm[1]) +
   		joint_likeli3(p, liknorm[2]) +
   		joint_likeli4(0, hampar, zt, wt, etat, taut, liknorm[3]) +
@@ -316,7 +315,6 @@ namespace drtmpt {
   		joint_likeli5(hampar, loglambdas, liknorm[5]);
   	n = (u <= temp) ? 1 : 0;
   	s = (u - 1000.0 < temp) ? 1 : 0;
-  	free(dstore);
   	gsl_matrix_free(wt);
   	gsl_matrix_free(wr);
   	return temp;
@@ -419,7 +417,7 @@ namespace drtmpt {
   	m = ((m-1) % interval) + 1;
   	bool adapt = ((m <= PHASE1) && (!(save)) && (phase == 3));
 
-  	double* dstore = 0; if (!(dstore = (double*)malloc(ntau * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+  	std::vector<double> dstore(ntau);
   	gsl_vector* p = gsl_vector_alloc(n_all_parameters);
   	gsl_vector* pp = gsl_vector_alloc(n_all_parameters);
   	gsl_vector* pm = gsl_vector_alloc(n_all_parameters);
@@ -435,11 +433,7 @@ namespace drtmpt {
   	make_tavwtlams(0, hampar, zt, wt, tavw);
   	make_tavwtlams(1, hampar, zr, wr, tlams);
   	double omega = exp(gsl_vector_get(hampar, n_all_parameters - 1));
-
-  //	test0(nips,  dhamparp, daten, rest,
-  //		 alltaus, hampar, pp, 0.001,  liknorm);
-
-  	dhudwien2(nips, hampar, tavw, alltaus, dstore, dhamparp);
+  	dhudwien2(nips, hampar, tavw, alltaus, dstore.data(), dhamparp);
   	dhudlam2(daten, rest, hampar, tlams, explambdas, omega, dhamparp);
   	dhudext(hampar, explambdas, zt, zr, wt, wr, etat, etar, dhamparp);
   	gsl_vector_memcpy(dhamparm, dhamparp);
@@ -448,8 +442,7 @@ namespace drtmpt {
 
   	gsl_blas_dtrmv(CblasLower, CblasTrans, CblasNonUnit, sigisqrt, p);
 
-  	liknorm[0] += joint_likelihood2(nips, hampar, tavw, alltaus, dstore, liknorm[0]);
-  	free(dstore);
+  	liknorm[0] += joint_likelihood2(nips, hampar, tavw, alltaus, dstore.data(), liknorm[0]);
 
   	liknorm[1] += rjoint_likelihood2(daten, rest, hampar, tlams, explambdas, omega, liknorm[1]);
 

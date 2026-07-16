@@ -34,9 +34,8 @@ void lies(std::vector<trial> &daten)
   if (format) {
     //int indi, kerntree, kerncat, ntot;
     set_ns(daten, indi, kerntree, kerncat, igroup);
-    int *cat2tree = 0, *tree2cat = 0;
-    cat2tree = (int *)calloc(kerncat, sizeof(int));
-    tree2cat = (int *)calloc(kerntree, sizeof(int));
+    std::vector<int> cat2tree(kerncat, 0);
+    std::vector<int> tree2cat(kerntree, 0);
     std::ifstream info(MODEL); int schrott;
     for (int j = 0; j != 5; j++) info >> schrott;
     for (int j = 0; j != kerncat; j++) { info >> cat2tree[j]; cat2tree[j]--; }
@@ -52,8 +51,6 @@ void lies(std::vector<trial> &daten)
     for (int ix = 0; ix != datenzahl; ix++) {
       daten[ix].category = (daten[ix].tree == 0) ? daten[ix].category : tree2cat[daten[ix].tree - 1] + daten[ix].category;
     }
-    free(cat2tree);
-    free(tree2cat);
   }
   
   std::vector<int>  o;
@@ -137,8 +134,7 @@ namespace drtmpt {
 
   void model_design(int kerntree, int* ar, int* branch, int* nodes_per_tree, int* tree_and_node2par) {
     
-    int* temp_tree_and_node2par = 0;
-    if (!(temp_tree_and_node2par = (int*)malloc(kerntree * nodemax * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    std::vector<int> temp_tree_and_node2par(kerntree * nodemax);
 #define TEMP_TREE_AND_NODE2PAR(T,N) temp_tree_and_node2par[(T)*nodemax+(N)]
     // zweig,kernpar,nodemax sind definiert;
     bool auto_or_eqns = false;
@@ -174,7 +170,7 @@ namespace drtmpt {
     ifreemax = std::max(std::max(ifree[0], ifree[1]), ifree[2]);
     icompg = icomp[0] + icomp[1] + icomp[2];
     
-    if (!(free2comp = (int*)malloc(kernpar * 3 * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    free2comp.resize(kernpar * 3);
     int jj = 0;
     
     for (int ip = 0; ip != ifreeg; ip++) {
@@ -184,7 +180,7 @@ namespace drtmpt {
       if (dCOMP(type, ind)) dFREE2COMP(type, ind) = jj++;
       else dFREE2COMP(type, ind) = -1;
     }
-    if (temp_tree_and_node2par) free(temp_tree_and_node2par);
+
     
   }
 

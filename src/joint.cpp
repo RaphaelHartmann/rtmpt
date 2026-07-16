@@ -181,8 +181,8 @@ namespace drtmpt {
   //derivatives log-likelihood by motor-time related parameters
   void   dhudlam(const std::vector<trial> & daten, double* rest, gsl_vector* hampar, double* gami, double omega, gsl_vector* dhampar) {
 
-  	double* dlam = (double*)calloc(indi * (respno + 1), sizeof(double));
-  	double* dhrmu = (double*)calloc(igroup * respno, sizeof(double));
+  	std::vector<double> dlam(indi * (respno + 1), 0.0);
+  	std::vector<double> dhrmu(igroup * respno, 0.0);
 
 
 
@@ -234,18 +234,17 @@ namespace drtmpt {
   	gsl_vector_view ll = gsl_vector_subvector(hampar, ilamoff, indi * respno);
   	gsl_matrix_view lll = gsl_matrix_view_vector(&ll.vector, indi, respno);
 
-  	gsl_matrix_view dlll = gsl_matrix_view_array(dlam, indi, respno);
+  	gsl_matrix_view dlll = gsl_matrix_view_array(dlam.data(), indi, respno);
 
   	gsl_blas_dsymm(CblasRight, CblasLower, 1.0, &gg.matrix, &lll.matrix, 1.0, &dlll.matrix);
 
   	gsl_vector_view t1 = gsl_vector_subvector(dhampar, ilamoff, indi * (respno + 1));
-  	gsl_vector_view t2 = gsl_vector_view_array(dlam, indi * (respno + 1));
+  	gsl_vector_view t2 = gsl_vector_view_array(dlam.data(), indi * (respno + 1));
   	gsl_vector_memcpy(&t1.vector, &t2.vector);
   	gsl_vector_view t3 = gsl_vector_subvector(dhampar, irmuoff, igroup * respno);
-  	gsl_vector_view t4 = gsl_vector_view_array(dhrmu, igroup * respno);
+  	gsl_vector_view t4 = gsl_vector_view_array(dhrmu.data(), igroup * respno);
   	gsl_vector_memcpy(&t3.vector, &t4.vector);
 
-  	free(dlam); free(dhrmu);
   }
 
 
@@ -336,12 +335,11 @@ namespace drtmpt {
   	double* tavw = theta->tavw;
   	double* tlams = theta->tlams;
   	gsl_vector* hampar = theta->hampar;
-  	double* dstore = 0; if (!(dstore = (double*)malloc(ntau * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
-  	Leapfrog(nips, scale, hampar, tavw, tlams, dhampar, sig, sigi, daten, rscale, sl, loglambdas,  gam, gami, alltaus, dstore, rest, omega, v * eps, p);
-  	double temp = joint_likelihood(scale, p, nips, hampar, tavw, sig, sigi, alltaus, dstore, liknorm) + rjoint_likelihood(daten, rscale, sl, p, rest, hampar, loglambdas, gam, gami, omega, liknorm2);
+  	std::vector<double> dstore(ntau);
+  	Leapfrog(nips, scale, hampar, tavw, tlams, dhampar, sig, sigi, daten, rscale, sl, loglambdas,  gam, gami, alltaus, dstore.data(), rest, omega, v * eps, p);
+  	double temp = joint_likelihood(scale, p, nips, hampar, tavw, sig, sigi, alltaus, dstore.data(), liknorm) + rjoint_likelihood(daten, rscale, sl, p, rest, hampar, loglambdas, gam, gami, omega, liknorm2);
   	n = (u <= temp) ? 1 : 0;
   	s = (u - 1000.0 < temp) ? 1 : 0;
-  	free(dstore);
   	return temp;
   }
 
@@ -443,7 +441,7 @@ namespace drtmpt {
   	bool adapt = (phase == 1) && (m <= PHASE1);
   	// int xn = isigoff + indi;
 
-  	double* dstore = 0; if (!(dstore = (double*)malloc(ntau * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+  	std::vector<double> dstore(ntau);
   	gsl_vector* p = gsl_vector_alloc(nhamil);
   	gsl_vector* pp = gsl_vector_alloc(nhamil);
   	gsl_vector* pm = gsl_vector_alloc(nhamil);
@@ -454,9 +452,10 @@ namespace drtmpt {
   	gsl_vector* dhamparm = gsl_vector_alloc(nhamil);
 
   	dhudlam(daten, rest, hampar, gami, omega, dhamparp);
-  	dhudwien(nips, hampar, tavw, sigi, alltaus, dstore, dhamparp);
+  	dhudwien(nips, hampar, tavw, sigi, alltaus, dstore.data(), dhamparp);
 
   	gsl_vector_memcpy(dhamparm, dhamparp);
+
 
 
   	int icig = icompg * igroup;
@@ -474,8 +473,7 @@ namespace drtmpt {
   	gsl_blas_dtrmm(CblasRight, CblasLower, CblasTrans, CblasNonUnit, 1.0, Ltminusx, &pptemp.matrix);
 
 
-  	liknorm1 += joint_likelihood(scale, p, nips,hampar, tavw, sig, sigi, alltaus, dstore, liknorm1);
-  	free(dstore);
+  	liknorm1 += joint_likelihood(scale, p, nips,hampar, tavw, sig, sigi, alltaus, dstore.data(), liknorm1);
 
   	int ioff = icompg * (indi + igroup);
 
