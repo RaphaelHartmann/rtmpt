@@ -359,12 +359,12 @@ namespace drtmpt {
     for (int x = 0; x != datenzahl; x++) {
       paths[x] = gsl_rng_uniform_int(rst, branch[daten[x].category]);
     }
-    
-    double* mavw = (double*)malloc(ifreemax * 3 * igroup * sizeof(double));
-    double* avw = (double*)calloc(ifreemax * 3 * indi, sizeof(double));
-    double* rmu = (double*)malloc(respno * igroup * sizeof(double));
-    double* lambdas = (double*)malloc(indi * (respno + 1) * sizeof(double));
-    
+
+    std::vector<double> mavw(ifreemax * 3 * igroup);
+    std::vector<double> avw(ifreemax * 3 * indi, 0.0);
+    std::vector<double> rmu(respno * igroup);
+    std::vector<double> lambdas(indi * (respno + 1));
+
     for (int type = 0; type != 3; type++) {
       int ift = ifree[type];
       for (int i = 0; i != ift; i++) {
@@ -380,14 +380,14 @@ namespace drtmpt {
         }
       }
     }
-    
-    double* xb;  if (!(xb = (double*)malloc(datenzahl * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+
+    std::vector<double> xb(datenzahl);
     for (int i = 0; i != respno; i++) {
       for (int ig = 0; ig != igroup; ig++) rmu[ig * respno + i] = 0.0;
       for (int t = 0; t != indi; t++) {
         int jj = 0;
         for (int x = 0; x != datenzahl; x++) if ((daten[x].person == t) && (cat2resp[daten[x].category] == i)) xb[jj++] = daten[x].rt / 1000.0;
-        double temp = gsl_stats_mean(xb, 1, jj);
+        double temp = gsl_stats_mean(xb.data(), 1, jj);
         lambdas[t * respno + i] = 0.8 * temp + 0.01 * onenorm(rst);
         
         rmu[t2group[t] * respno + i] += lambdas[t * respno + i];
@@ -400,7 +400,7 @@ namespace drtmpt {
     for (int t = 0; t != indi; t++) {
       int jj = 0;
       for (int x = 0; x != datenzahl; x++) if (daten[x].person == t) xb[jj++] = daten[x].rt / 1000.0;
-      lambdas[indi * respno + t] = 0.9 * gsl_stats_sd(xb, 1, jj) + 0.001 * oneuni(rst);
+      lambdas[indi * respno + t] = 0.9 * gsl_stats_sd(xb.data(), 1, jj) + 0.001 * oneuni(rst);
       loglambdas[t] = log(lambdas[indi * respno + t]);
     }
     for (int i = 0; i != icompg; i++) ai[i] = 1.0;
@@ -408,30 +408,27 @@ namespace drtmpt {
     
     for (int t = 0; t != indi; t++) for (int r = 0; r != respno; r++) tlams[t * respno + r] = rmu[t2group[t] * respno + r] + lambdas[t * respno + r];
     
-    make_hampar_avw(mavw, avw, hampar);
-    make_hampar_rmu_lambda(rmu, lambdas, hampar);
-    
-    free(avw); free(mavw); free(rmu); free(lambdas);
-    free(xb);
+    make_hampar_avw(mavw.data(), avw.data(), hampar);
+    make_hampar_rmu_lambda(rmu.data(), lambdas.data(), hampar);
   }
-  
-  
-  
+
+
+
   //initialize after maximum-likelihood estimation per individual
   void initialize_new1(std::vector <trial> daten, gsl_vector* hampar, double* tavw, double* tlams, double* ai, double* loglambdas, double* bi, int* paths, gsl_rng* rst) {
     
-    double* xx = 0; if (!(xx = (double*)malloc(no_patterns * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* pj = 0; if (!(pj = (double*)malloc(kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* pij = 0; if (!(pij = (double*)malloc(zweig * kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* ppath = (double*)malloc(zweig * sizeof(double));
+    std::vector<double> xx(no_patterns);
+    std::vector<double> pj(kerncat);
+    std::vector<double> pij(zweig * kerncat);
+    std::vector<double> ppath(zweig);
+
+    std::vector<double> mavw(ifreemax * 3 * igroup);
+    std::vector<double> avw(ifreemax * 3 * indi, 0.0);
+    std::vector<double> rmu(respno * igroup);
+    std::vector<double> lambdas(indi * (respno + 1));
     
-    double* mavw = (double*)malloc(ifreemax * 3 * igroup * sizeof(double));
-    double* avw = (double*)calloc(ifreemax * 3 * indi, sizeof(double));
-    double* rmu = (double*)malloc(respno * igroup * sizeof(double));
-    double* lambdas = (double*)malloc(indi * (respno + 1) * sizeof(double));
-    
-    inv_make_hampar_avw(mavw, avw, hampar);
-    inv_make_hampar_rmu_lambda(rmu, lambdas, hampar);
+    inv_make_hampar_avw(mavw.data(), avw.data(), hampar);
+    inv_make_hampar_rmu_lambda(rmu.data(), lambdas.data(), hampar);
     
     for (int x = 0; x != static_cast<int>(daten.size()); x++) {
       paths[x] = gsl_rng_uniform_int(rst, branch[daten[x].category]);
@@ -463,26 +460,22 @@ namespace drtmpt {
         int ia = t * 3 * ifreemax + dCOMB(im, 0), iv = t * 3 * ifreemax + ifreemax + dCOMB(im, 1), iw = t * 3 * ifreemax + 2 * ifreemax + dCOMB(im, 2);
         xx[im] = exp(logprob_upperbound(1, tavw[ia], tavw[iv], tavw[iw]));
       }
-      make_pij_for_individual(xx, pij, pj);
+      make_pij_for_individual(xx.data(), pij.data(), pj.data());
       for (int x = 0; x != datenzahl; x++) if (daten[x].person == t) {
         int j = daten[x].category;
         int bj = branch[j];
         for (int k = 0; k != bj; k++) ppath[k] = dPIJ(j, k);
-        unsigned int* nn = 0; if (!(nn = (unsigned int*)malloc(zweig * sizeof(unsigned int))))
-        {
-          Rprintf("Allocation failure\n");
-        }
         if (branch[j] > 1) {
-          gsl_ran_multinomial(rst, branch[j], 1, ppath, nn);
+          std::vector<unsigned int> nn(zweig);
+          gsl_ran_multinomial(rst, branch[j], 1, ppath.data(), nn.data());
           for (int k = 0; k != bj; k++) if (nn[k] > 0) { paths[x] = k; break;}
         }
         else paths[x] = 0;
-        free(nn);
       }
     }
     
     
-    double* temp_rest = (double*)malloc(2 * indi * sizeof(double));
+    std::vector<double> temp_rest(2 * indi);
     for (int i = 0; i != indi; i++) { temp_rest[i] = lambdas[i * respno]; }
     for (int i = 0; i != indi; i++) { temp_rest[indi + i] = lambdas[indi * respno + i]; }
     for (int i = 0; i != indi; i++) {
@@ -507,15 +500,9 @@ namespace drtmpt {
     
     for (int t = 0; t != indi; t++) for (int r = 0; r != respno; r++) tlams[t * respno + r] = rmu[t2group[t] * respno + r] + lambdas[t * respno + r];
     
-    make_hampar_avw(mavw, avw, hampar);
-    make_hampar_rmu_lambda(rmu, lambdas, hampar);
+    make_hampar_avw(mavw.data(), avw.data(), hampar);
+    make_hampar_rmu_lambda(rmu.data(), lambdas.data(), hampar);
     
-    free(temp_rest);
-    free(xx);
-    free(pj);
-    free(pij);
-    free(ppath);
-    free(avw); free(mavw); free(rmu); free(lambdas);
   }
   
   void initialize(int flag, const std::vector<trial> & daten, double xeps, double* parmonstore, int n_value_store, double* valuestore, std::vector<gsl_rng*>& rsts) {
@@ -524,24 +511,24 @@ namespace drtmpt {
     double liknorm[6] = { 0 * 6 };
     
     gsl_vector* hampar = gsl_vector_alloc(nhamil);
-    double* tavw = (double*)malloc(ifreemax * 3 * indi * sizeof(double));
-    double* tlams = (double*)malloc(indi * respno * sizeof(double));
-    double* loglambdas = (double*)malloc(indi * sizeof(double));
-    int* paths = (int*)malloc(datenzahl * sizeof(int));
-    int* nips = (int*)malloc(no_patterns * 2 * indi * sizeof(int));
-    double* ai = (double*)malloc(icompg * sizeof(double));
-    double* bi = (double*)malloc(respno * sizeof(double));
+    std::vector<double> tavw(ifreemax * 3 * indi);
+    std::vector<double> tlams(indi * respno);
+    std::vector<double> loglambdas(indi);
+    std::vector<int> paths(datenzahl);
+    std::vector<int> nips(no_patterns * 2 * indi);
+    std::vector<double> ai(icompg);
+    std::vector<double> bi(respno);
     double epsm = 0.0; double activeeps = xeps; double Hobjective = 0.0;
-    double* avw_temp = 0;
-    double* lambdas_temp = 0;
-    double* parmon = (double*)calloc(2 * n_all_parameters, sizeof(double));
-    double* alltaus = (double*)calloc(ntau , sizeof(double));
-    double* rest = (double*)malloc(datenzahl * sizeof(double));
+    std::vector<double> avw_temp;
+    std::vector<double> lambdas_temp;
+    std::vector<double> parmon(2 * n_all_parameters, 0.0);
+    std::vector<double> alltaus(ntau, 0.0);
+    std::vector<double> rest(datenzahl);
     
     if (flag == 1) {
-      if (!(avw_temp = (double*)malloc(ifreemax * 3 * indi * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-      if (!(lambdas_temp = (double*)malloc(indi * (respno + 1) * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
-      if (generate_or_diagnose) tby_individuals(daten, avw_temp, lambdas_temp, xst);
+      avw_temp.resize(ifreemax * 3 * indi);
+      lambdas_temp.resize(indi * (respno + 1));
+      if (generate_or_diagnose) tby_individuals(daten, avw_temp.data(), lambdas_temp.data(), xst);
     }
     
     for (int ithread = 0; ithread != NOTHREADS; ithread++) {
@@ -565,17 +552,17 @@ namespace drtmpt {
       
       gsl_rng_memcpy(xst, rsts[ithread]);
 
-      if (flag == 0) initialize_new0(daten, hampar, tavw, tlams, ai, loglambdas, bi, paths, xst);
-      else initialize_new1(daten, hampar, tavw, tlams, ai, loglambdas, bi, paths, xst);
+      if (flag == 0) initialize_new0(daten, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), paths.data(), xst);
+      else initialize_new1(daten, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), paths.data(), xst);
       
       for (int x = 0; x != datenzahl; x++) {
         trial one = daten[x]; double rt = one.rt / 1000.0; int c = one.category; int t = one.person; int itree = one.tree;
         int path = paths[x]; int pfadlength = dNDRIN(c, path);
-        double* as = (double*)malloc(pfadlength * sizeof(double));
-        double* vs = (double*)malloc(pfadlength * sizeof(double));
-        double* ws = (double*)malloc(pfadlength * sizeof(double));
-        double* taus = (double*)malloc(pfadlength * sizeof(double));
-        int* pms = (int*)malloc(pfadlength * sizeof(int));
+        std::vector<double> as(pfadlength);
+        std::vector<double> vs(pfadlength);
+        std::vector<double> ws(pfadlength);
+        std::vector<double> taus(pfadlength);
+        std::vector<int> pms(pfadlength);
         for (int ir = 0; ir != pfadlength; ir++) {
           int n = dDRIN(c, path, ir);
           int ia = dTREE_AND_NODE2PAR(itree, n, 0);
@@ -609,19 +596,15 @@ namespace drtmpt {
             }
             
           }
-          free(as); free(vs); free(ws); free(taus); free(pms);
       }
       
-      make_nips(daten, paths, nips);
-      push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
+      make_nips(daten, paths.data(), nips.data());
+      push(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore, parmon.data(), parmonstore);
       gsl_rng_memcpy(rsts[ithread], xst);
     }
     
     gsl_rng_free(xst);
-    gsl_vector_free(hampar); free(tavw); free(tlams); free(loglambdas);  free(paths); free(nips); free(ai); free(bi);  free(parmon);
-    if (avw_temp) free(avw_temp);
-    if (lambdas_temp) free(lambdas_temp);
-    free(alltaus); free(rest);
+    gsl_vector_free(hampar);
     
   }
   
@@ -810,7 +793,7 @@ namespace drtmpt {
     double sig = (params->sig);
     double t = (params->rt_rest);
     
-    double* tau = (double*)malloc((dim + 1) * sizeof(double));
+    std::vector<double> tau(dim + 1);
     
     //Transformation aus Stan unit simplex
     
@@ -827,7 +810,6 @@ namespace drtmpt {
     
     prod *= gsl_ran_tdist_pdf((tau[dim] - mu) / sig, degf);
     retval[0] = prod;
-    free(tau);
     return 0;
   }
   
@@ -838,8 +820,8 @@ namespace drtmpt {
     double val, err;
     double reltol = 1.0e-4, abstol = 0.0;
     
-    double* xmin = (double*)malloc(pfadlength * sizeof(double));
-    double* xmax = (double*)malloc(pfadlength * sizeof(double));
+    std::vector<double> xmin(pfadlength);
+    std::vector<double> xmax(pfadlength);
     
     for (int i = 0; i != pfadlength; ++i) {
       xmin[i] = 0.0;
@@ -850,10 +832,9 @@ namespace drtmpt {
     for (int x = 0; x != rtss; x++) {
       double rt = rts[x];
       my_params params = { pfadlength, a, v, w, low_or_up, mu, sig, rt };
-      hcubature(nstep2, &params, pfadlength, xmin, xmax, 0, abstol, reltol, &val, &err);
+      hcubature(nstep2, &params, pfadlength, xmin.data(), xmax.data(), 0, abstol, reltol, &val, &err);
       pbranch.push_back(val);
     }
-    free(xmin); free(xmax);
   }
 
 }

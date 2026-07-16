@@ -424,21 +424,22 @@ namespace drtmpt {
   int nhamil;
   int phase;
 
-  int *cat2tree = 0;
-  int *ar = 0;
-  int *branch = 0;
-  int *nodes_per_tree = 0;
-  int *tree_and_node2par = 0;
-  int* tree_and_node2map = 0;
+  std::vector<int> cat2tree;
+  std::vector<int> ar;
+  std::vector<int> branch;
+  std::vector<int> nodes_per_tree;
+  std::vector<int> tree_and_node2par;
+  std::vector<int> tree_and_node2map;
   //bool *comp = 0;
   //int ifree[3], ifreeg, ifreemax;
   int ifreeg, ifreemax;
   int icomp[3], icompg;
-  int* nnodes = 0;
-  int* ndrin = 0, * drin = 0, * cdrin = 0, * ncdrin = 0, * pfadmax = 0;
-  int *nppr = 0;
-  int *tau_by_node=0;
-  int* n_per_subj = 0;
+  std::vector<int> nnodes;
+  std::vector<int> ndrin, drin, cdrin, ncdrin;
+  std::vector<int> pfadmax;
+  std::vector<int> nppr;
+  std::vector<int> tau_by_node;
+  std::vector<int> n_per_subj;
 
   int iavwoff, irmuoff, ilamoff, isigoff;
 
@@ -450,13 +451,13 @@ namespace drtmpt {
   // double *consts = 0;
   double *monitor = 0;
 
-  int* map = 0;
-  int* comb = 0;
+  std::vector<int> map;
+  std::vector<int> comb;
   int no_patterns;
   std::vector<double> rtmins;
 
-  int* mapmavw;
-  int* mapavw;
+  std::vector<int> mapmavw;
+  std::vector<int> mapavw;
 
   transform avwtrans[3];
 
@@ -494,8 +495,8 @@ namespace drtmpt {
 
   //map parameter combinations on parameters (comb) and reverse (map); assign tree, node and parameter type to index on ifree[type] scale (tree_and_node2par) and on combination no (tree_and_node2map)
   void make_map(int kerntree, int& no_patterns, int* tree_and_node2map) {
-    if (!(map = (int*)malloc(ifree[0] * ifree[1] * ifree[2] * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(comb = (int*)malloc(3 * kernpar * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    map.resize(ifree[0] * ifree[1] * ifree[2]);
+    comb.resize(3 * kernpar);
 
     for (int i = 0; i != ifree[0] * ifree[1] * ifree[2]; i++) map[i] = -1;
     for (int i = 0; i != 3 * kernpar; i++) comb[i] = -1;
@@ -531,15 +532,11 @@ namespace drtmpt {
   //compute positions of tau in double* alltaus by tree, node, and parameter type (threshold, drift, start point)
   void make_positions(const std::vector<trial> & daten, int* tau_by_node) {
   #define dLOFFSET(T,I) loffset[T*no_patterns+I]
-    int* loffset = 0;
-    if (!(loffset = (int*)malloc(indi * no_patterns * sizeof(int)))) { Rprintf("Allocation failure\n");  }
-    int* ltemp = 0; if (!(ltemp = (int*)malloc(indi * no_patterns * sizeof(int)))) { Rprintf("Allocation failure\n");  }
+    std::vector<int> loffset(indi * no_patterns);
+    std::vector<int> ltemp(indi * no_patterns);
 
 
   #define dLTEMP(T,I) ltemp[T*no_patterns+I]
-
-
-    for (int i = 0; i != indi * no_patterns; i++) loffset[i] = ltemp[i] = 0;
     int jj = 0;
     for (int im = 0; im != no_patterns; im++) {
       for (int t = 0; t != indi; t++) {
@@ -563,8 +560,6 @@ namespace drtmpt {
     for (int t = 0; t != indi; t++) for (int i = 0; i != no_patterns; i++) {
       //		if (dLTEMP(t, i) != 2 * NNODES(t, i)) std::cout << "L_PROBLEM" << setw(12) << t << setw(12) << i << setw(12) << dLTEMP(t,i) << setw(12) << NNODES(t,i) << std::endl;
     }
-    if (ltemp) free(ltemp);
-    if (loffset) free(loffset);
   }
 
   //frequency data by person and category
@@ -580,7 +575,7 @@ namespace drtmpt {
   //number of responses by person and response
   void compute_nppr(const std::vector<trial> & daten) {
     //nppr berechnen,
-    if (!(nppr = (int*)malloc(indi * respno * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    nppr.resize(indi * respno);
     for (int t = 0; t != indi * respno; t++) nppr[t] = 0;
     for (int x = 0; x != datenzahl; x++)
     {
@@ -732,23 +727,23 @@ namespace drtmpt {
     lies(daten);
     datenzahl = static_cast<int>(daten.size());
     set_ns(daten, indi, kerntree, kerncat, igroup);
-    if (!(cat2tree = (int*)malloc(kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    set_cat2tree(daten, cat2tree);
+    cat2tree.resize(kerncat);
+    set_cat2tree(daten, cat2tree.data());
     // nur f�r generate
-    int* idaten = 0; if (!(idaten = (int*)malloc(indi * kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    make_idaten(daten, idaten);
+    std::vector<int> idaten(indi * kerncat);
+    make_idaten(daten, idaten.data());
     
     // Model Design
-    if (!(ar = (int*)malloc(kerncat * zweig * nodemax * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(branch = (int*)malloc(kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(nodes_per_tree = (int*)malloc(kerntree * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(tree_and_node2par = (int*)malloc(kerntree * nodemax * 3 * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(tree_and_node2map = (int*)malloc(kerntree * nodemax * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(drin = (int*)malloc(kerncat * zweig * nodemax * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(ndrin = (int*)malloc(kerncat * zweig * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(cdrin = (int*)malloc(kerncat * 2 * (nodemax * 2) * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(ncdrin = (int*)malloc(kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    if (!(pfadmax = (int*)malloc(kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    ar.resize(kerncat * zweig * nodemax);
+    branch.resize(kerncat);
+    nodes_per_tree.resize(kerntree);
+    tree_and_node2par.resize(kerntree * nodemax * 3);
+    tree_and_node2map.resize(kerntree * nodemax);
+    drin.resize(kerncat * zweig * nodemax);
+    ndrin.resize(kerncat * zweig);
+    cdrin.resize(kerncat * 2 * (nodemax * 2));
+    ncdrin.resize(kerncat);
+    pfadmax.resize(kerncat);
     // if (!(kern2free = (int*)malloc(kernpar * 3 * sizeof(int)))) { Rprintf("Allocation failure\n"); }
     // Model specifications
     // Parameter: beta_comp yes/no
@@ -757,26 +752,26 @@ namespace drtmpt {
     
     
     
-    model_design(kerntree, ar, branch, nodes_per_tree, tree_and_node2par);
+    model_design(kerntree, ar.data(), branch.data(), nodes_per_tree.data(), tree_and_node2par.data());
     make_drin_cdrin();
     avwtrans[0] = prep_transform(1.0e-2, 1.0e2, 0.8, 0.2);
     avwtrans[1] = prep_transform(-1.0e2, 1.0e2, 0.0, 1.0);
     avwtrans[2] = prep_transform(1.0e-3, 0.999, 0.5, 0.1);
-    make_map(kerntree, no_patterns, tree_and_node2map);
+    make_map(kerntree, no_patterns, tree_and_node2map.data());
     compute_nppr(daten);
-    nnodes = (int*)malloc(indi * no_patterns * sizeof(int));
-    n_per_subj = (int*)malloc(indi * sizeof(int));
-    make_nodes_by_ind(daten, kerntree, nodes_per_tree, nnodes, n_per_subj);
+    nnodes.resize(indi * no_patterns);
+    n_per_subj.resize(indi);
+    make_nodes_by_ind(daten, kerntree, nodes_per_tree.data(), nnodes.data(), n_per_subj.data());
     //NTAU Positions berechnen
-    if (!(tau_by_node = (int*)malloc(2 * datenzahl * nodemax * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    make_positions(daten, tau_by_node);
+    tau_by_node.resize(2 * datenzahl * nodemax);
+    make_positions(daten, tau_by_node.data());
     t2group.resize(indi);
     ng.assign(igroup, 0);
     set_t2group(daten, t2group, ng);
     make_rtmins(daten, rtmins);
-    mapmavw = (int*)calloc(igroup * ifreemax * 3, sizeof(int));
-    mapavw = (int*)calloc(indi * ifreemax * 3, sizeof(int));
-    make_parameter_maps(mapmavw, mapavw);
+    mapmavw.resize(igroup * ifreemax * 3);
+    mapavw.resize(indi * ifreemax * 3);
+    make_parameter_maps(mapmavw.data(), mapavw.data());
     iavwoff = igroup * icompg;
     irmuoff = (indi + igroup) * icompg;
     ilamoff = irmuoff + igroup * respno;
@@ -790,29 +785,10 @@ namespace drtmpt {
     
     // Log-Likelihood vector
     loglik_vec.resize(sample_size * datenzahl);
-    
-    diagnosis(daten, idaten, kerntree, rst);
+    diagnosis(daten, idaten.data(), kerntree, rst);
 
-    if (cat2tree) free(cat2tree);
-    if (ar) free(ar);
-    if (branch) free(branch);
-    if (nodes_per_tree) free(nodes_per_tree);
-    if (tree_and_node2par) free(tree_and_node2par);
-    if (tree_and_node2map) free(tree_and_node2map);
-
-    if (idaten) free(idaten);
     //if (comp) free(comp);
-    if (tau_by_node) free(tau_by_node);
-    if (drin) free(drin);
-    if (ndrin) free(ndrin);
-    if (cdrin) free(cdrin);
-    if (ncdrin) free(ncdrin);
-    if (pfadmax) free(pfadmax);
-    if (nnodes) free(nnodes);
-    if (n_per_subj) free(n_per_subj);
-    if (nppr) free(nppr);
-    if (map) free(map);
-    if (comb) free(comb);
+
     //if (kern2free) free(kern2free);
     //if (consts) free(consts);
     gsl_rng_free(rst);
@@ -822,8 +798,6 @@ namespace drtmpt {
 
     gsl_matrix_free(supsig);
     gsl_matrix_free(sigisqrt);
-    if (mapavw) free(mapavw);
-    if (mapmavw) free(mapmavw);
 
     return exit_status;
   }

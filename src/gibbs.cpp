@@ -9,8 +9,8 @@ namespace drtmpt {
                         double liknorm[6], double& activeeps, double& epsm, double& Hobjective, int m, bool save, gsl_rng* rst) {
 
 
-    double* sigi = 0; if (!(sigi = (double*)malloc(icompg * icompg * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
-    double* gami = 0; if (!(gami = (double*)malloc(respno * respno * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+    std::vector<double> sigi(icompg * icompg);
+    std::vector<double> gami(respno * respno);
 
 
     //#pragma omp atomic
@@ -31,34 +31,25 @@ namespace drtmpt {
     if (phase <= 2) {
       gsl_matrix* Ltminusx = gsl_matrix_alloc(icompg, icompg);
       gsl_matrix* Ltminusr = gsl_matrix_alloc(respno, respno);
-      sample_sig(hampar, sig, sigi, Ltminusx, ai, rst);
-      make_rgam(hampar, gam, gami, Ltminusr, bi, rst);
+      sample_sig(hampar, sig, sigi.data(), Ltminusx, ai, rst);
+      make_rgam(hampar, gam, gami.data(), Ltminusr, bi, rst);
       make_romega(hampar, loglambdas, omega, rst);
 
-      double* scale = 0; if (!(scale = (double*)malloc(icompg * igroup * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+      std::vector<double> scale(icompg * igroup);
       for (int ig = 0; ig != igroup; ig++) for (int i = 0; i != icompg; i++) scale[ig * icompg + i] = sqrt(dSIG(i, i) / ng[ig]);
-      double* rscale = 0; if (!(rscale = (double*)malloc(respno * igroup * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+      std::vector<double> rscale(respno * igroup);
       for (int ig = 0; ig != igroup; ig++) for (int i = 0; i != respno; i++) rscale[ig * respno + i] = sqrt(dGAM(i, i) / ng[ig]);
-      double* sl = 0; if (!(sl = (double*)malloc(indi * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+      std::vector<double> sl(indi);
       for (int t = 0; t != indi; t++) {
         double nt = n_per_subj[t];
         nt = nt / (nt - 2.0);
         sl[t] = sqrt(nt * omega);
       }
-      change = hnuts(scale, nips, hampar, tavw, tlams, sig, sigi, Ltminusx, daten, rscale, sl, rest, loglambdas, gam, gami, Ltminusr, omega, alltaus, liknorm[0], liknorm[1], activeeps, epsm, Hobjective, m, rst);
-      free(scale); free(rscale); free(sl);
+      change = hnuts(scale.data(), nips, hampar, tavw, tlams, sig, sigi.data(), Ltminusx, daten, rscale.data(), sl.data(), rest, loglambdas, gam, gami.data(), Ltminusr, omega, alltaus, liknorm[0], liknorm[1], activeeps, epsm, Hobjective, m, rst);
       gsl_matrix_free(Ltminusx); gsl_matrix_free(Ltminusr);
     }
     else
       change = hnuts2(nips, hampar, tavw, tlams, daten, rest, loglambdas, alltaus, liknorm, activeeps, epsm, Hobjective, m, save, rst);
-
-    // if (!change)
-      //#pragma omp atomic
-      //		MONITOR(1, 0) += 1;
-
-
-      if (sigi) free(sigi);
-      if (gami) free(gami);
 
   }
 
@@ -68,9 +59,9 @@ namespace drtmpt {
                          double& activeeps, double& epsm, double& Hobjective,
                          int offset, int n_all_parameters, double* parmon, gsl_rng* rst, int ithread,
                          bool save, double* sample) {
-    double* sig = 0;	if (!(sig = (double*)malloc(icompg * icompg * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* gam = 0;	if (!(gam = (double*)malloc(respno * respno * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* temp = 0; if (!(temp = (double*)malloc(n_all_parameters * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> sig(icompg * icompg);
+    std::vector<double> gam(respno * respno);
+    std::vector<double> temp(n_all_parameters);
     ars_archiv ars_store;
     double omega;
 
@@ -84,10 +75,10 @@ namespace drtmpt {
 
     //compute ireps cycles
     for (int i = 0; i != ireps; i++) {
-      gibbs_full_cycle(change, ars_store, daten, nips, hampar, tavw, tlams, ai, sig, loglambdas, bi, alltaus, rest, gam, omega, paths, liknorm, activeeps, epsm, Hobjective, offset + i + 1, save, rst);
+      gibbs_full_cycle(change, ars_store, daten, nips, hampar, tavw, tlams, ai, sig.data(), loglambdas, bi, alltaus, rest, gam.data(), omega, paths, liknorm, activeeps, epsm, Hobjective, offset + i + 1, save, rst);
 
       //save parameters in temp in the phase 3 and 4 parameterization
-      gsl_vector_view t1 = gsl_vector_view_array(temp, n_all_parameters);
+      gsl_vector_view t1 = gsl_vector_view_array(temp.data(), n_all_parameters);
 
       if (phase >= 3) {
         gsl_vector_memcpy(&t1.vector, hampar);
@@ -96,8 +87,8 @@ namespace drtmpt {
         gsl_vector_view t3 = gsl_vector_subvector(hampar, 0, nhamil - indi);
         gsl_vector_memcpy(&t2.vector, &t3.vector);
         // in these procedures we also move from theta'' to theta''' (see paper)
-        make_hampar_from_sig(0, sig, &t1.vector);
-        make_hampar_from_sig(1, gam, &t1.vector);
+        make_hampar_from_sig(0, sig.data(), &t1.vector);
+        make_hampar_from_sig(1, gam.data(), &t1.vector);
         gsl_vector_set(&t1.vector, n_all_parameters - 1, log(omega));
 
 
@@ -146,7 +137,7 @@ namespace drtmpt {
           from_z_to_w(flag, z, w);
           gsl_blas_dtrmm(CblasRight, CblasLower, CblasNoTrans, CblasNonUnit, 1.0, w, sd);
           gsl_blas_dtrmm(CblasRight, CblasLower, CblasTrans, CblasNonUnit, 1.0, sd, &thetm.matrix);
-          gsl_matrix_view t1 = gsl_matrix_view_array((flag == 0) ? sig : gam, k, k);
+          gsl_matrix_view t1 = gsl_matrix_view_array((flag == 0) ? sig.data() : gam.data(), k, k);
           gsl_matrix_transpose_memcpy(&t1.matrix, sd);
           gsl_blas_dtrmm(CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, 1.0, sd, &t1.matrix);
           gsl_matrix_free(w);
@@ -196,51 +187,49 @@ namespace drtmpt {
       }
       gsl_vector_free(dev1);
     }
-    if (sig) free(sig);
-    if (gam) free(gam);
-    if (temp) free(temp);
   }
 
   //helper frunction: reparameterize in going from phase 2 to 3
   void transit_from2_to3(int n_all_parameters, double* parmonstore, int n_value_store, double* valuestore, gsl_rng* rst1) {
     double liknorm[6]; double activeeps, epsm, Hobjective;
     for (int ithread = 0; ithread != NOTHREADS; ithread++) {
-      double* tavw = (double*)malloc(ifreemax * 3 * indi * sizeof(double)); double* loglambdas = (double*)malloc(indi * sizeof(double));
-      double* tlams = (double*)malloc(indi * respno * sizeof(double));
+      std::vector<double> tavw(ifreemax * 3 * indi);
+      std::vector<double> loglambdas(indi);
+      std::vector<double> tlams(indi * respno);
       gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
-      int* paths = (int*)malloc(datenzahl * sizeof(int)); int* nips = (int*)malloc(no_patterns * 2 * indi * sizeof(int));
-      double* ai = (double*)malloc(icompg * sizeof(double)); 	double* bi = (double*)malloc(respno * sizeof(double));
-      double* parmon = (double*)malloc(2 * n_all_parameters * sizeof(double));
-      double* alltaus = (double*)malloc(ntau * sizeof(double));
-      double* rest = (double*)malloc(datenzahl * sizeof(double));
+      std::vector<int> paths(datenzahl);
+      std::vector<int> nips(no_patterns * 2 * indi);
+      std::vector<double> ai(icompg);
+      std::vector<double> bi(respno);
+      std::vector<double> parmon(2 * n_all_parameters);
+      std::vector<double> alltaus(ntau);
+      std::vector<double> rest(datenzahl);
 
-      pop(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
+      pop(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore, parmon.data(), parmonstore);
       Hobjective = 0.0; epsm = 0.0;
       for (int ii = 0; ii != 6; ii++) {liknorm[ii] = 0.0;} muplus = log(10 * activeeps);
       double omega;
 
-      gsl_vector_view t1 = gsl_vector_view_array(loglambdas, indi);
+      gsl_vector_view t1 = gsl_vector_view_array(loglambdas.data(), indi);
       gsl_vector_view t2 = gsl_vector_subvector(hampar, isigoff, indi);
       gsl_vector_swap(&t1.vector, &t2.vector);
-      make_romega(hampar, loglambdas, omega, rst1);
+      make_romega(hampar, loglambdas.data(), omega, rst1);
 
-      double* sig = 0; if (!(sig = (double*)malloc(icompg * icompg * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
-      double* gam = 0; if (!(gam = (double*)malloc(respno * respno * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
-      double* sigi = 0; if (!(sigi = (double*)malloc(icompg * icompg * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
-      double* gami = 0; if (!(gami = (double*)malloc(respno * respno * sizeof(double)))) { Rprintf("Allocation failure2\n"); }
+      std::vector<double> sig(icompg * icompg);
+      std::vector<double> gam(respno * respno);
+      std::vector<double> sigi(icompg * icompg);
+      std::vector<double> gami(respno * respno);
       gsl_matrix* Ltminusx = gsl_matrix_alloc(icompg, icompg);
       gsl_matrix* Ltminusr = gsl_matrix_alloc(respno, respno);
-      sample_sig(hampar, sig, sigi, Ltminusx, ai, rst1);
-      make_rgam(hampar, gam, gami, Ltminusr, bi, rst1);
-      make_hampar_from_sig(0, sig, hampar);
-      make_hampar_from_sig(1, gam, hampar);
+      sample_sig(hampar, sig.data(), sigi.data(), Ltminusx, ai.data(), rst1);
+      make_rgam(hampar, gam.data(), gami.data(), Ltminusr, bi.data(), rst1);
+      make_hampar_from_sig(0, sig.data(), hampar);
+      make_hampar_from_sig(1, gam.data(), hampar);
 
       gsl_vector_set(hampar, n_all_parameters - 1, log(omega));
 
-      push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
-      gsl_vector_free(hampar); free(tavw); free(tlams);  free(paths); free(nips); free(loglambdas);   free(ai); free(bi);  free(alltaus); free(rest);
-      free(parmon);
-      free(sig); free(sigi); free(gam); free(gami); gsl_matrix_free(Ltminusx); gsl_matrix_free(Ltminusr);
+      push(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore, parmon.data(), parmonstore);
+      gsl_vector_free(hampar); gsl_matrix_free(Ltminusx); gsl_matrix_free(Ltminusr);
     }
   }
 
@@ -262,26 +251,26 @@ namespace drtmpt {
 
     int n_value_store = n_all_parameters + icompg * indi + icompg + indi +       respno + respno * indi + datenzahl + no_patterns * 2 * indi + ntau + datenzahl + 6 + 3;
     //                                        tavw         ai       loglambdas		  bi   	 tlams  paths         nips		alltaus, rest,	liknorm,  activeeps,epsm,Hobjective
-    double* valuestore = 0; if (!(valuestore = (double*)malloc(NOTHREADS * n_value_store * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* parmonstore = 0; if (!(parmonstore = (double*)malloc(NOTHREADS * 2 * n_all_parameters * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> valuestore(NOTHREADS * n_value_store);
+    std::vector<double> parmonstore(NOTHREADS * 2 * n_all_parameters);
 
     int satemp = NOTHREADS * IREP * (n_all_parameters);
-    double* sample = 0; if (!(sample = (double*)malloc(satemp * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> sample(satemp);
 
     //initialize parameters 0 = randomly 1 = based on individual max. lik. estimates
-    if (!goon) initialize(INITIALIZE, daten, xeps, parmonstore, n_value_store, valuestore, rsts);
+    if (!goon) initialize(INITIALIZE, daten, xeps, parmonstore.data(), n_value_store, valuestore.data(), rsts);
     // main loop GIBBS
-    double* xwbr = 0; if (!(xwbr = (double*)calloc(3 * n_all_parameters, sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> xwbr(3 * n_all_parameters, 0.0);
     bool save = false;
     // double* complete_sample = 0;
     int sample_size2;
     preptrees(trees);
 
     RESTART:
-      gsl_vector_view t0 = gsl_vector_view_array(xwbr, 3 * n_all_parameters);
+      gsl_vector_view t0 = gsl_vector_view_array(xwbr.data(), 3 * n_all_parameters);
     gsl_vector_set_zero(&t0.vector);
 
-    gsl_vector_view t1 = gsl_vector_view_array(parmonstore, 2 * n_all_parameters * NOTHREADS);
+    gsl_vector_view t1 = gsl_vector_view_array(parmonstore.data(), 2 * n_all_parameters * NOTHREADS);
     gsl_vector_set_zero(&t1.vector);
     double rmax = 0.0; int imax = -1; double epshelp;
     irun = -1;
@@ -323,7 +312,7 @@ namespace drtmpt {
       raustemp.clear();
       std::string tempPath = std::string(TMPDIR) + "temp";
       std::rename(RAUS, tempPath.c_str());
-      pop_continue(n_value_store, irun, valuestore, parmonstore, rsts);
+      pop_continue(n_value_store, irun, valuestore.data(), parmonstore.data(), rsts);
       if (!(complete_sample = (double*)malloc(SAMPLE_SIZE * (n_all_parameters) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
     }
     // reicht nicht iresp = IREP generell, wenn Phase1 und Phase2 Vielfaches davon?
@@ -340,31 +329,28 @@ namespace drtmpt {
       threads[ithread] = std::thread([&, ithread]() {
         // #pragma omp parallel for ordered shared(phase, offset, ireps, supsig, sigisqrt, supersig, epshelp, rst1,rst2,rst3,rst4,save,sample,ntau,n_value_store,daten ,valuestore,parmonstore,xwbr,imax,rmax,monitor)
         // 	for (int ithread = 0; ithread < NOTHREADS; ithread++) {
-        double* tavw = 0;  double* tlams = 0; double* loglambdas = 0; gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
-        int* paths = 0; int* nips = 0; double* ai = 0; double* bi = 0; double* parmon = 0;
-        double* alltaus = 0; double* rest = 0;
+        gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
+        std::vector<double> tavw(ifreemax * 3 * indi);
+        std::vector<double> tlams(respno * indi);
+        std::vector<double> loglambdas(indi);
+        std::vector<int> paths(datenzahl);
+        std::vector<int> nips(no_patterns * 2 * indi);
+        std::vector<double> ai(icompg);
+        std::vector<double> bi(respno);
+        std::vector<double> parmon(2 * n_all_parameters);
+        std::vector<double> alltaus(ntau);
+        std::vector<double> rest(datenzahl);
         gsl_rng* rst;
         rst = gsl_rng_alloc(T_rng);
-        parmon = (double*)malloc(2 * n_all_parameters * sizeof(double));
-
-        tavw = (double*)malloc(ifreemax * 3 * indi * sizeof(double));
-        tlams = (double*)malloc(respno * indi * sizeof(double));
-        loglambdas = (double*)malloc(indi * sizeof(double));
-        paths = (int*)malloc(datenzahl * sizeof(int));
-        nips = (int*)malloc(no_patterns * 2 * indi * sizeof(int));
-        ai = (double*)malloc(icompg * sizeof(double));
-        bi = (double*)malloc(respno * sizeof(double));
-        alltaus = (double*)malloc(ntau * sizeof(double));
-        rest = (double*)malloc(datenzahl * sizeof(double));
 
         double liknorm[6];
         double epsm, activeeps, Hobjective;
 
         //run sampler ireps times
         gsl_rng_memcpy(rst, rsts[ithread]);
-        pop(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
-        gibbs_and_monitor(daten, nips, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, paths, liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon, rst, ithread, save, sample);
-        push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
+        pop(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
+        gibbs_and_monitor(daten, nips.data(), hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), paths.data(), liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon.data(), rst, ithread, save, sample.data());
+        push(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
         gsl_rng_memcpy(rsts[ithread], rst);
 
         //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
@@ -376,7 +362,7 @@ namespace drtmpt {
 
         if (ithread == 0) ido = 1;
         if (ithread + 1 == NOTHREADS) ido = 3;
-        r_statistic(ido, n_all_parameters, ithread, offset + ireps, parmon, xwbr, rmax, imax);
+        r_statistic(ido, n_all_parameters, ithread, offset + ireps, parmon.data(), xwbr.data(), rmax, imax);
 
         //prepare adapt stepsize in phase 1 and phase 3 (each time posterior variance/covariance matrix has been updated)
         if (((((offset + ireps) % interval) == PHASE1) && (phase % 2 == 1)) && (!(save))) {
@@ -398,8 +384,7 @@ namespace drtmpt {
 
         curr_order++;
         gsl_rng_free(rst);
-        gsl_vector_free(hampar); free(tavw); free(tlams);  free(paths); free(nips); free(loglambdas);   free(ai); free(bi); free(parmon);
-        free(alltaus); free(rest);
+        gsl_vector_free(hampar);
 
       });
     }
@@ -408,30 +393,25 @@ namespace drtmpt {
     {
       int ithread = NOTHREADS - 1;
 
-      double* tavw = 0;  double* tlams = 0; double* loglambdas = 0; gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
-      int* paths = 0; int* nips = 0; double* ai = 0; double* bi = 0; double* parmon = 0;
-      double* alltaus = 0; double* rest = 0;
+      gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
+      std::vector<double> tavw(ifreemax * 3 * indi);
+      std::vector<double> tlams(respno * indi);
+      std::vector<double> loglambdas(indi);
+      std::vector<int> paths(datenzahl);
+      std::vector<int> nips(no_patterns * 2 * indi);
+      std::vector<double> ai(icompg);
+      std::vector<double> bi(respno);
+      std::vector<double> parmon(2 * n_all_parameters);
+      std::vector<double> alltaus(ntau);
+      std::vector<double> rest(datenzahl);
       gsl_rng* rst;
       rst = gsl_rng_alloc(T_rng);
-      parmon = (double*)malloc(2 * n_all_parameters * sizeof(double));
 
-      tavw = (double*)malloc(ifreemax * 3 * indi * sizeof(double));
-      tlams = (double*)malloc(respno * indi * sizeof(double));
-      loglambdas = (double*)malloc(indi * sizeof(double));
-      paths = (int*)malloc(datenzahl * sizeof(int));
-      nips = (int*)malloc(no_patterns * 2 * indi * sizeof(int));
-      ai = (double*)malloc(icompg * sizeof(double));
-      bi = (double*)malloc(respno * sizeof(double));
-      alltaus = (double*)malloc(ntau * sizeof(double));
-      rest = (double*)malloc(datenzahl * sizeof(double));
-
-      // double liknorm[6];
-      // double epsm, activeeps, Hobjective;
       //run sampler ireps times
       gsl_rng_memcpy(rst, rsts[ithread]);
-      pop(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
-      gibbs_and_monitor(daten, nips, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, paths, liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon, rst, NOTHREADS-1, save, sample);
-      push(ithread, n_value_store, n_all_parameters, hampar, tavw, tlams, ai, loglambdas, bi, alltaus, rest, datenzahl, paths, nips, liknorm, activeeps, epsm, Hobjective, valuestore, parmon, parmonstore);
+      pop(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
+      gibbs_and_monitor(daten, nips.data(), hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), paths.data(), liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon.data(), rst, NOTHREADS-1, save, sample.data());
+      push(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
       gsl_rng_memcpy(rsts[ithread], rst);
 
 
@@ -445,7 +425,7 @@ namespace drtmpt {
       if (ithread == 0) ido = 1;
       if (ithread + 1 == NOTHREADS) ido = 3;
 
-      r_statistic(ido, n_all_parameters, NOTHREADS-1, offset + ireps, parmon, xwbr, rmax, imax);
+      r_statistic(ido, n_all_parameters, NOTHREADS-1, offset + ireps, parmon.data(), xwbr.data(), rmax, imax);
 
       //prepare adapt stepsize in phase 1 and phase 3 (each time posterior variance/covariance matrix has been updated)
       if (((((offset + ireps) % interval) == PHASE1) && (phase % 2 == 1)) && (!(save))) {
@@ -470,8 +450,7 @@ namespace drtmpt {
 
       curr_order++;
       gsl_rng_free(rst);
-      gsl_vector_free(hampar); free(tavw); free(tlams);  free(paths); free(nips); free(loglambdas);   free(ai); free(bi); //free(parmon);
-      free(alltaus); free(rest);
+      gsl_vector_free(hampar);
 
     }
 
@@ -538,16 +517,15 @@ namespace drtmpt {
     // 		gsl_vector_free(hampar); free(tavw); free(tlams);  free(paths); free(nips); free(loglambdas);   free(ai); free(bi); free(parmon);
     // 		free(alltaus); free(rest);
     // 	}
-    double* parmon = (double*)malloc(2 * n_all_parameters * sizeof(double));
-    gsl_vector_view t3 = gsl_vector_view_array(parmonstore, 2 * n_all_parameters * NOTHREADS);
+    std::vector<double> parmon(2 * n_all_parameters);
+    gsl_vector_view t3 = gsl_vector_view_array(parmonstore.data(), 2 * n_all_parameters * NOTHREADS);
     gsl_vector_view t4 = gsl_vector_subvector(&t3.vector, 0, 2 * n_all_parameters);
-    gsl_vector_view t5 = gsl_vector_view_array(parmon, 2 * n_all_parameters);
+    gsl_vector_view t5 = gsl_vector_view_array(parmon.data(), 2 * n_all_parameters);
     gsl_vector_memcpy(&t5.vector, &t4.vector);
 
     R_CheckUserInterrupt();
     //show interim results
-    on_screen3(n_all_parameters, xwbr, parmon, consts.data(), rmax, imax, irun);
-    free(parmon);
+    on_screen3(n_all_parameters, xwbr.data(), parmon.data(), consts.data(), rmax, imax, irun);
     R_CheckUserInterrupt();
 
     //from phase 1 to phase 2
@@ -559,18 +537,18 @@ namespace drtmpt {
 
     //from phase 2 to phase 3
     if (((phase == 2) && (offset + ireps >= interval)) && (rmax <= 50.0)) {
-      make_supersigs(offset + ireps, parmonstore, supsig, sigisqrt);
+      make_supersigs(offset + ireps, parmonstore.data(), supsig, sigisqrt);
       gsl_vector_view ty = gsl_vector_view_array(supersig.data(), NOTHREADS * n_all_parameters * n_all_parameters);
       gsl_vector_set_zero(&ty.vector);
       phase = 3;
-      transit_from2_to3(n_all_parameters, parmonstore, n_value_store, valuestore, rsts[0]);
+      transit_from2_to3(n_all_parameters, parmonstore.data(), n_value_store, valuestore.data(), rsts[0]);
       //		char x; std::cin >> x;
       goto RESTART;
     }
 
     //in phase 3,  recalibrate
     if (((phase == 3) && ((offset + ireps) % interval) == 0)) {//&& (!save)) {
-      make_supersigs(offset + ireps, parmonstore, supsig, sigisqrt);
+      make_supersigs(offset + ireps, parmonstore.data(), supsig, sigisqrt);
 
       for (int ii = 0; ii != NOTHREADS; ii++) {
         valuestore[(ii + 1) * n_value_store - 2] = 0.0;
@@ -667,15 +645,11 @@ namespace drtmpt {
     }
     outputFile.close();
 
-    push_continue(n_value_store, irun, valuestore, parmonstore, rsts);
+    push_continue(n_value_store, irun, valuestore.data(), parmonstore.data(), rsts);
 
     removetrees(trees);
 
     if (monitor) free(monitor);
-    if (valuestore) free(valuestore);
-    if (parmonstore) free(parmonstore);
-    if (xwbr) free(xwbr);
-    if (sample) free(sample);
     //if (complete_sample) free(complete_sample);
     R_CheckUserInterrupt();
   }

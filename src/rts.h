@@ -569,17 +569,17 @@ namespace drtmpt {
   extern transform avwtrans[3];
   
   //which tree is a category in
-  extern int *cat2tree;
+  extern std::vector<int> cat2tree;
   //how many paths by category
-  extern int *branch;
+  extern std::vector<int> branch;
   //see above under define AR
-  extern int *ar;
+  extern std::vector<int> ar;
   //how many nodes per subtree
-  extern int *nodes_per_tree;
+  extern std::vector<int> nodes_per_tree;
   //see above under define TREE_AND_NODE2PAR
-  extern int *tree_and_node2par;
+  extern std::vector<int> tree_and_node2par;
   //dito
-  extern int* tree_and_node2map;
+  extern std::vector<int> tree_and_node2map;
   //dito
   extern std::vector<char> comp;
   //how many parameters (after accounting for equality constraints) of each type; sum thereof; maximum per type
@@ -587,19 +587,20 @@ namespace drtmpt {
   //how many parameters (after accounting for equality constraints and constants) of each type; sum thereof
   extern int icomp[3], icompg;
   //how many trials by person
-  extern int* n_per_subj;
+  extern std::vector<int> n_per_subj;
   
   //offsets in index numbers (hampar) for individual deviations diffusion-model parameters; mean motor times; individual deviations motor times; diffusion-model deviations variance-covariance matrix-related parameters
   extern int iavwoff, irmuoff, ilamoff, isigoff;
   
   //see above under define NNODES
-  extern int* nnodes;
+  extern std::vector<int> nnodes;
   //see above under define; pfadmax[c] = maximum number of interior nodes on a path ending in category c
-  extern int *ndrin,*drin, *cdrin, *ncdrin, *pfadmax;
+  extern std::vector<int> ndrin, drin, cdrin, ncdrin;
+  extern std::vector<int> pfadmax;
   //number of trials with response r by person
-  extern int *nppr;
+  extern std::vector<int> nppr;
   //see above under define TAU_BY_NODE
-  extern int* tau_by_node;
+  extern std::vector<int> tau_by_node;
   //minimum size of Gibbs-Hamiltonian cycles before interim report
   extern int ireps;
   //see above under define KERN2FREE
@@ -611,15 +612,15 @@ namespace drtmpt {
   //some performance statistics
   extern double *monitor;
   //see above under define MAP
-  extern int* map;
+  extern std::vector<int> map;
   //see above under define COMB
-  extern int* comb;
+  extern std::vector<int> comb;
   //number of different diffusion-model parameter combinations
   extern int no_patterns;
   //see above under define MAPMAVW
-  extern int* mapmavw;
+  extern std::vector<int> mapmavw;
   //see above under define MAPAVW
-  extern int* mapavw;
+  extern std::vector<int> mapavw;
   //minimum rt associated with person, parameter combination, and outcome
   extern std::vector<double> rtmins;
   //batch size for storing posterior samples

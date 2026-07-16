@@ -1645,7 +1645,7 @@ namespace drtmpt {
       int n = dDRIN(c, path, in), pm = (1 + dAR(c, path, n)) / 2;
       alltaus[dTAU_BY_NODE(itrial, n, pm)] = taus[in];
     }
-    make_taus_one_trial(one, itrial, path, tavw, tau_by_node, alltaus, ars_store, rst);
+    make_taus_one_trial(one, itrial, path, tavw, tau_by_node.data(), alltaus, ars_store, rst);
     
     if (k > 1) {
       
