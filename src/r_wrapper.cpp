@@ -88,7 +88,7 @@ namespace drtmpt {
   double RMAX;
 
   // sample
-  double *complete_sample = 0;
+  std::vector<double> complete_sample;
 
   // whether DIC is computed or not
   bool DIC;
@@ -383,7 +383,7 @@ extern "C" {
     }
 
 
-    if (complete_sample) free(complete_sample);
+    R_CheckUserInterrupt();
 
 
 

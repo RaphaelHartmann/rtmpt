@@ -311,7 +311,7 @@ namespace drtmpt {
    */
   
   // sample
-  extern double *complete_sample;
+  extern std::vector<double> complete_sample;
   
   // output file path
   extern const char *RAUS;

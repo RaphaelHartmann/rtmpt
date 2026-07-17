@@ -312,7 +312,7 @@ namespace drtmpt {
       std::string tempPath = std::string(TMPDIR) + "temp";
       std::rename(RAUS, tempPath.c_str());
       pop_continue(n_value_store, irun, valuestore.data(), parmonstore.data(), rsts);
-      if (!(complete_sample = (double*)malloc(SAMPLE_SIZE * (n_all_parameters) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+      complete_sample.resize(SAMPLE_SIZE * (n_all_parameters));
     }
     // reicht nicht iresp = IREP generell, wenn Phase1 und Phase2 Vielfaches davon?
     if (phase == 1) ireps = std::min(IREP, PHASE1); else if (phase == 2) ireps = std::min(IREP, PHASE2); else ireps = IREP;
@@ -566,7 +566,7 @@ namespace drtmpt {
       save = true;
       phase = 4;
       std::remove(RAUS);
-      if (!(complete_sample = (double*)malloc(SAMPLE_SIZE * (n_all_parameters) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+      complete_sample.resize(SAMPLE_SIZE * (n_all_parameters));
       goto RESTART;
     }
 

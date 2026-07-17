@@ -1304,7 +1304,7 @@ namespace drtmpt {
   // #define SSIG(I,J) ssig[I*nvar + J]
   // #define XX(T,J) xx[T*nvar + J]
   #define XB(T,J) xb[T*nvar+J]
-    double* xb; if (!(xb = (double*)malloc(nvar * (cases + nvar + nprior) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> xb(nvar * (cases + nvar + nprior));
     gsl_matrix* cx = gsl_matrix_alloc(nvar, nvar); // initializes to zero
     gsl_matrix_view XXX = gsl_matrix_view_array(xx, cases + nvar + nprior, nvar);
     
@@ -1323,7 +1323,7 @@ namespace drtmpt {
     
     int nloop = nvar * (cases + nvar + nprior);
     for (int ih = 0; ih != nloop; ih++) xb[ih] = onenorm(rst);
-    gsl_matrix_view XB = gsl_matrix_view_array(xb, nvar, cases + nvar + nprior);
+    gsl_matrix_view XB = gsl_matrix_view_array(xb.data(), nvar, cases + nvar + nprior);
     gsl_blas_dtrmm(CblasLeft, CblasLower, CblasTrans, CblasNonUnit, 1.0, cx, &XB.matrix);
     gsl_blas_dsyrk(CblasLower, CblasNoTrans, 1.0, &XB.matrix, 0.0, cx);
     
@@ -1348,39 +1348,36 @@ namespace drtmpt {
     gsl_matrix_memcpy(&tssig.matrix, cx);
     
     gsl_matrix_free(cx);
-    free(xb);
     
   }
   
   //rgam - covariance motor times gibbs sampler phase<=2
   void make_rgam(gsl_vector* hampar, double* gam, double* gami, gsl_matrix* cr,  double* bi, gsl_rng* rst) {
     
-    double* xr = 0;	if (!(xr = (double*)malloc((indi + respno + huang - 1) * (respno) * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    gsl_vector_view t0 = gsl_vector_view_array(xr, (indi + respno + huang - 1) * respno);
+    std::vector<double> xr((indi + respno + huang - 1) * respno);
+    gsl_vector_view t0 = gsl_vector_view_array(xr.data(), (indi + respno + huang - 1) * respno);
     gsl_vector_view xxr = gsl_vector_subvector(&t0.vector, 0, indi * respno);
     gsl_vector_view t1 = gsl_vector_subvector(hampar, ilamoff, indi * respno);
     gsl_vector_memcpy(&xxr.vector, &t1.vector);
     
-    invwis(indi, respno, xr, gam, gami, cr, huang - 1, bi, rst);
+    invwis(indi, respno, xr.data(), gam, gami, cr, huang - 1, bi, rst);
     double tausq = gsl_pow_2(taur);
     for (int i = 0; i != respno; i++) bi[i] = gsl_ran_gamma(rst, (respno + huang) * 0.5, 1.0 / (huang * dGAMI(i, i) + 1.0 / tausq));
-    if (xr) free(xr);
   }
   
   //sig - covariance person random effects in a, v, and w, phase <=2
   void sample_sig(gsl_vector* hampar, double* sig, double* sigi, gsl_matrix* cx, double* ai, gsl_rng* rst) {
     
     
-    double* xy = 0;	if (!(xy = (double*)malloc((indi + icompg + huang - 1) * icompg * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    gsl_vector_view t0 = gsl_vector_view_array(xy, (indi + icompg + huang - 1) * icompg);
+    std::vector<double> xy((indi + icompg + huang - 1) * icompg);
+    gsl_vector_view t0 = gsl_vector_view_array(xy.data(), (indi + icompg + huang - 1) * icompg);
     gsl_vector_view xxy = gsl_vector_subvector(&t0.vector,0, indi * icompg);
     gsl_vector_view t1 = gsl_vector_subvector(hampar, igroup * icompg, indi * icompg);
     gsl_vector_memcpy(&xxy.vector, &t1.vector);
     
-    invwis(indi, icompg, xy, sig, sigi, cx, huang - 1, ai, rst);
+    invwis(indi, icompg, xy.data(), sig, sigi, cx, huang - 1, ai, rst);
     double tausq = gsl_pow_2(taut);
     for (int i = 0; i != icompg; i++) ai[i] = gsl_ran_gamma(rst, (icompg + huang) * 0.5, 1.0 / (huang * dSIGI(i, i) + 1.0 / tausq));
-    if (xy) free(xy);
   }
   
   double double_trunct(double lower, double upper, double plow, double help, gsl_rng* rst) {
@@ -1419,7 +1416,7 @@ namespace drtmpt {
   
   void make_taus_met_hast(double rt, int pfadlength, int t, double* as, double* vs, double* ws, int* maps, int* low_or_up, double trmu, double tsig, double* taus, double& rest_old, ars_archiv& ars_store, gsl_rng* rst)
   {
-    double* taun = (double*)malloc(pfadlength * sizeof(double));
+    std::vector<double> taun(pfadlength);
     double lower = -trmu / tsig, upper = (rt - trmu) / tsig;
     double plow = gsl_cdf_tdist_P(lower, degf);
     double help = gsl_cdf_tdist_P(upper, degf) - plow;
@@ -1453,12 +1450,12 @@ namespace drtmpt {
       
       double a = aa - ac;
       if ((aa > ac) || (log(oneuni(rst)) <= a)) {
-        accept(pfadlength, taun, taus, xt, rest_old, aa, ac);
+        accept(pfadlength, taun.data(), taus, xt, rest_old, aa, ac);
         //#pragma omp atomic
         //			MONITOR(1, 4)++;
       }
     }
-    END:	free(taun);
+    END:	;
   }
   
   // sample taus on path
@@ -1467,7 +1464,7 @@ namespace drtmpt {
     int icount=0;
     int acc = 0;
     
-    double* tauc = (double*)malloc(pfadlength * sizeof(double));
+    std::vector<double> tauc(pfadlength);
     for (int x = 0; x != pfadlength; x++) tauc[x] = taus[x];
     double restc = rest_old;
     
@@ -1501,14 +1498,14 @@ namespace drtmpt {
     if (u > neuw_m) {
       double a = neuw_m - neuwc;
       if ((neuw_m > neuwc) || (log(oneuni(rst)) <= a)) {
-        accept(pfadlength, taus, tauc, rest_old, restc, neuw_m, neuwc);
+        accept(pfadlength, taus, tauc.data(), rest_old, restc, neuw_m, neuwc);
         acc++;
       }
       icount++;
       if (((phase >= 3) || (icount <= 1000000)) && (icount <= 10000000)) goto NEW2; // || (phase3)) goto NEW;
       else {
         //			std::cout << "zu dumm";
-        make_taus_met_hast(rt, pfadlength, t, as, vs, ws, maps, low_or_up, trmu, tsig, tauc, restc, ars_store, rst);
+        make_taus_met_hast(rt, pfadlength, t, as, vs, ws, maps, low_or_up, trmu, tsig, tauc.data(), restc, ars_store, rst);
         for (int x = 0; x != pfadlength; x++) taus[x] = tauc[x];
         rest_old = restc;
         //#pragma omp atomic
@@ -1520,7 +1517,6 @@ namespace drtmpt {
       }
     }
     for (int x = 0; x != pfadlength; x++) taus[x] *= low_or_up[x];
-    free(tauc);
   }
   
   
@@ -1612,15 +1608,15 @@ namespace drtmpt {
     int pfadma = pfadmax[c];
     
     
-    double* as = 0; if (!(as = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* vs = 0; if (!(vs = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* ws = 0; if (!(ws = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    int* low_or_up = 0; if (!(low_or_up = (int*)malloc(pfadma * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    int* maps = 0; if (!(maps = (int*)malloc(pfadma * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    double* taus = 0; if (!(taus = (double*)malloc(pfadma * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> as(pfadma);
+    std::vector<double> vs(pfadma);
+    std::vector<double> ws(pfadma);
+    std::vector<int> low_or_up(pfadma);
+    std::vector<int> maps(pfadma);
+    std::vector<double> taus(pfadma);
     
-    double* pj = 0; if (!(pj = (double*)malloc(k * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* delta = 0; if (!(delta = (double*)malloc(k * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> pj(k);
+    std::vector<double> delta(k);
     
     
     int akt_pflength = dNDRIN(c, path);
@@ -1640,7 +1636,7 @@ namespace drtmpt {
       delta[path] -= taus[in];
       //			if (delta[path] < 0) std::cout << "aha";
     }
-    make_taus_integrated(rt, akt_pflength, t, as, vs, ws, maps, low_or_up, trmu, tsig, taus, delta[path], ars_store, rst);
+    make_taus_integrated(rt, akt_pflength, t, as.data(), vs.data(), ws.data(), maps.data(), low_or_up.data(), trmu, tsig, taus.data(), delta[path], ars_store, rst);
     for (int in = 0; in != akt_pflength; in++) {
       int n = dDRIN(c, path, in), pm = (1 + dAR(c, path, n)) / 2;
       alltaus[dTAU_BY_NODE(itrial, n, pm)] = taus[in];
@@ -1649,7 +1645,7 @@ namespace drtmpt {
     
     if (k > 1) {
       
-      pj[path] = fypgtau_and_path(akt_pflength, as, vs, ws, trmu, tsig, taus, delta[path]);
+      pj[path] = fypgtau_and_path(akt_pflength, as.data(), vs.data(), ws.data(), trmu, tsig, taus.data(), delta[path]);
       
       double pjsum = GSL_NEGINF;
       // Pfadwahl multinomial probabilities
@@ -1666,7 +1662,7 @@ namespace drtmpt {
           taus[in] = alltaus[help];
           delta[j] -= fabs(taus[in]);
         }
-        pj[j] = fypgtau_and_path(dNDRIN(c, j), as, vs, ws, trmu, tsig, taus, delta[j]);
+        pj[j] = fypgtau_and_path(dNDRIN(c, j), as.data(), vs.data(), ws.data(), trmu, tsig, taus.data(), delta[j]);
       }
       for (int j = 0; j != k; j++) pjsum = logsum(pjsum, pj[j]);
       double u = pjsum + log(oneuni(rst));
@@ -1683,14 +1679,7 @@ namespace drtmpt {
     path = new_path; rest[itrial] = delta[path];
     
     
-    if (as) free(as);
-    if (vs) free(vs);
-    if (ws) free(ws);
-    if (low_or_up) free(low_or_up);
-    if (maps) free(maps);
-    if (taus) free(taus);
-    if (pj) free(pj);
-    if (delta) free(delta);
+
   }
 
 }
