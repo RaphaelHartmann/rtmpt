@@ -468,8 +468,7 @@ namespace drtmpt {
   #define dCOMP(Type,IP) comp[IP*3 + Type]
   
   //some performance statistics
-  //#define MONITOR(I,IP) monitor[I*2*10 + IP]
-  
+
   //map parameter combination on index
   #define dMAP(IA,IV,IW) map[IA*ifree[1]*ifree[2] + IV*ifree[2] + IW]
   //index of parameter combination N's ifree numbers by type
@@ -610,7 +609,6 @@ namespace drtmpt {
   //constant value by parameter; -1 for parameters to be estimated
   extern std::vector<double> consts;
   //some performance statistics
-  extern double *monitor;
   //see above under define MAP
   extern std::vector<int> map;
   //see above under define COMB

@@ -1560,8 +1560,7 @@ namespace drtmpt {
     int *tree2cat = 0; if (!(tree2cat = (int *)malloc(kerntree*kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
     
     
-    if (!(monitor = (double*)malloc(2 * 2 * 10 * sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    n_all_parameters = icompg*igroup + indi * icompg + (icompg * (icompg + 1)) / 2 + respno*igroup + (respno + 1) * indi + (respno * (respno + 1)) / 2 + 1;
+n_all_parameters = icompg*igroup + indi * icompg + (icompg * (icompg + 1)) / 2 + respno*igroup + (respno + 1) * indi + (respno * (respno + 1)) / 2 + 1;
     //                    ma,mv,mw  a,v,w            sig                           rmu     lambdas+sig_t          gam            omega
     
     double* sample = 0;
@@ -1585,7 +1584,6 @@ namespace drtmpt {
     if (jks) free(jks);
     if (tree2cat) free(tree2cat);
     if (sample) free(sample);
-    if (monitor) free(monitor);
     
   }
 

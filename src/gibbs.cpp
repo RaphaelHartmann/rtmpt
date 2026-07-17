@@ -242,7 +242,6 @@ namespace drtmpt {
     muplus = log(10 * xeps);
     double epsm = 0.0; double activeeps = xeps; double Hobjective = 0.0;
     double liknorm[6] = { 0 * 6 };
-    monitor = (double*)calloc(2 * 2 * 10, sizeof(double));
 
     //minimum number of samples for posterior variance/covariance estimate in phase 2 and for online updating in phase 3
     int interval = std::max(PHASE2, 5 * n_all_parameters);
@@ -649,7 +648,6 @@ namespace drtmpt {
 
     removetrees(trees);
 
-    if (monitor) free(monitor);
     //if (complete_sample) free(complete_sample);
     R_CheckUserInterrupt();
   }

@@ -449,7 +449,6 @@ namespace drtmpt {
 
   //int* kern2free = 0;
   // double *consts = 0;
-  double *monitor = 0;
 
   std::vector<int> map;
   std::vector<int> comb;
