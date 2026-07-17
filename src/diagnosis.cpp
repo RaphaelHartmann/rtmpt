@@ -697,13 +697,13 @@ namespace drtmpt {
   std::ofstream tests_out;
   
   //read file with posterior samples
-  void lies_sample(int n_all_parameters, double*& sample) {
+  void lies_sample(int n_all_parameters, std::vector<double>& sample) {
     
     std::ifstream rein(RAUS);
     int is, in;
     rein >> is >> in;
     
-    if (!(sample = (double*)malloc(is * (n_all_parameters) * sizeof(double)))) { Rprintf("Allocation failure in Diagnose\n"); }
+    sample.resize(is * n_all_parameters);
     Rprintf("\nSample size is %20d\n", is);
     sample_size = is;
     if (in != (n_all_parameters)) Rprintf("HO\n");
@@ -762,15 +762,15 @@ namespace drtmpt {
   #define dMTAVW(T, Type, IP) mtavw[T * 3 * ifreemax + Type * ifreemax + IP]
   
   void write_ind_estimates(double* sample) {
-    double* tavw = 0; if (!(tavw = (double*)calloc(ifreemax * 3 * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* lambdas = 0; if (!(lambdas = (double*)calloc((respno + 1) * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* mtavw = 0; if (!(mtavw = (double*)calloc(ifreemax * 3 * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* mlambdas = 0; if (!(mlambdas = (double*)calloc((respno + 1) * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> tavw(ifreemax * 3 * indi, 0.0);
+    std::vector<double> lambdas((respno + 1) * indi, 0.0);
+    std::vector<double> mtavw(ifreemax * 3 * indi, 0.0);
+    std::vector<double> mlambdas((respno + 1) * indi, 0.0);
     
     std::ofstream person("persons");
     for (int is = 0; is != sample_size; is++) {
       double r = 1.0 / (is + 1);
-      belege_ts(sample, is, tavw);
+      belege_ts(sample, is, tavw.data());
       for (int t = 0; t != indi; t++)
         for (int type = 0; type != 3; type++) {
           int ift = ifree[type];
@@ -781,7 +781,7 @@ namespace drtmpt {
           }
         }
         
-      belege_lambdas_mus(sample, is, lambdas);
+      belege_lambdas_mus(sample, is, lambdas.data());
       int resin = (respno + 1) * indi;
       for (int ir = 0; ir != resin; ir++) mlambdas[ir] += (lambdas[ir] - mlambdas[ir]) * r;
     }
@@ -798,10 +798,7 @@ namespace drtmpt {
       }
     }
     person.close();
-    if (tavw) free(tavw);
-    if (lambdas) free(lambdas);
-    if (mtavw) free(mtavw);
-    if (mlambdas) free(mlambdas);
+
   }
   
   
@@ -809,7 +806,7 @@ namespace drtmpt {
   void quantiles(const std::vector<trial> & daten, int n_all_parameters, double* sample) {
     
     double  qv[5];
-    double* temp = 0; if (!(temp = (double*)malloc(sample_size * sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> temp(sample_size);
     //std::streamsize prec = std::cout.precision(); std::cout << std::setprecision(4);
     if (save_diagnose) tests_out << std::setprecision(4);
     Rprintf("mean thresholds per group [median, 96 and 99%% HDI]\n");
@@ -819,9 +816,9 @@ namespace drtmpt {
       int jz = 0;
       for (int iz = 0; iz != if0; iz++) if (dCOMP(0, iz)) {
         for (int j = 0; j != sample_size; j++) temp[j] = logit(avwtrans[0], dSAMPLE(j, jz + ig * icompg));
-        gsl_sort(temp, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-        double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(temp.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%3d%3d", ig + 1, jz + 1);
         for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
         Rprintf("\n");
@@ -835,9 +832,9 @@ namespace drtmpt {
       int jz = 0;
       for (int iz = 0; iz != if1; iz++) if (dCOMP(1, iz)) {
         for (int j = 0; j != sample_size; j++) temp[j] = logit(avwtrans[1], dSAMPLE(j, jz + icomp[0] + ig * icompg));
-        gsl_sort(temp, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-        double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(temp.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%3d%3d", ig + 1, jz + 1);
         for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
         Rprintf("\n");
@@ -851,9 +848,9 @@ namespace drtmpt {
       int jz = 0;
       for (int iz = 0; iz != if2; iz++) if (dCOMP(2, iz)) {
         for (int j = 0; j != sample_size; j++) temp[j] = logit(avwtrans[2], dSAMPLE(j, jz + icomp[0] + icomp[1] + ig * icompg));
-        gsl_sort(temp, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-        double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(temp.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%3d%3d", ig + 1, jz + 1);
         for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
         Rprintf("\n");
@@ -869,9 +866,9 @@ namespace drtmpt {
       for (int jz = ix; jz != icompg; jz++) {
         iz++;
         for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
-        gsl_sort(temp, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-        double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(temp.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%3d%3d", ix + 1, jz + 1);
         for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
         Rprintf("\n");
@@ -885,9 +882,9 @@ namespace drtmpt {
     
     for (int ir = 0; ir != igroup * respno; ir++) {
       for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, (iz + ir));
-      gsl_sort(temp, 1, sample_size);
-      qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-      double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+      gsl_sort(temp.data(), 1, sample_size);
+      qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+      double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
       for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
       Rprintf("\n");
       if (save_diagnose) { for (int iq = 0; iq != 5; iq++) tests_out << std::setw(12) << qv[iq]; tests_out << std::endl; }
@@ -900,9 +897,9 @@ namespace drtmpt {
       for (int jp = ip; jp != respno; jp++) {
         iz++;
         for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
-        gsl_sort(temp, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-        double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(temp.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%3d%3d", ip + 1, jp + 1);
         for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
         Rprintf("\n");
@@ -914,9 +911,9 @@ namespace drtmpt {
     if (save_diagnose) tests_out << "Residual variance" << std::endl;
     iz = n_all_parameters - 1;
     for (int j = 0; j != sample_size; j++) temp[j] = dSAMPLE(j, iz);
-    gsl_sort(temp, 1, sample_size);
-    qv[2] = gsl_stats_median_from_sorted_data(temp, 1, sample_size);
-    double iv[2]; hdi(sample_size, temp, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+    gsl_sort(temp.data(), 1, sample_size);
+    qv[2] = gsl_stats_median_from_sorted_data(temp.data(), 1, sample_size);
+    double iv[2]; hdi(sample_size, temp.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, temp.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
     for (int iq = 0; iq != 5; iq++) Rprintf("%12.4g", qv[iq]);
     Rprintf("\n");
     if (save_diagnose) {
@@ -926,9 +923,8 @@ namespace drtmpt {
     
     // Daten zum Vergleich:
     double s = 0.0;
-    double* u = 0; if (!(u = (double*)malloc(indi * sizeof(double)))) { Rprintf("Allocation failure\n");  }
-    int* nj = 0; if (!(nj = (int*)malloc(indi * sizeof(int)))) { Rprintf("Allocation failure\n"); }
-    for (int t = 0; t != indi; t++) { u[t] = 0.0; nj[t] = 0; }
+    std::vector<double> u(indi, 0.0);
+    std::vector<int> nj(indi, 0);
     
     for (int i = 0; i != datenzahl; i++) { u[daten[i].person] += daten[i].rt / 1000.0; nj[daten[i].person]++; }
     for (int t = 0; t != indi; t++) { u[t] /= nj[t]; }
@@ -943,9 +939,6 @@ namespace drtmpt {
       tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
     }
     
-    if (temp) free(temp);
-    if (u) free(u);
-    if (nj) free(nj);
     R_CheckUserInterrupt();
   }
   
@@ -957,10 +950,10 @@ namespace drtmpt {
     
     for (int k = 0; k != branch[j]; k++) {
       int pfadlength = dNDRIN(j, k);
-      double* a = (double*)malloc(pfadlength * sizeof(double));
-      double* v = (double*)malloc(pfadlength * sizeof(double));
-      double* w = (double*)malloc(pfadlength * sizeof(double));
-      int* low_or_up = (int*)malloc(pfadlength * sizeof(int));
+      std::vector<double> a(pfadlength);
+      std::vector<double> v(pfadlength);
+      std::vector<double> w(pfadlength);
+      std::vector<int> low_or_up(pfadlength);
       for (int ir = 0; ir != pfadlength; ir++) {
         int r = dDRIN(j, k, ir);
         low_or_up[ir] = dAR(j, k, r);
@@ -970,9 +963,8 @@ namespace drtmpt {
       }
       
       std::vector<double> pbranch; pbranch.clear();
-      convolution2(rts, pfadlength, low_or_up, a, v, w, mu, sig, pbranch);
+      convolution2(rts, pfadlength, low_or_up.data(), a.data(), v.data(), w.data(), mu, sig, pbranch);
       p.push_back(pbranch);
-      free(a); free(v); free(w); free(low_or_up);
     }
     ps.clear();
     for (int x = 0; x != static_cast<int>(rts.size()); x++) {
@@ -991,11 +983,11 @@ namespace drtmpt {
 
     double dbar = 0.0, pv = 0.0; //, pd = 0.0
     
-    double* tavw = 0; if (!(tavw = (double*)calloc(ifreemax * 3 * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* lambdas = 0; if (!(lambdas = (double*)calloc((respno + 1) * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> tavw(ifreemax * 3 * indi, 0.0);
+    std::vector<double> lambdas((respno + 1) * indi, 0.0);
     
-    double* tavw_old = 0; if (!(tavw_old = (double*)calloc(ifreemax * 3 * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
-    double* lambdas_old = 0; if (!(lambdas_old = (double*)calloc((respno + 1) * indi, sizeof(double)))) { Rprintf("Allocation failure\n"); }
+    std::vector<double> tavw_old(ifreemax * 3 * indi, 0.0);
+    std::vector<double> lambdas_old((respno + 1) * indi, 0.0);
     
     
     std::vector<double> temp; temp.clear();
@@ -1028,13 +1020,13 @@ namespace drtmpt {
       progress = 1.0*(is+1)/sample_size;
       
       double persample = 0.0;
-      belege_ts(sample, is, tavw);
-      belege_lambdas_mus(sample, is, lambdas);
+      belege_ts(sample, is, tavw.data());
+      belege_lambdas_mus(sample, is, lambdas.data());
       bool same = true;
       for (int i = 0; (i != 3 * ifreemax * indi) && (same); i++) same = (same) && (tavw[i] == tavw_old[i]);
       if (same) for (int i = 0; (i != (respno + 1) * indi) && (same); i++) same = (same) && (lambdas[i] == lambdas_old[i]);
       if (!same) {
-        double* icpersample = (double*)calloc(kerncat * indi, sizeof(double));
+        std::vector<double> icpersample(kerncat * indi, 0.0);
         
         /* prepare threads */
         int NThreads = DIC_CPUs;
@@ -1058,7 +1050,7 @@ namespace drtmpt {
                   int r = cat2resp[j];
                   double mu = lambdas[t * respno + r]; double sig = lambdas[indi * respno + t];
                   double xsi = log(gsl_cdf_tdist_P(mu / sig, degf) * sig);
-                  make_p_ind_cat(icdaten[t * kerncat + j], t, j, tavw, mu, sig, ps);
+                  make_p_ind_cat(icdaten[t * kerncat + j], t, j, tavw.data(), mu, sig, ps);
                   for (int x = 0; x != static_cast<int>(icdaten[t * kerncat + j].size()); x++) {
                     double p = ps[x];
                     if ((p <= 0) || !(p == p))
@@ -1084,7 +1076,7 @@ namespace drtmpt {
               int r = cat2resp[j];
               double mu = lambdas[t * respno + r]; double sig = lambdas[indi * respno + t];
               double xsi = log(gsl_cdf_tdist_P(mu / sig, degf) * sig);
-              make_p_ind_cat(icdaten[t * kerncat + j], t, j, tavw, mu, sig, ps);
+              make_p_ind_cat(icdaten[t * kerncat + j], t, j, tavw.data(), mu, sig, ps);
               for (int x = 0; x != static_cast<int>(icdaten[t * kerncat + j].size()); x++) {
                 double p = ps[x];
                 if ((p <= 0) || !(p == p))
@@ -1105,7 +1097,6 @@ namespace drtmpt {
         
         
         for (int tj = 0; tj != indi * kerncat; tj++)  persample += icpersample[tj];
-        if (icpersample) free(icpersample);
       }
       if (log_lik_flag) {
         for (int t = 0; t < indi; t++) {
@@ -1166,10 +1157,6 @@ namespace drtmpt {
       tests_out << std::setw(15) << pv + dbar << std::setw(15) << pv << std::endl;
     }
     // log_lik.close();
-    if (lambdas) free(lambdas);
-    if (tavw) free(tavw);
-    if (tavw_old) free(tavw_old);
-    if (lambdas_old) free(lambdas_old);
     R_CheckUserInterrupt();
   }
   
@@ -1253,44 +1240,44 @@ namespace drtmpt {
     int exit_status = 1;
     int keig = kerncat * igroup; //kein = kerncat * indi, 
     
-    double* tavw = 0; if (!(tavw = (double*)malloc(ifreemax * 3 * indi * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> tavw(ifreemax * 3 * indi);
     
-    double* t1 = 0; if (!(t1 = (double*)calloc(sample_size , sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* t2 = 0; if (!(t2 = (double*)calloc(sample_size , sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* tt1 = 0; if (!(tt1 = (double*)calloc(sample_size , sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* tt2 = 0; if (!(tt2 = (double*)calloc(sample_size , sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> t1(sample_size, 0.0);
+    std::vector<double> t2(sample_size, 0.0);
+    std::vector<double> tt1(sample_size, 0.0);
+    std::vector<double> tt2(sample_size, 0.0);
     
-    double* expe = 0; if (!(expe = (double*)malloc(kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    int* rep = 0; if (!(rep = (int*)malloc(kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> expe(kerncat);
+    std::vector<int> rep(kerncat);
     
-    int* sobs = 0; if (!(sobs = (int*)calloc(keig, sizeof(int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* sexp = 0; if (!(sexp = (double*)malloc(keig * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    int* srep = 0; if (!(srep = (int*)malloc(keig * sizeof(int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<int> sobs(keig, 0);
+    std::vector<double> sexp(keig);
+    std::vector<int> srep(keig);
     
     //	double* tobs = 0; if (!(tobs = (double*)calloc(kerncat, sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* texp = 0; if (!(texp = (double*)malloc(kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* trep = 0; if (!(trep = (double*)malloc(kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> texp(kerncat);
+    std::vector<double> trep(kerncat);
     
-    double* stobs = 0; if (!(stobs = (double*)calloc(keig , sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* stexp = 0; if (!(stexp = (double*)malloc(keig * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* strep = 0; if (!(strep = (double*)malloc(keig * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> stobs(keig, 0.0);
+    std::vector<double> stexp(keig);
+    std::vector<double> strep(keig);
     
-    double* pij = 0; if (!(pij = (double*)malloc(zweig * kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* onepij = 0; if (!(onepij = (double*)malloc(zweig * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* x = 0; if (!(x = (double*)malloc(no_patterns * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> pij(zweig * kerncat);
+    std::vector<double> onepij(zweig);
+    std::vector<double> x(no_patterns);
     
-    double* tdaten = 0; if (!(tdaten = (double*)calloc(indi * kerncat, sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> tdaten(indi * kerncat, 0.0);
     
-    int* nobs = 0; if (!(nobs = (int*)calloc(keig, sizeof(int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    int* ntree = 0; if (!(ntree = (int*)calloc(igroup * kerntree, sizeof(int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    int* nrep = 0; if (!(nrep = (int*)malloc(keig * sizeof(int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<int> nobs(keig, 0);
+    std::vector<int> ntree(igroup * kerntree, 0);
+    std::vector<int> nrep(keig);
     
-    double* d = 0; if (!(d = (double*)malloc(kerncat * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* x1 = 0; if (!(x1 = (double*)calloc(keig, sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* xt1 = 0; if (!(xt1 = (double*)calloc(keig, sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* x2 = 0; if (!(x2 = (double*)calloc(keig * sample_size, sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* xt2 = 0; if (!(xt2 = (double*)calloc(keig * sample_size, sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    unsigned int* drep = 0; if (!(drep = (unsigned int*)malloc(kerncat * sizeof(unsigned int)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> d(kerncat);
+    std::vector<double> x1(keig, 0.0);
+    std::vector<double> xt1(keig, 0.0);
+    std::vector<double> x2(keig * sample_size, 0.0);
+    std::vector<double> xt2(keig * sample_size, 0.0);
+    std::vector<unsigned int> drep(kerncat);
     
   #define dX1(IG,J) x1[IG*kerncat+J]
   #define dXT1(IG,J) xt1[IG*kerncat+J]
@@ -1330,11 +1317,11 @@ namespace drtmpt {
     for (int is = 0; is != sample_size; is++) {
       for (int j = 0; j != keig; j++) { sexp[j] = 0.0; srep[j] = 0; stexp[j] = strep[j] = 0.0; nrep[j] = 0; }
       // compute exp pro Person und rep pro Person; aggregate, compute chi-square
-      belege_ts(sample, is, tavw);
+      belege_ts(sample, is, tavw.data());
       bool change = (is==0)?true:dSAMPLE(is,0)!=dSAMPLE(is-1,0);
       if (change) {
         ars_store.hstore.clear(); ars_store.lowerstore.clear(); ars_store.startstore.clear(); ars_store.upperstore.clear(); ars_store.scalestore.clear(); ars_store.normstore.clear(); ars_store.sstore.clear();
-        for (int t = 0; t != indi; t++) initialize_ars(t, tavw, ars_store);
+        for (int t = 0; t != indi; t++) initialize_ars(t, tavw.data(), ars_store);
       }
       //		char xy; std::cin >> xy;
       for (int t = 0; t != indi; t++) {
@@ -1343,7 +1330,7 @@ namespace drtmpt {
           int ia = t * 3 * ifreemax + dCOMB(im, 0), iv = t * 3 * ifreemax + ifreemax + dCOMB(im, 1), iw = t * 3 * ifreemax + 2 * ifreemax + dCOMB(im, 2);
           x[im] = exp(logprob_upperbound(1, tavw[ia], tavw[iv], tavw[iw]));
         }
-        make_pij_for_individual(x, pij, expe);
+        make_pij_for_individual(x.data(), pij.data(), expe.data());
         
         for (int j = 0; j != kerncat; j++) {
           int r = cat2resp[j];
@@ -1377,7 +1364,7 @@ namespace drtmpt {
             d[j] = expe[dTREE2CAT(it, j)];
             drep[j] = 0;
           }
-          gsl_ran_multinomial(rst, jks[it], dNKS(t, it), d, drep);
+          gsl_ran_multinomial(rst, jks[it], dNKS(t, it), d.data(), drep.data());
           for (int j = 0; j != jksit; j++) rep[dTREE2CAT(it, j)] = drep[j];
         }
         int ig = t2group[t];
@@ -1395,7 +1382,7 @@ namespace drtmpt {
             double temp = 0.0;
             int brj = branch[j];
             for (int k = 0; k != brj; k++) onepij[k] = dPIJ(j, k);
-            int ipath = make_path_for_one_trial(branch[j], onepij, rst);
+            int ipath = make_path_for_one_trial(branch[j], onepij.data(), rst);
             int ndjip = dNDRIN(j, ipath);
             for (int xr = 0; xr != ndjip; xr++) {
               int r = dDRIN(j, ipath, xr);
@@ -1439,7 +1426,7 @@ namespace drtmpt {
       }
     }
     
-    test(t1, t2, "Posterior predictive checks: frequencies");
+    test(t1.data(), t2.data(), "Posterior predictive checks: frequencies");
     
     double qv[5];
     std::ofstream meansout(MEANSOUT);
@@ -1454,9 +1441,9 @@ namespace drtmpt {
         int correct = 0; correct = ((tartype == 0) && (old_new == 1)) || ((tartype > 0) && (old_new == 0));
         meansout << std::setw(3) << old_new << std::setw(3) << tartype << std::setw(3) << bias << std::setw(12) << dX1(ig, j);
         for (int is = 0; is != sample_size; is++) t2[is] = dX2(is, ig, j);
-        gsl_sort(t2, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(t2, 1, sample_size);
-        double iv[2]; hdi(sample_size, t2, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, t2, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(t2.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(t2.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, t2.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, t2.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
         meansout << std::setw(12) << qv[1] << std::setw(12) << qv[2] << std::setw(12) << qv[3] << std::setw(3) << correct << std::endl;
       }
@@ -1464,7 +1451,7 @@ namespace drtmpt {
       
     // Das Ganze fuer die Zeiten
       
-    test(tt1, tt2, "Posterior predictive checks: latencies");
+    test(tt1.data(), tt2.data(), "Posterior predictive checks: latencies");
     
     // int nq = 1;
     
@@ -1478,47 +1465,15 @@ namespace drtmpt {
         int correct = 0; correct = ((tartype == 0) && (old_new == 1)) || ((tartype > 0) && (old_new == 0));
         meansout << std::setw(3) << old_new << std::setw(3) << tartype << std::setw(3) << bias << std::setw(12) << dXT1(ig, j);
         for (int is = 0; is != sample_size; is++) t2[is] = dXT2(is, ig, j);
-        gsl_sort(t2, 1, sample_size);
-        qv[2] = gsl_stats_median_from_sorted_data(t2, 1, sample_size);
-        double iv[2]; hdi(sample_size, t2, 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, t2, 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
+        gsl_sort(t2.data(), 1, sample_size);
+        qv[2] = gsl_stats_median_from_sorted_data(t2.data(), 1, sample_size);
+        double iv[2]; hdi(sample_size, t2.data(), 0.95, iv); qv[1] = iv[0]; qv[3] = iv[1]; hdi(sample_size, t2.data(), 0.99, iv); qv[0] = iv[0]; qv[4] = iv[1];
         Rprintf("%12.4g%12.4g%12.4g\n", qv[1], qv[2], qv[3]);
         meansout << std::setw(12) << qv[1] << std::setw(12) << qv[2] << std::setw(12) << qv[3] << std::setw(3) << correct << std::endl;
       }
     }
     meansout.close();
     
-    free(tavw);
-    
-    free(t1);
-    free(t2);
-    free(tt1);
-    free(tt2);
-    
-    free(expe);
-    free(rep);
-    free(sobs);
-    free(sexp);
-    free(srep);
-    
-    free(texp);
-    free(trep);
-    free(stobs);
-    free(stexp);
-    free(strep);
-    free(pij);
-    free(onepij);
-    free(x);
-    
-    free(tdaten);
-    free(nobs);
-    free(ntree);
-    free(nrep);
-    free(d);
-    free(drep);
-    free(x1);
-    free(x2);
-    free(xt1);
-    free(xt2);
   }
   
   
@@ -1527,8 +1482,8 @@ namespace drtmpt {
     int exit_status = 0;
     
     
-    double* t1 = 0; if (!(t1 = (double*)malloc(sample_size * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
-    double* t2 = 0; if (!(t2 = (double*)malloc(sample_size * sizeof(double)))) { Rprintf("Allocation failure\n"); exit_status = -1; }
+    std::vector<double> t1(sample_size);
+    std::vector<double> t2(sample_size);
     
     for (int ip = 0; ip != ifreeg; ip++)
     {
@@ -1537,7 +1492,7 @@ namespace drtmpt {
         t2[is] = logit(avwtrans[is_type(ip)], dSAMPLE(is, ip));
         t1[is] = logit(avwtrans[is_type(ip)], dSAMPLE(is, ip + ifreeg));
       }
-      test(t1, t2, "group-tests mu");
+      test(t1.data(), t2.data(), "group-tests mu");
     }
     
     for (int ir = 0; ir != respno; ir++)
@@ -1547,7 +1502,7 @@ namespace drtmpt {
         t2[is] = 1000 * dSAMPLE(is, irmuoff + ir);
         t1[is] = 1000 * dSAMPLE(is, irmuoff + ir + respno);
       }
-      test(t1, t2, "group-tests mu");
+      test(t1.data(), t2.data(), "group-tests mu");
     }
   }
   
@@ -1555,35 +1510,30 @@ namespace drtmpt {
   
   //main
   void diagnosis(const std::vector<trial> & daten, int *idaten, int kerntree, gsl_rng *rst) {
-    int *nks = 0; if (!(nks = (int *)malloc(indi*kerntree * sizeof(int)))) { Rprintf("Allocation failure\n");  }
-    int *jks = 0; if (!(jks = (int *)malloc(kerntree * sizeof(int)))) { Rprintf("Allocation failure\n");  }
-    int *tree2cat = 0; if (!(tree2cat = (int *)malloc(kerntree*kerncat * sizeof(int)))) { Rprintf("Allocation failure\n"); }
+    std::vector<int> nks(indi * kerntree);
+    std::vector<int> jks(kerntree);
+    std::vector<int> tree2cat(kerntree * kerncat);
     
     
 n_all_parameters = icompg*igroup + indi * icompg + (icompg * (icompg + 1)) / 2 + respno*igroup + (respno + 1) * indi + (respno * (respno + 1)) / 2 + 1;
     //                    ma,mv,mw  a,v,w            sig                           rmu     lambdas+sig_t          gam            omega
     
-    double* sample = 0;
+    std::vector<double> sample;
     lies_sample(n_all_parameters, sample);
     
     if (save_diagnose) tests_out.open(TESTSOUT);
-    quantiles(daten, n_all_parameters, sample);
+    quantiles(daten, n_all_parameters, sample.data());
     
     // make nks
     for (int t = 0; t != indi; t++) for (int it = 0; it != kerntree; it++) dNKS(t, it) = 0;
     for (int t = 0; t != indi; t++) for (int j = 0; j != kerncat; j++) dNKS(t, cat2tree[j]) += dIDATEN(t, j);
     for (int it = 0; it != kerntree; it++) jks[it] = 0;
     for (int j = 0; j != kerncat; j++) { dTREE2CAT(cat2tree[j], jks[cat2tree[j]]) = j; jks[cat2tree[j]]++; }
-    aggregate(n_all_parameters, kerntree, idaten, daten, nks, jks, tree2cat, sample, rst);
+    aggregate(n_all_parameters, kerntree, idaten, daten, nks.data(), jks.data(), tree2cat.data(), sample.data(), rst);
     
-    if (DIC) dic(daten, sample);
+    if (DIC) dic(daten, sample.data());
     
     if (save_diagnose) tests_out.close();
-    
-    if (nks) free(nks);
-    if (jks) free(jks);
-    if (tree2cat) free(tree2cat);
-    if (sample) free(sample);
     
   }
 
