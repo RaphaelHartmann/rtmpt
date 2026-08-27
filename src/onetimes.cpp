@@ -484,7 +484,8 @@ namespace drtmpt {
     one_params* pars = (one_params*)params;
     int m = (pars->m);//n = (pars->n), 
     bool restart = (pars->restart);
-    std::vector<std::vector<double>> icdaten = (pars->icdaten);
+    // std::vector<std::vector<double>> icdaten = (pars->icdaten);
+    const std::vector<std::vector<double>>& icdaten = pars->icdaten;
     std::vector<double> x(m);
     int jj = 0, iz = 0;
     for (int itype = 0; itype != 3; itype++) {
@@ -519,7 +520,7 @@ namespace drtmpt {
   
   
   
-  void tby_individuals(const std::vector<trial>& daten, double* avw, double* lambdas, gsl_rng* rst) {
+  void tby_individuals(const std::vector<trial>& daten, double* avw, double* lambdas, std::vector<gsl_rng*>& rsts) {
     
     double size;
     std::vector<double> temp; temp.clear();
@@ -557,6 +558,7 @@ namespace drtmpt {
     /* starting threads while ... */
     for (int ithread = 0; ithread < AmntOfThreads-1; ithread++) {
       threads[ithread] = std::thread([&, ithread]() {
+        gsl_rng* rst = rsts[ithread];
         for (int t = ithread*NperThread; t < (ithread+1)*NperThread; t++) {
           double oldfit = GSL_POSINF;
           
@@ -666,8 +668,10 @@ namespace drtmpt {
     }
     
     /* ... the main thread also runs */
+    gsl_rng* rst = rsts[AmntOfThreads-1];
     for (int t = (AmntOfThreads-1)*NperThread; t < indi; t++) {
       double oldfit = GSL_POSINF;
+      
       
       progress = 1.0*(t+1-(AmntOfThreads-1)*NperThread)/(indi-(AmntOfThreads-1)*NperThread);
       

@@ -528,7 +528,7 @@ namespace drtmpt {
     if (flag == 1) {
       avw_temp.resize(ifreemax * 3 * indi);
       lambdas_temp.resize(indi * (respno + 1));
-      if (generate_or_diagnose) tby_individuals(daten, avw_temp.data(), lambdas_temp.data(), xst);
+      if (generate_or_diagnose) tby_individuals(daten, avw_temp.data(), lambdas_temp.data(), rsts);
     }
     
     for (int ithread = 0; ithread != NOTHREADS; ithread++) {

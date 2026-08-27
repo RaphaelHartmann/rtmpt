@@ -716,7 +716,7 @@ namespace drtmpt {
   //compute convolution of densities
   void convolution2(const std::vector<double> &rts, int pfadlength, int* low_or_up, double* a, double* v, double* w, double mu, double sig, std::vector<double>& pbranch);
   //maximum likelihood estimation of personwise diffusion-model parameters
-  void tby_individuals(const std::vector<trial> &daten, double* avw, double* lambdas, gsl_rng* rst);
+  void tby_individuals(const std::vector<trial> &daten, double* avw, double* lambdas, std::vector<gsl_rng*>& rsts);
   //sample diffusion-model completion times by inverse cum. distr. function method
   double rwiener_diag(int pm, double bound, double a, double v, double w, gsl_rng* rst);
   //compute derivatives of likelihood by diffusion-model parameters

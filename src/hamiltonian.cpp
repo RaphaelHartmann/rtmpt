@@ -15,11 +15,18 @@ namespace drtmpt {
 
   //delete theta and free allocated memory
   void remove_Theta(Theta*& theta) {
-  	gsl_vector_free(theta->hampar);
-  	if (theta->loglambda) free(theta->loglambda);
-  	if (theta->tavw) free(theta->tavw);
-  	if (theta->tlams) free(theta->tlams);
-  	if (theta) free(theta);
+    if (theta == nullptr)
+      return;
+    
+    if (theta->hampar != nullptr)
+      gsl_vector_free(theta->hampar);
+    
+    free(theta->loglambda);
+    free(theta->tavw);
+    free(theta->tlams);
+    
+    free(theta);
+    theta = nullptr;
   }
 
   //copy theta

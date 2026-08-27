@@ -263,7 +263,7 @@ namespace drtmpt {
   	double z = a * wn, phiza = phi(z, a, vn), vn3 = gsl_pow_3(vn);
   	double temp = (-2 * a * phi(0, z, vn) * (2 * vn * a * phi(z, 2 * a, vn) + phi(0, a, vn) * phiza)) * exp(2 * vn * a) / (vn3 * gsl_pow_2(phi(0, a, vn) * phiza));
   	temp += (4 * vn * z * (2 * a - z) * exp(2 * vn * (z + a)) + z * phi(2 * z, 2 * a, vn)) / vn3 / gsl_pow_2(phiza);
-  	if (temp <= 0) {
+  	if (std::isnan(temp) || temp <= 0) {
   //		std::cout << "! " << setw(20) << a << setw(20) << vn << setw(20) << wn << setw(20) << temp << std::endl;
   		temp = 0.1;
   	}

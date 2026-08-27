@@ -1,5 +1,7 @@
 #include "rts.h"
-#include <atomic>
+// #include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 namespace drtmpt {
 
@@ -321,7 +323,11 @@ namespace drtmpt {
     int offset = irun * ireps;
     //set up NOTHREADS chains and run chains
     std::vector<std::thread> threads(NOTHREADS-1);
-    std::atomic<int> curr_order(0);
+    // std::atomic<int> curr_order(0);
+    std::mutex mtx;
+    std::condition_variable cv;
+    int curr_order = 0;
+    
 
     /* starting threads while ... */
     for (int ithread = 0; ithread < NOTHREADS-1; ithread++) {
@@ -354,7 +360,15 @@ namespace drtmpt {
 
         //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
         //r statitstics
-        while (curr_order.load() != ithread) std::this_thread::yield();
+        // while (curr_order.load() != ithread) std::this_thread::yield();
+        {
+          std::unique_lock<std::mutex> lock(mtx);
+          
+          cv.wait(lock, [&] {
+            return curr_order == ithread;
+          });
+        } // Mutex will be freed automatically
+        
         // #pragma omp ordered
 
         int ido = 2;
@@ -381,7 +395,13 @@ namespace drtmpt {
           // valuestore[(ithread + 1) * n_value_store - 3] = exp(epsm);
         }
 
-        curr_order++;
+        // curr_order++;
+        {
+          std::lock_guard<std::mutex> lock(mtx);
+          curr_order++;
+        } // Mutex will be freed automatically
+        cv.notify_all();
+        
         gsl_rng_free(rst);
         gsl_vector_free(hampar);
 
@@ -416,7 +436,15 @@ namespace drtmpt {
 
       //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
       //r statitstics
-      while (curr_order.load() != NOTHREADS-1) {}
+      // while (curr_order.load() != NOTHREADS-1) {}
+      {
+        std::unique_lock<std::mutex> lock(mtx);
+        
+        cv.wait(lock, [&] {
+          return curr_order == ithread;
+        });
+      } // Mutex will be freed automatically
+      
       // #pragma omp ordered
 
       int ido = 2;
@@ -447,7 +475,13 @@ namespace drtmpt {
         // valuestore[(NOTHREADS) * n_value_store - 3] = exp(epsm);
       }
 
-      curr_order++;
+      // curr_order++;
+      {
+        std::lock_guard<std::mutex> lock(mtx);
+        curr_order++;
+      } // Mutex will be freed automatically
+      cv.notify_all();
+
       gsl_rng_free(rst);
       gsl_vector_free(hampar);
 
