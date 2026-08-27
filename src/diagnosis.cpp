@@ -167,12 +167,13 @@ namespace ertmpt {
   	Rprintf("%12.4g%12.4g%12.4g\n", grand, s, salph);
   	if (save_diagnose) {
   		tests_out << "Daten: Mean, Residual Variance, Due to Individual differences " << std::endl;
-  		tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
+   		tests_out << std::setw(12) << grand << std::setw(12) << s << std::setw(12) << salph << std::endl;
   	}
-  
+
+  	R_CheckUserInterrupt();
 
   }
-  
+   
   void make_pij_for_one_trial_new(trial one, double *x_for_all, double *pij, double &pj) {
   	// berechnet  p
   
@@ -304,7 +305,9 @@ namespace ertmpt {
   		// if (log_lik_flag) log_lik << std::endl;
   		dbar += persample / (SAMPLE_SIZE);
   		pv += gsl_pow_2(persample) / (SAMPLE_SIZE);
-  	}
+		R_CheckUserInterrupt();
+	}
+
   
   	double xn = SAMPLE_SIZE * 1.0;
   	pv = pv - gsl_pow_2(dbar); pv = xn / (xn - 1.0)*pv; pv = 0.5*pv;

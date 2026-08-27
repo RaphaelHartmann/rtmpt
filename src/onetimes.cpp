@@ -294,8 +294,9 @@ namespace ertmpt {
   		Rprintf("] 0%%");
   	}
   
-  	for (int t = 0; t != indi; t++) {
-  		restart = false;
+	for (int t = 0; t != indi; t++) {
+		R_CheckUserInterrupt();
+		restart = false;
   		itdaten.clear();
   		for (int ix = 0; ix != static_cast<int>(daten.size()); ix++) if (daten[ix].person == t) itdaten.push_back(daten[ix]);
   
@@ -522,6 +523,8 @@ namespace drtmpt {
   
   void tby_individuals(const std::vector<trial>& daten, double* avw, double* lambdas, std::vector<gsl_rng*>& rsts) {
     
+    cancel_flag.store(false, std::memory_order_relaxed);
+    
     double size;
     std::vector<double> temp; temp.clear();
     std::vector<std::vector<double>> itcdaten(indi * kerncat, temp);
@@ -560,6 +563,7 @@ namespace drtmpt {
       threads[ithread] = std::thread([&, ithread]() {
         gsl_rng* rst = rsts[ithread];
         for (int t = ithread*NperThread; t < (ithread+1)*NperThread; t++) {
+          if (cancel_flag.load(std::memory_order_relaxed)) break;
           double oldfit = GSL_POSINF;
           
           // gsl_vector* xx = gsl_vector_alloc(icompg + 2);
@@ -670,6 +674,13 @@ namespace drtmpt {
     /* ... the main thread also runs */
     gsl_rng* rst = rsts[AmntOfThreads-1];
     for (int t = (AmntOfThreads-1)*NperThread; t < indi; t++) {
+      if (cancel_flag.load(std::memory_order_relaxed)) break;
+
+      if (!R_ToplevelExec(check_user_interrupt, nullptr)) {
+        cancel_flag.store(true, std::memory_order_relaxed);
+        break;
+      }
+
       double oldfit = GSL_POSINF;
       
       
@@ -796,6 +807,12 @@ namespace drtmpt {
     for (int ithread = 0; ithread < AmntOfThreads-1; ithread++) {
       threads[ithread].join();
     }
+
+    if (cancel_flag.load(std::memory_order_relaxed)) {
+      cancel_flag.store(false, std::memory_order_relaxed);
+      Rf_error("user interrupt");
+    }
+
     Rprintf("\n");
     
   }
