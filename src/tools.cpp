@@ -2,6 +2,13 @@
 #include "gauss.h"
 
 #include <cassert>
+#include <atomic>
+
+std::atomic<bool> cancel_flag{false};
+
+void check_user_interrupt(void*) {
+  R_CheckUserInterrupt();
+}
 
 
 //computes log(exp(xa) + exp(xb))

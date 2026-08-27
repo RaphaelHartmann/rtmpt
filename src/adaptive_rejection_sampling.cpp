@@ -2,12 +2,9 @@
 // authors: Christoph Klauer
 
 #include "rts.h"
-#include <mutex>
 
 
 namespace ertmpt {
-
-  std::mutex mtx_R_CUI;
 
 	struct piece {
 		double z;
@@ -176,10 +173,7 @@ namespace ertmpt {
 						one.x -= sign * step;
 						gamma_prior(scale, norm, n, one.x, xp, beta, sigi, lambdas, lams, tt, iz, true, one);
 						dh = sign * one.dh;
-						cnt_while++; if (cnt_while % 1024 == 0) {
-						  std::lock_guard<std::mutex> guard(mtx_R_CUI);
-						  R_CheckUserInterrupt();
-						}
+  					if (cancel_flag.load(std::memory_order_relaxed)) return GSL_NEGINF;
 					}
 					ub = one.x;
 				}
@@ -190,10 +184,7 @@ namespace ertmpt {
 							one.x += sign * step;
 							gamma_prior(scale, norm, n, one.x, xp, beta, sigi, lambdas, lams, tt, iz, true, one);
 							dh = sign * one.dh;
-							cnt_while++; if (cnt_while % 1024 == 0) {
-						  std::lock_guard<std::mutex> guard(mtx_R_CUI);
-						  R_CheckUserInterrupt();
-						}
+  					  if (cancel_flag.load(std::memory_order_relaxed)) return GSL_NEGINF;
 						}
 						lb = one.x;
 					}
@@ -204,10 +195,7 @@ namespace ertmpt {
 					dh = sign * one.dh;
 					if (dh <= 2.0) { lb = one.x; }
 					if (dh >= 5.0) { ub = one.x; }
-					cnt_while++; if (cnt_while % 1024 == 0) {
-						  std::lock_guard<std::mutex> guard(mtx_R_CUI);
-						  R_CheckUserInterrupt();
-						}
+					if (cancel_flag.load(std::memory_order_relaxed)) return GSL_NEGINF;
 				}
 			}
 			if (sign == 1) low.x = one.x; else high.x = one.x;
@@ -220,7 +208,9 @@ namespace ertmpt {
 
 
 		generate_intervals(totallow, h, lower, upper);
-	WEITER:	xstar = oneuni(rst);
+	WEITER:	
+	  if (cancel_flag.load(std::memory_order_relaxed)) return GSL_NEGINF;
+		xstar = oneuni(rst);
 		xstar = inverse_distribution(xstar, upper, flag);
 		if (flag) {
 			scale = scale * 10; start /= 10; Rprintf("NEW0 in ars"); goto NEW;

@@ -15,6 +15,7 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -36,6 +37,9 @@
 
 #include <R.h>
 #include <Rinternals.h>
+
+extern std::atomic<bool> cancel_flag;
+void check_user_interrupt(void*);
 
 //model file path
 extern const char *MODEL;
@@ -92,7 +96,7 @@ struct trial {
 
 
 namespace ertmpt {
-  
+
   int mainx(int *k2f, int *f2k); //int argc, char *argv[]
   
   // #define RAUS "raus"

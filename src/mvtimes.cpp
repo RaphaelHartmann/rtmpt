@@ -747,8 +747,8 @@ namespace ertmpt {
   		Rprintf("_______________");
   	}
   	Rprintf("\n\n");
-  	BURNIN_flag = false;
-  
+	BURNIN_flag = false;
+
 	R_CheckUserInterrupt();
   } // end on_screen3
   
@@ -859,9 +859,17 @@ namespace ertmpt {
   
   
   	// n_all_parameters = ifree*igroup (mu) + 2*ilamfree*igroup (rhos) + (ifree+2*ilamfree)*(ifree+2*ilamfree+1)/2 (sig) + indi*ifree (betas) + indi*2*ilamfree (lambdas) + restparsno (restpars)
-  	for (int i = 0; i != ireps; i++) {
-  
-  
+	for (int i = 0; i != ireps; i++) {
+
+    	if (cancel_flag.load(std::memory_order_relaxed)) break;
+
+    	if (ithread == NOTHREADS - 1) {
+    		if (!R_ToplevelExec(check_user_interrupt, nullptr)) {
+    			cancel_flag.store(true, std::memory_order_relaxed);
+    			break;
+    		}
+    	}
+
   		bool xflag = (i == 0) && (offset == 0) ? true : false;
   		gibbs_full_cycle(daten, factor, mu, lams, beta, sig.data(), rhos, lambdas, ntau, ntau_position, taus.data(), nz, nz_position, nnodes, restpars, slams, xflag, rst);
   
@@ -985,6 +993,7 @@ namespace ertmpt {
   	bool do_burnin = (BURNIN > 0);
   	std::ofstream raus;
   	// std::ofstream raus_bridge;
+  	cancel_flag.store(false, std::memory_order_relaxed);
   
 	std::vector<double> lams(ifree + ilamfree);
 	std::vector<double> slams(respno);
@@ -1129,6 +1138,11 @@ namespace ertmpt {
     /* join threads */
     for (int j = 0; j < NOTHREADS-1; j++) {
       threads[j].join();
+    }
+
+    if (cancel_flag.load(std::memory_order_relaxed)) {
+      cancel_flag.store(false, std::memory_order_relaxed);
+      Rf_error("user interrupt");
     }
   
   

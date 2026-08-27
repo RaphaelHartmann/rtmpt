@@ -75,6 +75,15 @@ namespace drtmpt {
 
     //compute ireps cycles
     for (int i = 0; i != ireps; i++) {
+      if (cancel_flag.load(std::memory_order_relaxed)) break;
+
+      if (ithread == NOTHREADS - 1) {
+        if (!R_ToplevelExec(check_user_interrupt, nullptr)) {
+          cancel_flag.store(true, std::memory_order_relaxed);
+          break;
+        }
+      }
+
       gibbs_full_cycle(change, ars_store, daten, nips, hampar, tavw, tlams, ai, sig.data(), loglambdas, bi, alltaus, rest, gam.data(), omega, paths, liknorm, activeeps, epsm, Hobjective, offset + i + 1, save, rst);
 
       //save parameters in temp in the phase 3 and 4 parameterization
@@ -237,6 +246,8 @@ namespace drtmpt {
   //the sampler
   void gibbs_times_new(const std::vector<trial> & daten,  std::vector<gsl_rng*>& rsts) {
 
+    cancel_flag.store(false, std::memory_order_relaxed);
+
     int irun, ioff, factor;
     //settings for adaptive choice of stepsize
     double xeps = 0.095;
@@ -362,7 +373,12 @@ namespace drtmpt {
     for (int ithread = 0; ithread < NOTHREADS-1; ithread++) {
       threads[ithread].join();
     }
-    
+
+    if (cancel_flag.load(std::memory_order_relaxed)) {
+      cancel_flag.store(false, std::memory_order_relaxed);
+      Rf_error("user interrupt");
+    }
+
 
     // Diagnostics and adaptation bookkeeping mutate shared accumulators.
     // Process them deterministically after all chain states have been stored.
