@@ -81,7 +81,7 @@ struct trial {
 };
 
 
-#define T_rng gsl_rng_ranlxd1
+#define T_rng gsl_rng_ranlxd2
 //for lnnorm.cpp
 #define LNNORM_MAX_X 38.0
 #define LNNORM_MIN_X -1.00e9

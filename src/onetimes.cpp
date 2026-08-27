@@ -481,7 +481,7 @@ namespace drtmpt {
   
   double objfun(const gsl_vector* y, void* params)
   {
-    one_params* pars = (one_params*)params;
+    one_params* pars = static_cast<one_params*>(params);
     int m = (pars->m);//n = (pars->n), 
     bool restart = (pars->restart);
     // std::vector<std::vector<double>> icdaten = (pars->icdaten);

@@ -520,47 +520,48 @@ namespace drtmpt {
 
   //estimate variance-covariance matrix of posterior distribution of parameters
   void make_supersigs(int anz, double* parmonstore, gsl_matrix* supsig, gsl_matrix* sigisqrt) {
-  	// pool
-  	gsl_matrix_view ssig = gsl_matrix_view_array(supersig.data(), NOTHREADS, n_all_parameters * n_all_parameters);
-  	gsl_vector* ones = gsl_vector_alloc(NOTHREADS);
-  	gsl_vector* temp = gsl_vector_alloc(n_all_parameters*n_all_parameters);
-  	gsl_vector_set_all(ones, 1.0/(anz*NOTHREADS));
-  	gsl_blas_dgemv(CblasTrans, 1.0, &ssig.matrix, ones, 0.0, temp);
-
-  	gsl_vector* sums = gsl_vector_alloc(n_all_parameters);
-
-  	gsl_vector_set_zero(sums);
-  	gsl_vector_view parmst = gsl_vector_view_array(parmonstore, NOTHREADS * 2 * n_all_parameters);
-  	for (int k = 0; k != NOTHREADS; k++) {
-  		gsl_vector_view parmstk = gsl_vector_subvector(&parmst.vector, k * 2 * n_all_parameters, n_all_parameters);
-  		gsl_vector_add(sums, &parmstk.vector);
-  	}
-  	gsl_vector* devs = gsl_vector_alloc(n_all_parameters);
-  	gsl_matrix_view temps = gsl_matrix_view_vector(temp, n_all_parameters, n_all_parameters);
-  	gsl_matrix_memcpy(supsig, &temps.matrix);
-
-  	for (int k = 0; k != NOTHREADS; k++) {
-  		gsl_vector_view parmstk = gsl_vector_subvector(&parmst.vector, k * 2 * n_all_parameters, n_all_parameters);
-  		gsl_vector_memcpy(devs, &parmstk.vector);
-  		gsl_blas_daxpy(-1.0 / NOTHREADS, sums, devs);
-  		gsl_blas_dsyr(CblasLower, 1.0/NOTHREADS, devs, supsig);
-  	}
-  	// probably superfluous
-  	for (int i = 0; i != n_all_parameters; i++)
-  		for (int j = 0; j <= i; j++) {
-  			double xtemp = gsl_matrix_get(supsig, i, j);
-  	//		if ((i< icompg) && (i == j)) xtemp *= 1.05;
-  			gsl_matrix_set(supsig, j, i, xtemp);
-
-  		}
-  	gsl_vector_free(ones);
-  	gsl_vector_free(temp);
-  	gsl_vector_free(sums);
-  	gsl_vector_free(devs);
-
-  	gsl_matrix_memcpy(sigisqrt, supsig);
-  	gsl_linalg_cholesky_decomp1(sigisqrt);
-  	gsl_linalg_tri_lower_invert(sigisqrt);
+    // pool
+    
+    gsl_matrix_view ssig = gsl_matrix_view_array(supersig.data(), NOTHREADS, n_all_parameters * n_all_parameters);
+    gsl_vector* ones = gsl_vector_alloc(NOTHREADS);
+    gsl_vector* temp = gsl_vector_alloc(n_all_parameters * n_all_parameters);
+    gsl_vector_set_all(ones, 1.0 / (anz * NOTHREADS));
+    gsl_blas_dgemv(CblasTrans, 1.0, &ssig.matrix, ones, 0.0, temp);
+    
+    gsl_vector* sums = gsl_vector_alloc(n_all_parameters);
+    
+    gsl_vector_set_zero(sums);
+    gsl_vector_view parmst = gsl_vector_view_array(parmonstore, NOTHREADS * 2 * n_all_parameters);
+    for (int k = 0; k != NOTHREADS; k++) {
+      gsl_vector_view parmstk = gsl_vector_subvector(&parmst.vector, k * 2 * n_all_parameters, n_all_parameters);
+      gsl_vector_add(sums, &parmstk.vector);
+    }
+    gsl_vector* devs = gsl_vector_alloc(n_all_parameters);
+    gsl_matrix_view temps = gsl_matrix_view_vector(temp, n_all_parameters, n_all_parameters);
+    gsl_matrix_memcpy(supsig, &temps.matrix);
+    
+    for (int k = 0; k != NOTHREADS; k++) {
+      gsl_vector_view parmstk = gsl_vector_subvector(&parmst.vector, k * 2 * n_all_parameters, n_all_parameters);
+      gsl_vector_memcpy(devs, &parmstk.vector);
+      gsl_blas_daxpy(-1.0 / NOTHREADS, sums, devs);
+      gsl_blas_dsyr(CblasLower, 1.0 / NOTHREADS, devs, supsig);
+    }
+    // probably superfluous
+    for (int i = 0; i != n_all_parameters; i++) {
+      for (int j = 0; j <= i; j++) {
+        double xtemp = gsl_matrix_get(supsig, i, j);
+        gsl_matrix_set(supsig, j, i, xtemp);
+      }
+    }
+    gsl_vector_free(ones);                       
+    gsl_vector_free(temp);
+    gsl_vector_free(sums);
+    gsl_vector_free(devs);
+    
+    gsl_matrix_memcpy(sigisqrt, supsig);
+    gsl_linalg_cholesky_decomp1(sigisqrt);
+    gsl_linalg_tri_lower_invert(sigisqrt);
+    
   }
 
 }

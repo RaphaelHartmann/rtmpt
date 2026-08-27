@@ -1,7 +1,5 @@
 #include "rts.h"
 // #include <atomic>
-#include <mutex>
-#include <condition_variable>
 
 namespace drtmpt {
 
@@ -181,9 +179,10 @@ namespace drtmpt {
         gsl_vector_memcpy(dev2, &t1.vector);
         gsl_blas_daxpy(-1.0, &vparm1.vector, dev2);
 
-        gsl_vector_view ss = gsl_vector_view_array(supersig.data(), NOTHREADS * n_all_parameters * n_all_parameters);
-        gsl_vector_view ssv = gsl_vector_subvector(&ss.vector, ithread * n_all_parameters * n_all_parameters, n_all_parameters * n_all_parameters);
-        gsl_matrix_view ssm = gsl_matrix_view_vector(&ssv.vector, n_all_parameters, n_all_parameters);
+        double* chain_supersig = supersig.data() +
+          static_cast<size_t>(ithread) * n_all_parameters * n_all_parameters;
+        gsl_matrix_view ssm = gsl_matrix_view_array(
+          chain_supersig, n_all_parameters, n_all_parameters);
         gsl_blas_dger(1.0, dev1, dev2, &ssm.matrix);
         gsl_vector_free(dev2);
       }
@@ -321,86 +320,9 @@ namespace drtmpt {
 
     WEITER: irun++;
     int offset = irun * ireps;
-    //set up NOTHREADS chains and run chains
-    std::vector<std::thread> threads(NOTHREADS-1);
-    // std::atomic<int> curr_order(0);
-    std::mutex mtx;
-    std::condition_variable cv;
-    int curr_order = 0;
-    
-
-    /* starting threads while ... */
-    for (int ithread = 0; ithread < NOTHREADS-1; ithread++) {
-      threads[ithread] = std::thread([&, ithread]() {
-        // #pragma omp parallel for ordered shared(phase, offset, ireps, supsig, sigisqrt, supersig, epshelp, rst1,rst2,rst3,rst4,save,sample,ntau,n_value_store,daten ,valuestore,parmonstore,xwbr,imax,rmax,monitor)
-        // 	for (int ithread = 0; ithread < NOTHREADS; ithread++) {
-        gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
-        std::vector<double> tavw(ifreemax * 3 * indi);
-        std::vector<double> tlams(respno * indi);
-        std::vector<double> loglambdas(indi);
-        std::vector<int> paths(datenzahl);
-        std::vector<int> nips(no_patterns * 2 * indi);
-        std::vector<double> ai(icompg);
-        std::vector<double> bi(respno);
-        std::vector<double> parmon(2 * n_all_parameters);
-        std::vector<double> alltaus(ntau);
-        std::vector<double> rest(datenzahl);
-        gsl_rng* rst;
-        rst = gsl_rng_alloc(T_rng);
-
-        double liknorm[6];
-        double epsm, activeeps, Hobjective;
-
-        //run sampler ireps times
-        gsl_rng_memcpy(rst, rsts[ithread]);
-        pop(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
-        gibbs_and_monitor(daten, nips.data(), hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), paths.data(), liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon.data(), rst, ithread, save, sample.data());
-        push(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
-        gsl_rng_memcpy(rsts[ithread], rst);
-
-        //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
-        //r statitstics
-        // while (curr_order.load() != ithread) std::this_thread::yield();
-        {
-          std::unique_lock<std::mutex> lock(mtx);
-          
-          cv.wait(lock, [&] {
-            return curr_order == ithread;
-          });
-        } // Mutex will be freed automatically
-        
-        // #pragma omp ordered
-
-        int ido = 2;
-
-        if (ithread == 0) ido = 1;
-        if (ithread + 1 == NOTHREADS) ido = 3;
-        r_statistic(ido, n_all_parameters, ithread, offset + ireps, parmon.data(), xwbr.data(), rmax, imax);
-
-        //prepare adapt stepsize in phase 1 and phase 3 (each time posterior variance/covariance matrix has been updated)
-        if (((((offset + ireps) % interval) == PHASE1) && (phase % 2 == 1)) && (!(save))) {
-          if (ithread == 0) epshelp = 0.0;
-          epshelp += epsm;
-          valuestore[(ithread + 1) * n_value_store - 3] = exp(epsm);
-        }
-
-        // curr_order++;
-        {
-          std::lock_guard<std::mutex> lock(mtx);
-          curr_order++;
-        } // Mutex will be freed automatically
-        cv.notify_all();
-        
-        gsl_rng_free(rst);
-        gsl_vector_free(hampar);
-
-      });
-    }
-
-    /* ... the main thread also runs */
-    {
-      int ithread = NOTHREADS - 1;
-
+    // All chains use the same sampling path; the last chain runs on the main thread.
+    std::vector<double> epsms(NOTHREADS);
+    auto run_chain = [&](int ithread) {
       gsl_vector* hampar = gsl_vector_alloc((phase <= 2) ? nhamil : n_all_parameters);
       std::vector<double> tavw(ifreemax * 3 * indi);
       std::vector<double> tlams(respno * indi);
@@ -415,57 +337,47 @@ namespace drtmpt {
       gsl_rng* rst;
       rst = gsl_rng_alloc(T_rng);
 
+      double liknorm[6];
+      double epsm, activeeps, Hobjective;
+
       //run sampler ireps times
       gsl_rng_memcpy(rst, rsts[ithread]);
       pop(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
-      gibbs_and_monitor(daten, nips.data(), hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), paths.data(), liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon.data(), rst, NOTHREADS-1, save, sample.data());
+      gibbs_and_monitor(daten, nips.data(), hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), paths.data(), liknorm, activeeps, epsm, Hobjective, offset, n_all_parameters, parmon.data(), rst, ithread, save, sample.data());
       push(ithread, n_value_store, n_all_parameters, hampar, tavw.data(), tlams.data(), ai.data(), loglambdas.data(), bi.data(), alltaus.data(), rest.data(), datenzahl, paths.data(), nips.data(), liknorm, activeeps, epsm, Hobjective, valuestore.data(), parmon.data(), parmonstore.data());
       gsl_rng_memcpy(rsts[ithread], rst);
-
-
-      //		std::cout << setw(5) << ithread << setw(20) << activeeps << std::endl;
-      //r statitstics
-      // while (curr_order.load() != NOTHREADS-1) {}
-      {
-        std::unique_lock<std::mutex> lock(mtx);
-        
-        cv.wait(lock, [&] {
-          return curr_order == ithread;
-        });
-      } // Mutex will be freed automatically
-      
-      // #pragma omp ordered
-
-      int ido = 2;
-
-      if (ithread == 0) ido = 1;
-      if (ithread + 1 == NOTHREADS) ido = 3;
-
-      r_statistic(ido, n_all_parameters, NOTHREADS-1, offset + ireps, parmon.data(), xwbr.data(), rmax, imax);
-
-      //prepare adapt stepsize in phase 1 and phase 3 (each time posterior variance/covariance matrix has been updated)
-      if (((((offset + ireps) % interval) == PHASE1) && (phase % 2 == 1)) && (!(save))) {
-        // if (NOTHREADS-1 == 0) epshelp = 0.0;
-        if (ithread == 0) epshelp = 0.0;
-        epshelp += epsm;
-        valuestore[(ithread + 1) * n_value_store - 3] = exp(epsm);
-      }
-
-      // curr_order++;
-      {
-        std::lock_guard<std::mutex> lock(mtx);
-        curr_order++;
-      } // Mutex will be freed automatically
-      cv.notify_all();
-
+      epsms[ithread] = epsm;
       gsl_rng_free(rst);
       gsl_vector_free(hampar);
+    };
 
+    std::vector<std::thread> threads;
+    threads.reserve(NOTHREADS - 1);
+    for (int ithread = 0; ithread < NOTHREADS - 1; ithread++) {
+      threads.emplace_back(run_chain, ithread);
     }
 
-    /* join threads */
+    run_chain(NOTHREADS - 1);
+
     for (int ithread = 0; ithread < NOTHREADS-1; ithread++) {
       threads[ithread].join();
+    }
+    
+
+    // Diagnostics and adaptation bookkeeping mutate shared accumulators.
+    // Process them deterministically after all chain states have been stored.
+    for (int ithread = 0; ithread < NOTHREADS; ithread++) {
+      int ido = 2;
+      if (ithread == 0) ido = 1;
+      if (ithread + 1 == NOTHREADS) ido = 3;
+      double* parmon = parmonstore.data() + ithread * 2 * n_all_parameters;
+      r_statistic(ido, n_all_parameters, ithread, offset + ireps, parmon, xwbr.data(), rmax, imax);
+
+      if (((((offset + ireps) % interval) == PHASE1) && (phase % 2 == 1)) && (!(save))) {
+        if (ithread == 0) epshelp = 0.0;
+        epshelp += epsms[ithread];
+        valuestore[(ithread + 1) * n_value_store - 3] = exp(epsms[ithread]);
+      }
     }
 
     // #pragma omp parallel for ordered shared(phase, offset, ireps, supsig, sigisqrt, supersig, epshelp, rst1,rst2,rst3,rst4,save,sample,ntau,n_value_store,daten ,valuestore,parmonstore,xwbr,imax,rmax,monitor)
