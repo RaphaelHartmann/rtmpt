@@ -381,18 +381,7 @@ namespace drtmpt {
         if (((((offset + ireps) % interval) == PHASE1) && (phase % 2 == 1)) && (!(save))) {
           if (ithread == 0) epshelp = 0.0;
           epshelp += epsm;
-          if (ithread + 1 == NOTHREADS) {
-              epshelp = exp(epshelp / NOTHREADS);
-              for (int itr = 0; itr < NOTHREADS; itr++) {
-                  valuestore[(itr + 1) * n_value_store - 3] = epshelp;
-                  // std::cout << std::setw(20) << epshelp;
-                  if (DEBUG) if (!(epshelp == epshelp)) {
-                      char x;
-                      std::cin >> x;
-                  }
-              }
-          }
-          // valuestore[(ithread + 1) * n_value_store - 3] = exp(epsm);
+          valuestore[(ithread + 1) * n_value_store - 3] = exp(epsm);
         }
 
         // curr_order++;
@@ -459,20 +448,7 @@ namespace drtmpt {
         // if (NOTHREADS-1 == 0) epshelp = 0.0;
         if (ithread == 0) epshelp = 0.0;
         epshelp += epsm;
-
-        if (ithread + 1 == NOTHREADS) {
-            epshelp = exp(epshelp / NOTHREADS);
-            for (int itr = 0; itr < NOTHREADS; itr++) {
-                valuestore[(itr + 1) * n_value_store - 3] = epshelp;
-                // std::cout << std::setw(20) << epshelp;
-                if (DEBUG) if (!(epshelp == epshelp)) {
-                    char x;
-                    std::cin >> x;
-                }
-            }
-        }
-        // epshelp += epsm;
-        // valuestore[(NOTHREADS) * n_value_store - 3] = exp(epsm);
+        valuestore[(ithread + 1) * n_value_store - 3] = exp(epsm);
       }
 
       // curr_order++;
