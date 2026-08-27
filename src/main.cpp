@@ -648,7 +648,11 @@ namespace drtmpt {
 
     //	for (int t = 0; t != indi; t++) for (int j = 0; j != kerncat; j++) tmincat.push_back(GSL_POSINF);
 
-    for (int i = 0; i != indi * no_patterns * 2; i++) rtmins.push_back(GSL_POSINF);
+    // for (int i = 0; i != indi * no_patterns * 2; i++) rtmins.push_back(GSL_POSINF);
+    rtmins.assign(
+      static_cast<std::size_t>(indi) * no_patterns * 2,
+      GSL_POSINF
+    );
 
     for (int x = 0; x != datenzahl; x++) {
       trial one = daten[x];

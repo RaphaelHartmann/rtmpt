@@ -1,4 +1,5 @@
 #include "gauss.h"
+//#include <utility>
 
 
 //multivariate integration routines
@@ -219,7 +220,7 @@ void integrate_GenzMalik(GenzMalik g, int n, const double* a, const double* b, o
     double I = v * (g.w[0] * f1 + g.w[1] * f2 + g.w[2] * f3 + g.w[3] * f4 + g.w[4] * f5);
     double Idash = v * (g.wd[0] * f1 + g.wd[1] * f2 + g.wd[2] * f3 + g.wd[3] * f4);
     double E = fabs(I - Idash);
-#
+
     int kdivide = 0;
     double deltaf = E / (pow(10, n) * v);
     for (int i = 0; i != n; i++) {
@@ -268,7 +269,7 @@ int hcubature(int integrand(unsigned dim, const double* x, void* p, unsigned fdi
     err[0] = out.err;
     val[0] = out.result;
     // convergence test
-    if ((err[0] <= std::max(reqRelError * fabs(val[0]), reqAbsError)) || ((maxEval!=0) && (numevals >= static_cast<int>(maxEval)))) {
+    if ((err[0] <= std::max(reqRelError * fabs(val[0]), reqAbsError)) || ((maxEval!=0) && (numevals >= maxEval))) {
 //        std::cout << numevals << std::endl;
         return 0;
     }
@@ -302,7 +303,7 @@ int hcubature(int integrand(unsigned dim, const double* x, void* p, unsigned fdi
         val[0] += box1.I + box2.I - box.I;
         err[0] += box1.E + box2.E - box.E;
         numevals += 2 * evals_per_box;
-        if (((err[0] <= std::max(reqRelError * fabs(val[0]), reqAbsError)) || ((maxEval != 0) && (numevals >= static_cast<int>(maxEval)))) || !(std::isfinite(val[0])) ) {
+        if (((err[0] <= std::max(reqRelError * fabs(val[0]), reqAbsError)) || ((maxEval != 0) && (numevals >= maxEval))) || !(std::isfinite(val[0])) ) {
             break;
         }
     }

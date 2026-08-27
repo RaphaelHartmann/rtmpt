@@ -101,6 +101,11 @@ expect_t = function(location, scale, df){
   return(ret)
 }
 
+get.diag.ind <- function(n) {
+  i <- 1:n
+  1 + (i - 1) * (n + 1) - (i - 1) * i / 2
+}
+
 
 #' @importFrom coda effectiveSize gelman.diag
 #' @importFrom stats dnorm pnorm
@@ -169,10 +174,13 @@ writeSummaryERTMPT <- function(x, keep, ...) {
       if (s == 1) {delta[[n]] <- temp[[s]]} else delta[[n]] <- delta[[n]] + temp[[s]]
     }
     delta[[n]] <- delta[[n]] / Nsubj * 1000
-    samp[[n]][, ind_probs] <- pnorm(samp[[n]][, ind_probs])
-    samp[[n]][, ind_taus] <- 1000/(samp[[n]][, ind_taus])
+    ind_SDprobs <- ind_SIGMA[get.diag.ind(Nparams)][1:Nprobs]
+    ind_SDtaus <- ind_SIGMA[get.diag.ind(Nparams)][(Nprobs+1):(Nprobs+Ntaus)]
+    samp[[n]][, ind_probs] <- pnorm(samp[[n]][, ind_probs] / sqrt(1 + (samp[[n]][, ind_SDprobs])^2))
+    samp[[n]][, ind_taus] <- 1000/exp(log(samp[[n]][, ind_taus]) + 0.5*(samp[[n]][, ind_SDtaus])^2)
     samp[[n]][, ind_SIGMA] <- StddevCorr2Cov(samp[[n]][, ind_SIGMA], Nparams, corrs, sds)
-    samp[[n]][, ind_resps] <- 1000*(samp[[n]][, ind_resps])
+    ind_SDresps <- ind_GAMMA[get.diag.ind(Nresps)]
+    samp[[n]][, ind_resps] <- 1000*(samp[[n]][, ind_resps]) * samp[[n]][, ind_SDresps] * (dnorm(0)) * 2 # 2 = 1/(1-0.5)
     samp[[n]][, ind_GAMMA] <- StddevCorr2Cov(samp[[n]][, ind_GAMMA], Nresps, corrsR, sdsR)
   }
   
