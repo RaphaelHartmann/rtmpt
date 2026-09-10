@@ -525,7 +525,7 @@ namespace drtmpt {
     
     cancel_flag.store(false, std::memory_order_relaxed);
     
-    double size;
+    // double size;
     std::vector<double> temp; temp.clear();
     std::vector<std::vector<double>> itcdaten(indi * kerncat, temp);
     
@@ -627,7 +627,7 @@ namespace drtmpt {
               status = gsl_multimin_fminimizer_iterate(s);
               if (status)
                 break;
-              size = gsl_multimin_fminimizer_size(s);
+              double size = gsl_multimin_fminimizer_size(s);
               status = gsl_multimin_test_size(size, 1e-3);
               
               if (restart)
@@ -747,7 +747,7 @@ namespace drtmpt {
           status = gsl_multimin_fminimizer_iterate(s);
           if (status)
             break;
-          size = gsl_multimin_fminimizer_size(s);
+          double size = gsl_multimin_fminimizer_size(s);
           status = gsl_multimin_test_size(size, 1e-3);
           
           if (restart)

@@ -61,6 +61,8 @@ mkShell {
     cmake
     pkg-config
     gdb
+    gdbgui
+    radian
     valgrind
     rr
   ] ++ rPkgs;
@@ -84,9 +86,9 @@ PKG_CFLAGS = $(GSL_CFLAGS)
 PKG_CXXFLAGS = $(GSL_CFLAGS)
 PKG_LIBS = $(GSL_LIBS)
 CXX_STD = CXX11
-CXXFLAGS += -ggdb -O1 -fno-omit-frame-pointer
-CFLAGS   += -ggdb -O1 -fno-omit-frame-pointer
-LDFLAGS  += -ggdb
+CXXFLAGS += -ggdb1 -O0 -fno-omit-frame-pointer
+CFLAGS   += -ggdb1 -O0 -fno-omit-frame-pointer
+LDFLAGS  += -ggdb1
 RMAKEVARS
     cat > "$R_LIBS_USER/Makevars/Makevars.asan" <<'RMAKEVARS_ASAN'
 GSL_CFLAGS = $(shell gsl-config --cflags)
@@ -95,9 +97,9 @@ PKG_CFLAGS = $(GSL_CFLAGS) -fsanitize=address -fno-omit-frame-pointer
 PKG_CXXFLAGS = $(GSL_CFLAGS) -fsanitize=address -fno-omit-frame-pointer
 PKG_LIBS = $(GSL_LIBS) -fsanitize=address
 CXX_STD = CXX11
-CXXFLAGS += -ggdb -O1 -fno-omit-frame-pointer
-CFLAGS   += -ggdb -O1 -fno-omit-frame-pointer
-LDFLAGS  += -ggdb
+CXXFLAGS += -ggdb1 -O0 -fno-omit-frame-pointer
+CFLAGS   += -ggdb1 -O0 -fno-omit-frame-pointer
+LDFLAGS  += -ggdb1
 RMAKEVARS_ASAN
     export R_MAKEVARS_USER="$R_LIBS_USER/Makevars/Makevars"
     echo
