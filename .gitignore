@@ -1,10 +1,10 @@
-#Generic R files
+# generic R files
 .Rhistory
 .Rdata
 .Rproj.user
 .RDataTmp
 
-#Rcpp files
+# C++ files
 src/*.o
 src/*.so
 src/*.dll
@@ -13,4 +13,4 @@ src/*.dll
 src-x64/*
 src-i386/*
 
-.positai
+shell.nix
