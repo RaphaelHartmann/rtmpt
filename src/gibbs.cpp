@@ -501,11 +501,23 @@ namespace drtmpt {
     if ((!save) && (rmax <= RMAX) && (offset + ireps >= interval) && ((offset + ireps)%interval >= PHASE1) && (phase == 3)) {
       gsl_vector_view ty = gsl_vector_view_array(supersig.data(), NOTHREADS * n_all_parameters * n_all_parameters);
       gsl_vector_set_zero(&ty.vector);
-      save = true;
       phase = 4;
       std::remove(RAUS);
-      complete_sample.resize(SAMPLE_SIZE * (n_all_parameters));
       goto RESTART;
+    }
+
+    // In phase 4, gate sampling on rmax: stop saving if rmax exceeds RMAX,
+    // resume when it falls back below RMAX
+    if ((phase == 4) && (save) && (rmax > RMAX)) {
+      save = false;
+      ioff = 0;
+      complete_sample.clear();
+      goto WEITER;
+    }
+    if ((phase == 4) && (!save) && (rmax <= RMAX)) {
+      save = true;
+      complete_sample.resize(SAMPLE_SIZE * (n_all_parameters));
+      goto WEITER;
     }
 
     if (!save) goto WEITER;
