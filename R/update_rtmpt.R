@@ -344,9 +344,6 @@ update_drtmpt <- function(fit,
   drtmpt$samples <- mcmc.list(Map(function(o, a) mcmc(rbind(o, a)), fit$samples, tmp_samples))
   remove(tmp_samples)
   
-  file.remove(raus_path)
-  
-  
   # DIAGNOSTICS
   drtmpt$diags <- get_diags_d(diag_file = tests_path, data_info = data_info, keep = old_label, DIC = flags$indices)
   drtmpt$diags$R_hat <- gelman.diag(drtmpt$samples, multivariate = FALSE)
@@ -357,7 +354,8 @@ update_drtmpt <- function(fit,
   drtmpt$specs <- list(model = model, n.chains = n.chains, n.iter = n.iter+fit$specs$n.iter, 
                        n.phase1 = fit$specs$n.phase1, n.phase2 = fit$specs$n.phase2,
                        n.thin = n.thin, n.groups = data_info$Ngroups, n.subj = data_info$Nsubj, Irep = Irep,
-                       Rhat_max = NaN, prior_params = prior_params, infolist = infos, call = match.call())
+                       Rhat_max = NaN, prior_params = prior_params, infolist = infos, flags = flags,
+                       control = control, call = match.call())
   if(exists("transformation")) {
     drtmpt$specs$transformation <- transformation
   }
@@ -381,7 +379,7 @@ update_drtmpt <- function(fit,
   
   # CONTINUATION
   drtmpt$specs$continue <- readLines(con = cont_path)
-  drtmpt$specs$raus <- fit$specs$raus
+  drtmpt$specs$raus <- readLines(con = raus_path)
   drtmpt$specs$rand <- readBin(con = rand_path, what = "raw", n = 1000000)
   file.remove(cont_path)
   suppressWarnings(file.remove(raus_path))

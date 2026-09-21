@@ -657,7 +657,7 @@ namespace drtmpt {
   //sample path (augmented data)
   void make_path(trial one,  int* nips, int itrial, int& path, gsl_vector* hampar,  double *tavw, double* tlams, double* explambda, double *alltaus, double *rest, ars_archiv& ars_store, gsl_rng *rst);
   //show interim results
-  void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *consts, double rmax, int imax, int irun);
+  void on_screen3(int n_all_parameters, double *xwbr, double *parmon, double *consts, double rmax, int imax, int irun, int update_block);
   //initialize: flag = 0 random; flag = 1 using max. lik. personwise parameter estimates
   void initialize(int flag, const std::vector<trial> & daten, double xeps, double* parmonstore, int n_value_store, double* valuestore, std::vector<gsl_rng*>& rsts);
   //compute r-statistcs

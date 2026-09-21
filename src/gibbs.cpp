@@ -462,7 +462,7 @@ namespace drtmpt {
 
     R_CheckUserInterrupt();
     //show interim results
-    on_screen3(n_all_parameters, xwbr.data(), parmon.data(), consts.data(), rmax, imax, irun);
+    on_screen3(n_all_parameters, xwbr.data(), parmon.data(), consts.data(), rmax, imax, irun, ioff + 1);
     R_CheckUserInterrupt();
 
     //from phase 1 to phase 2

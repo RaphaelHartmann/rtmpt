@@ -185,7 +185,7 @@ namespace drtmpt {
   
   
   //show interim results after sampling blocks of size ireps for one thread
-  void on_screen3(int n_all_parameters, double* xwbr, double* parmon, double* consts, double rmax, int imax, int irun) {
+  void on_screen3(int n_all_parameters, double* xwbr, double* parmon, double* consts, double rmax, int imax, int irun, int update_block) {
     
     int jz;
     Rprintf("\nThresholds\n");
@@ -273,18 +273,30 @@ namespace drtmpt {
     Rprintf("\n");
     Rprintf("------------------------\n");
     
-    if (rmax < RMAX && phase == 4) RMAX_reached += 1;
-    else RMAX_reached = 0;
-    double pct_temp = (RMAX_reached>1) ? (100.0*ireps*(RMAX_reached-1)/(1.0*(THIN*SAMPLE_SIZE/NOTHREADS))) : 0.0;
+    if (goon) {
+      //continuation mode (update_drtmpt): sampling starts immediately in phase 4,
+      //so progress is based on blocks saved during this update call
+      //(update_block = ioff + 1; ioff is incremented after each saved block),
+      //not on the convergence counter used by fit_drtmpt
+      double pct_temp = 100.0 * update_block * NOTHREADS * ireps / (1.0 * THIN * ADDITION);
+      if (pct_temp > 100.0) pct_temp = 100.0;
+      Rprintf("max(Rhats): %12g\n", rmax);
+      Rprintf("     Phase: %10d/4\n", phase);
+      Rprintf("Iterations: %12d [sampling: %g%%]\n", (irun + 1)*ireps, pct_temp);
+    } else {
+      if (rmax < RMAX && phase == 4) RMAX_reached += 1;
+      else RMAX_reached = 0;
+      double pct_temp = (RMAX_reached>1) ? (100.0*ireps*(RMAX_reached-1)/(1.0*(THIN*SAMPLE_SIZE/NOTHREADS))) : 0.0;
 
-    Rprintf("max(Rhats): %12g\n", rmax);
-    //std::cout << std::setw(15) << "rmax " << std::setw(15) << rmax << std::endl;
-    Rprintf("     Phase: %10d/4\n", phase);
-    //std::cout << std::setw(15) << "Phase " << std::setw(15) << phase << std::endl;
-    if (phase == 4) Rprintf("Iterations: %12d [sampling: %g%%]\n", (irun + 1)*ireps, pct_temp);
-    else            Rprintf("Iterations: %12d\n", (irun + 1) * ireps);
-    if (RMAX_reached == 0 && phase == 4) Rprintf("Sampling starts when max(Rhats)<%g\n", RMAX);
-    if (RMAX_reached == 1 && phase == 4) Rprintf("Sampling starts now.\n");
+      Rprintf("max(Rhats): %12g\n", rmax);
+      //std::cout << std::setw(15) << "rmax " << std::setw(15) << rmax << std::endl;
+      Rprintf("     Phase: %10d/4\n", phase);
+      //std::cout << std::setw(15) << "Phase " << std::setw(15) << phase << std::endl;
+      if (phase == 4) Rprintf("Iterations: %12d [sampling: %g%%]\n", (irun + 1)*ireps, pct_temp);
+      else            Rprintf("Iterations: %12d\n", (irun + 1) * ireps);
+      if (RMAX_reached == 0 && phase == 4) Rprintf("Sampling starts when max(Rhats)<%g\n", RMAX);
+      if (RMAX_reached == 1 && phase == 4) Rprintf("Sampling starts now.\n");
+    }
     //std::cout << std::setw(15) << "Iterationen " << std::setw(15) << (irun + 1) * ireps << std::endl;
       
     Rprintf("__");
