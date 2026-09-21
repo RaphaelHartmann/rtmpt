@@ -27,6 +27,15 @@ let
     pathsToLink = [ "/library" ];
     ignoreCollisions = true;
   };
+  tex = texlive.combine {
+    inherit (texlive)
+      scheme-small
+      inconsolata
+      latex-bin
+      metafont
+      texinfo
+      times;
+  };
 
   # Build rr from master branch for Arrow Lake (Core Ultra 5 225U) support.
   # rr 5.9.0 does not recognize CPU ID 0xb0650; upstream master already has the fix.
@@ -56,6 +65,7 @@ mkShell {
     gsl.dev
     git
     pandoc
+    tex
     which
     gfortran
     cmake
