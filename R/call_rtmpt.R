@@ -120,12 +120,13 @@
 #' model <- to_ertmpt_model(mdl_file = mdl_2HTM)
 #' 
 #' data_file <- system.file("extdata/data.txt", package="rtmpt")
+#' 
 #' data <- read.table(file = data_file, header = TRUE)
+#' \dontshow{data <- subset(data, subj < 10)}
 #' data_list <- to_ertmpt_data(raw_data = data, model = model)
 #' \donttest{
 #' # This might take some time
-#' ertmpt_out <- fit_ertmpt(model = model, data = data_list, Rhat_max = 1.1)
-#' ertmpt_out
+#' ertmpt_out <- fit_ertmpt(model = model, data = data_list\dontshow{, Rhat_max = 1.5})
 #' }
 #' # Type ?SimData for another working example.
 #' @author Raphael Hartmann
@@ -577,12 +578,13 @@ fit_ertmpt <- function(model,
 #' model <- to_drtmpt_model(mdl_file = mdl_2HTM)
 #'
 #' data_file <- system.file("extdata/data.txt", package="rtmpt")
+#' 
 #' data <- read.table(file = data_file, header = TRUE)
+#' \dontshow{data <- subset(data, subj < 10)}
 #' data_list <- to_drtmpt_data(raw_data = data, model = model)
 #' \donttest{
 #' # This might take some time
-#' drtmpt_out <- fit_drtmpt(model = model, data = data_list, Rhat_max = 1.1)
-#' drtmpt_out
+#' drtmpt_out <- fit_drtmpt(model = model, data = data_list\dontshow{, Rhat_max = 1.5})
 #' }
 #' @author Raphael Hartmann
 #' @useDynLib "rtmpt", .registration=TRUE

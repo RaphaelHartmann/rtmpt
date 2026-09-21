@@ -6,7 +6,3 @@ PKG_CXXFLAGS = -I$(LIB_GSL)/include
 PKG_LIBS = -L$(LIB_GSL)/lib -lgsl -lgslcblas -lR
 
 # CXX_STD = CXX11
-
-#CXXFLAGS += -fsanitize=address -g -O1
-#CFLAGS   += -fsanitize=address -g -O1
-#LDFLAGS  += -fsanitize=address

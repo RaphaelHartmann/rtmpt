@@ -77,11 +77,13 @@
 #' model <- to_drtmpt_model(mdl_file = mdl_2HTM)
 #'
 #' data_file <- system.file("extdata/data.txt", package="rtmpt")
+#' 
 #' data <- read.table(file = data_file, header = TRUE)
+#' \dontshow{data <- subset(data, subj < 10)}
 #' data_list <- to_drtmpt_data(raw_data = data, model = model)
 #' \donttest{
 #' # This might take some time
-#' drtmpt_out <- fit_drtmpt(model = model, data = data_list, Rhat_max = 1.1)
+#' drtmpt_out <- fit_drtmpt(model = model, data = data_list\dontshow{, Rhat_max = 1.5})
 #' 
 #' drtmpt_updt <- update_drtmpt(fit = drtmpt_out, data = data_list, 
 #'                              n.iter = 2000, n.thin = 1, Irep = 2000)

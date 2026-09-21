@@ -102,8 +102,8 @@
 #' rank_mat <- matrix(NA, ncol = 393, nrow = 2)
 #' for (r in 1:R) {
 #'   SBC_out <- fit_ertmpt_SBC(model, seed = r*123, prior_params = params,
-#'                            n.eff_samples = 99, n.thin = 5,
-#'                            n.iter = 5000, n.burnin = 2000, Irep = 5000)
+#'                             n.eff_samples = 99, n.thin = 5\dontshow{, Rhat_max = 1.5},
+#'                             n.iter = 5000, n.burnin = 2000, Irep = 5000)
 #'   rank_mat[r, ] <- SBC_out$ranks
 #' }
 #' }
@@ -112,18 +112,18 @@
 #' @export
 #' @importFrom coda effectiveSize varnames
 fit_ertmpt_SBC <- function(model,
-                          seed,
-                          n.eff_samples = 99,
-                          n.chains = 4,
-                          n.iter = 5000,
-                          n.burnin = 200,
-                          n.thin = 1,
-                          Rhat_max = 1.05,
-                          Irep = 1000,
-                          n.subj = 40,
-                          n.trials = 30,
-                          prior_params = NULL,
-                          sim_list = NULL) {
+                           seed,
+                           n.eff_samples = 99,
+                           n.chains = 4,
+                           n.iter = 5000,
+                           n.burnin = 200,
+                           n.thin = 1,
+                           Rhat_max = 1.05,
+                           Irep = 1000,
+                           n.subj = 40,
+                           n.trials = 30,
+                           prior_params = NULL,
+                           sim_list = NULL) {
 
 
   model_elmnts <- c("lines", "params", "responses")

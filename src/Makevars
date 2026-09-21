@@ -8,7 +8,3 @@ PKG_CXXFLAGS =  $(GSL_CFLAGS)
 PKG_LIBS = $(GSL_LIBS)
 
 # CXX_STD = CXX11
-
-CXXFLAGS += -ggdb -O0
-CFLAGS   += -ggdb -O0
-LDFLAGS  += -ggdb

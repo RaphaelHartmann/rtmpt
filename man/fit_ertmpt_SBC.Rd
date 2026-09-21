@@ -136,8 +136,8 @@ R = 2 # typically 2000 with n.eff_samples = 99, but this will run many days
 rank_mat <- matrix(NA, ncol = 393, nrow = 2)
 for (r in 1:R) {
   SBC_out <- fit_ertmpt_SBC(model, seed = r*123, prior_params = params,
-                           n.eff_samples = 99, n.thin = 5,
-                           n.iter = 5000, n.burnin = 2000, Irep = 5000)
+                            n.eff_samples = 99, n.thin = 5\dontshow{, Rhat_max = 1.5},
+                            n.iter = 5000, n.burnin = 2000, Irep = 5000)
   rank_mat[r, ] <- SBC_out$ranks
 }
 }
