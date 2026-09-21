@@ -108,7 +108,7 @@ update_drtmpt <- function(fit,
   
   if (Irep %% n.thin != 0) stop("\"Irep\" must be a multiple of \"n.thin\".")
   if (n.iter %% (Irep/n.thin) != 0) stop("\"n.iter\" must be a multiple of \"Irep\" / \"n.thin\".")
-  if (n.iter < Irep/n.thin) stop("\"n.iter\" must be greater or equal to \"Irep\" / \"n.thin\" = ", Irep*n.thin, ".")
+  if (n.iter < Irep/n.thin) stop("\"n.iter\" must be greater or equal to \"Irep\" / \"n.thin\" = ", Irep/n.thin, ".")
   
   # if (Rhat_max < 1) stop("\"Rhat_max\" must be larger than or equal to one.")
   
