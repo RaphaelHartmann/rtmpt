@@ -9,6 +9,10 @@ void lieszeile(std::ifstream& rein) {
 void lies(std::vector<trial> &daten)
 {
   std::ifstream rein(DATA);
+  if (!rein.is_open()) {
+    Rf_error("Could not open data file: %s", DATA);
+  }
+  
   lieszeile(rein);
   trial one;
   
@@ -19,12 +23,18 @@ void lies(std::vector<trial> &daten)
   }
   rein.close();
   
+  if (daten.empty()) {
+    Rf_error("Data file contains no readable trials: %s", DATA);
+  }
+  
+  const int n = static_cast<int>(daten.size());
+  
   //int indi, kerntree, kerncat, ntot;
   int kerntree;
   set_ns(daten, indi, kerntree, kerncat, igroup);
   
   bool format = false;
-  for (int ix = 0; ix != datenzahl; ix++) {
+  for (int ix = 0; ix < n; ++ix) {
     trial one = daten[ix];
     if ((one.tree > 0) && (one.category == 0)) {
       format = true;
@@ -48,13 +58,13 @@ void lies(std::vector<trial> &daten)
       //			start = temp;
       tree2cat[it]++;
     }
-    for (int ix = 0; ix != datenzahl; ix++) {
+    for (int ix = 0; ix < n; ++ix) {
       daten[ix].category = (daten[ix].tree == 0) ? daten[ix].category : tree2cat[daten[ix].tree - 1] + daten[ix].category;
     }
   }
   
   std::vector<int>  o;
-  int n = static_cast<int>(daten.size());
+  // int n = static_cast<int>(daten.size());
   for (int i = 0; i != static_cast<int>(daten.size()); i++) o.push_back(daten[i].rt);
   sort(o.begin(),o.end());
   
