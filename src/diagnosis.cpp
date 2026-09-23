@@ -707,7 +707,7 @@ namespace drtmpt {
     rein >> is >> in;
     
     sample.resize(is * n_all_parameters);
-    Rprintf("\nSample size is %20d\n", is);
+    Rprintf("\nTotal sample size is %d x %d = %d\n", NOTHREADS, is / NOTHREADS, is);
     sample_size = is;
     if (in != (n_all_parameters)) Rprintf("HO\n");
     for (int i = 0; i != is; i++)

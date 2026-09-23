@@ -185,7 +185,7 @@ namespace drtmpt {
   
   
   //show interim results after sampling blocks of size ireps for one thread
-  void on_screen3(int n_all_parameters, double* xwbr, double* parmon, double* consts, double rmax, int imax, int irun, int update_block) {
+  void on_screen3(int n_all_parameters, double* xwbr, double* parmon, double* consts, double rmax, int imax, int irun, int update_block, int previous_samples) {
     
     int jz;
     Rprintf("\nThresholds\n");
@@ -278,11 +278,14 @@ namespace drtmpt {
       //so progress is based on blocks saved during this update call
       //(update_block = ioff + 1; ioff is incremented after each saved block),
       //not on the convergence counter used by fit_drtmpt
-      double pct_temp = 100.0 * update_block * NOTHREADS * ireps / (1.0 * THIN * ADDITION);
+      const int update_iterations = update_block * ireps;
+      const int actual_samples = previous_samples + update_iterations / THIN;
+      double pct_temp = 100.0 * update_iterations / (1.0 * THIN * ADDITION / NOTHREADS);
       if (pct_temp > 100.0) pct_temp = 100.0;
       Rprintf("max(Rhats): %12g\n", rmax);
       Rprintf("     Phase: %10d/4\n", phase);
-      Rprintf("Iterations: %12d [sampling: %g%%]\n", (irun + 1)*ireps, pct_temp);
+      Rprintf("Iterations: %12d [sampling: %g%%]\n", update_iterations, pct_temp);
+      Rprintf("Actual samples:%9d\n", actual_samples);
     } else {
       if (rmax < RMAX && phase == 4) RMAX_reached += 1;
       else RMAX_reached = 0;

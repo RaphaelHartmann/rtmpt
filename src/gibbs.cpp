@@ -274,7 +274,7 @@ namespace drtmpt {
     std::vector<double> xwbr(3 * n_all_parameters, 0.0);
     bool save = false;
     // double* complete_sample = 0;
-    int sample_size2;
+    int sample_size2 = 0;
     preptrees(trees);
 
     RESTART:
@@ -462,7 +462,7 @@ namespace drtmpt {
 
     R_CheckUserInterrupt();
     //show interim results
-    on_screen3(n_all_parameters, xwbr.data(), parmon.data(), consts.data(), rmax, imax, irun, ioff + 1);
+    on_screen3(n_all_parameters, xwbr.data(), parmon.data(), consts.data(), rmax, imax, irun, ioff + 1, goon ? sample_size2 / NOTHREADS : 0);
     R_CheckUserInterrupt();
 
     //from phase 1 to phase 2
