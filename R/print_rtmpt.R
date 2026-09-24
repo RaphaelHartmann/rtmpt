@@ -130,6 +130,7 @@ writeSummaryERTMPT <- function(x, keep, ...) {
   Names <- c("Mean", "SD", "2.5%", "50%", "97.5%", "Naive SE", "Time-series SE", "n.eff", "Rhat", "R_95%")
   
   samp <- x$samples
+  samp2 <- x$samples[, 1:(Nprobs*Ngroups)]
   
   # omega squared
   ind_omega2 <- Nparams*Ngroups + Nparams*(Nparams+1)/2 + Nparams*Nsubj + Nresps*Ngroups + 1
@@ -176,7 +177,8 @@ writeSummaryERTMPT <- function(x, keep, ...) {
     delta[[n]] <- delta[[n]] / Nsubj * 1000
     ind_SDprobs <- ind_SIGMA[get.diag.ind(Nparams)][1:Nprobs]
     ind_SDtaus <- ind_SIGMA[get.diag.ind(Nparams)][(Nprobs+1):(Nprobs+Ntaus)]
-    samp[[n]][, ind_probs] <- pnorm(samp[[n]][, ind_probs] / sqrt(1 + (samp[[n]][, ind_SDprobs])^2))
+    samp2[[n]][, ind_probs] <- pnorm(samp[[n]][, ind_probs] / sqrt(1 + (samp[[n]][, ind_SDprobs])^2))
+    samp[[n]][, ind_probs] <- pnorm(samp[[n]][, ind_probs])
     samp[[n]][, ind_taus] <- 1000/exp(log(samp[[n]][, ind_taus]) + 0.5*(samp[[n]][, ind_SDtaus])^2)
     samp[[n]][, ind_SIGMA] <- StddevCorr2Cov(samp[[n]][, ind_SIGMA], Nparams, corrs, sds)
     ind_SDresps <- ind_GAMMA[get.diag.ind(Nresps)]
@@ -186,12 +188,15 @@ writeSummaryERTMPT <- function(x, keep, ...) {
   
   # summary stats
   su <- summary(samp)
+  su2 <- summary(samp2)
   su_orig <- summary(x$samples)
   sudelta <- summary(delta)
   n_eff <- effectiveSize(samp)
+  n_eff2 <- effectiveSize(samp2)
   n_eff_orig <- effectiveSize(x$samples)
   n_eff_delta <- effectiveSize(delta)
   R_hat <- gelman.diag(samp, multivariate = FALSE)
+  R_hat2 <- gelman.diag(samp2, multivariate = FALSE)
   R_hat_delta <- gelman.diag(delta, multivariate = FALSE)
   
   
@@ -206,6 +211,9 @@ writeSummaryERTMPT <- function(x, keep, ...) {
   ind_main <- c(ind_probs, ind_taus)
   main_mat <- cbind(su$statistics[ind_main, c(1,2)], su$quantiles[ind_main, c(1,3,5)], 
                     su$statistics[ind_main, c(3,4)], n_eff[ind_main], R_hat$psrf[ind_main,])
+  main_mat2 <- cbind(su2$statistics[ind_probs, c(1,2)], su2$quantiles[ind_probs, c(1,3,5)], 
+                    su2$statistics[ind_probs, c(3,4)], n_eff2[ind_probs], R_hat2$psrf[ind_probs,])
+  main_mat <- rbind(main_mat[ind_probs,], main_mat2, main_mat[ind_taus,])
   if (Nresps > 1 | Ngroups > 1) {
 	main_mat <- rbind(main_mat, cbind(sudelta$statistics[, c(1,2)], sudelta$quantiles[, c(1,3,5)], 
                                     sudelta$statistics[, c(3,4)], n_eff_delta, R_hat_delta$psrf))
@@ -214,23 +222,26 @@ writeSummaryERTMPT <- function(x, keep, ...) {
 	                                     sudelta$statistics[c(3,4)], n_eff_delta, R_hat_delta$psrf), nrow = 1))
   }
   colnames(main_mat) <- Names
-  rnams <- c("theta_", "E(tau_minus_", "E(tau_plus_", "E(delta_")
+  rnams <- c("theta_", "E(tau_minus_", "E(tau_plus_", "E(delta_", "E(theta_")
   if (Ngroups == 1) {
     theta_names <- paste0(rnams[1], prob_names)
+    Etheta_names <- paste0(rnams[5], prob_names, ")")
     tau_M_names <- paste0(rnams[2], tauM_names, ")")
     tau_P_names <- paste0(rnams[3], tauP_names, ")")
     delta_names <- paste0(rnams[4], rep(paste0("R", 0:(Nresps-1))), ")")
   } else {
     theta_names <- paste0(rnams[1], prob_names)
+    Etheta_names <- paste0(rnams[5], prob_names)
     tau_M_names <- paste0(rnams[2], tauM_names)
     tau_P_names <- paste0(rnams[3], tauP_names)
     delta_names <- paste0(rnams[4], rep(paste0("R", 0:(Nresps-1))))
     theta_names <- paste0(rep(theta_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nprobs))
+    Etheta_names <- paste0(rep(Etheta_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nprobs), ")")
     tau_M_names <- paste0(rep(tau_M_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Ntau_m), ")")
     tau_P_names <- paste0(rep(tau_P_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Ntau_p), ")")
     delta_names <- paste0(rep(delta_names, Ngroups), rep(paste0("[", group_labels, "]"), each=Nresps), ")")
   }
-  rownames(main_mat) <- c(theta_names, tau_M_names, tau_P_names, delta_names)
+  rownames(main_mat) <- c(theta_names, Etheta_names, tau_M_names, tau_P_names, delta_names)
 
   
   ind_main <- c(ind_main, ind_resps)
@@ -782,7 +793,7 @@ printSummaryERTMPT <- function(x, ...) {
   print(x$call)
   cat("\n\n# Residual variance:\n")
   print(round(x$resid_var , x$round))
-  cat("\n\n# Transformed main parameters (probabilities, process times in ms, and motor times in ms):\n")
+  cat("\n\n# Transformed main parameters (median and mean probabilities, mean process times in ms, and mean motor times in ms):\n")
   print(round(x$transformed_pars, x$round))
   cat("\n\n# Group-level parameters on original scale:\n")
   print(round(x$orig_pars, x$round))
